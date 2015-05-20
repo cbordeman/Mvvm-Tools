@@ -3,6 +3,8 @@ A Visual Studio extension to help move between view/viewmodel and other MVVM XAM
 
 Copyright 2015 Chris Bordeman
 
+This extension is available through the Visual Studio extension manager, or at https://visualstudiogallery.msdn.microsoft.com/978ed555-9f0d-44a2-884c-9084844ac469?SRC=VSIDE
+
 LICENSE
 
 This code is covered under the GNU Lesser General Public License.
