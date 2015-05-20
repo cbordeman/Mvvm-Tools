@@ -15,6 +15,7 @@ using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Window = EnvDTE.Window;
 
 namespace MvvmTools.GoToViewOrViewModel
 {
@@ -63,25 +64,33 @@ namespace MvvmTools.GoToViewOrViewModel
         {
             base.OnExecute();
 
-            if (Package.ActiveDocument?.ProjectItem == null)
-                MessageBox.Show("Package.ActiveDocument is null.");
-            else
+            if (Package.ActiveDocument?.ProjectItem != null)
             {
-                string classes = String.Empty;
-                var classesInFile = GetClassesInProjectItem(Package.ActiveDocument.ProjectItem);
-                foreach (var c in classesInFile)
-                    classes += c + "\n";
+                //string classes = String.Empty;
+                //var classesInFile = GetClassesInProjectItem(Package.ActiveDocument.ProjectItem);
+                //foreach (var c in classesInFile)
+                //    classes += c + "\n";
+
+                //var docs = GetRelatedDocuments(Package.ActiveDocument.ProjectItem);
+                //var ds = String.Empty;
+                //foreach (var d in docs)
+                //    ds += d.Type + " in " + d.ProjectItem.Name + "'\n";
+
+                //MessageBox.Show(string.Format("Name: {0}\nFull Name: {1}\nClasses: {2}\nCandidates: {3}",
+                //    Package.ActiveDocument.Name,
+                //    Package.ActiveDocument.FullName,
+                //    classes,
+                //    ds));
 
                 var docs = GetRelatedDocuments(Package.ActiveDocument.ProjectItem);
-                var ds = String.Empty;
-                foreach (var d in docs)
-                    ds += d.Type + " in " + d.ProjectItem.Name + "'\n";
-
-                MessageBox.Show(string.Format("Name: {0}\nFull Name: {1}\nClasses: {2}\nCandidates: {3}",
-                    Package.ActiveDocument.Name,
-                    Package.ActiveDocument.FullName,
-                    classes,
-                    ds));
+                
+                // For now we just open the first document.  Need to build a UI to choose.
+                if (docs.Count > 0)
+                {
+                    var win = docs[0].ProjectItem.Open();
+                    win.Visible = true;
+                    win.Activate();
+                }
             }
         }
 
@@ -104,8 +113,8 @@ namespace MvvmTools.GoToViewOrViewModel
                 !isXaml)
                 return rval;
 
-                // If has children, that is the source file, check that instead.
-                if (pi.ProjectItems != null && pi.ProjectItems.Count != 0)
+            // If has children, that is the source file, check that instead.
+            if (pi.ProjectItems != null && pi.ProjectItems.Count != 0)
                 foreach (ProjectItem p in pi.ProjectItems)
                     pi = p;
 
@@ -122,7 +131,7 @@ namespace MvvmTools.GoToViewOrViewModel
             //MessageBox.Show("about to walk top-level code elements ...");
             for (i = 1; i <= fileCM.CodeElements.Count; i++)
             {
-                elt = elts.Item((object) i);
+                elt = elts.Item((object)i);
                 CollapseElt(rval, elt, elts, i);
             }
 
@@ -151,7 +160,7 @@ namespace MvvmTools.GoToViewOrViewModel
             {
                 ///MessageBox.Show("Got class: " + elt.FullName);
                 CodeClass ct = null;
-                ct = ((CodeClass) (elt));
+                ct = ((CodeClass)(elt));
                 classes.Add(ct.Name);
                 //CodeElements mems = null;
                 //mems = ct.Members;
@@ -165,7 +174,7 @@ namespace MvvmTools.GoToViewOrViewModel
             {
                 //MessageBox.Show("got a namespace, named: " + elt.Name);
                 CodeNamespace cns = null;
-                cns = ((CodeNamespace) (elt));
+                cns = ((CodeNamespace)(elt));
                 //MessageBox.Show("set cns = elt, named: " + cns.Name);
 
                 CodeElements mems_vb = null;
@@ -181,9 +190,9 @@ namespace MvvmTools.GoToViewOrViewModel
         }
 
 
-        private static readonly string[] ViewSuffixes = {"View", "Flyout", "UserControl", "Page"};
+        private static readonly string[] ViewSuffixes = { "View", "Flyout", "UserControl", "Page" };
 
-        public IEnumerable<ProjectItemAndType> GetRelatedDocuments(ProjectItem pi)
+        public List<ProjectItemAndType> GetRelatedDocuments(ProjectItem pi)
         {
             var rval = new List<ProjectItemAndType>();
 
@@ -198,8 +207,7 @@ namespace MvvmTools.GoToViewOrViewModel
 
             // Look for the candidate types in current project only.
             documents = FindDocumentsContainingTypes(
-                Package.ActiveDocument.ProjectItem.ContainingProject,
-                candidateTypeNames);
+                Package.ActiveDocument.ProjectItem.ContainingProject, candidateTypeNames);
 
             // If that fails, look through all projects in the solution.
             if (!documents.Any())
@@ -212,9 +220,7 @@ namespace MvvmTools.GoToViewOrViewModel
                         if (project == Package.ActiveDocument.ProjectItem.ContainingProject)
                             continue;
 
-                        var docs = FindDocumentsContainingTypes(
-                            project,
-                            candidateTypeNames);
+                        var docs = FindDocumentsContainingTypes(project, candidateTypeNames);
                         documents.AddRange(docs);
                     }
                 }
@@ -301,7 +307,7 @@ namespace MvvmTools.GoToViewOrViewModel
                         null, tmpResults);
 
                 // Only search source files.
-                if (!pi.Name.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) && 
+                if (!pi.Name.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) &&
                     !pi.Name.EndsWith(".vb", StringComparison.OrdinalIgnoreCase))
                     continue;
 
@@ -311,8 +317,6 @@ namespace MvvmTools.GoToViewOrViewModel
                 {
                     if (typesToFind.Contains(c, StringComparer.OrdinalIgnoreCase))
                     {
-                        tmpResults.Add(new ProjectItemAndType(pi, c));
-
                         if (parentProjectItem != null)
                         {
                             // Parent is the xaml file corresponding to this xaml.cs.  We save it as a result
@@ -321,6 +325,8 @@ namespace MvvmTools.GoToViewOrViewModel
                             // because they all have null for the type.
                             tmpResults.Add(new ProjectItemAndType(parentProjectItem, null));
                         }
+
+                        tmpResults.Add(new ProjectItemAndType(pi, c));
                     }
                 }
             }
