@@ -11,7 +11,7 @@ This project is released under the terms of the GNU Lesser General Public Licens
 CURRENT FEATURES
 
 1.  Automatically switch between a view and its viewmodel by pressing Ctrl+E, Ctrl+V (configurable). Think 'Ctrl+Editor/View/Viewmodel.'
-2.  Supports VS2010, VS2012, VS2013, and VS2015.
+2.  Supports VS2010, VS2012, VS2013, and VS2015.  Available in the VS Extension manager and at: https://visualstudiogallery.msdn.microsoft.com/978ed555-9f0d-44a2-884c-9084844ac469
 
 GOALS
 
