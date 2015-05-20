@@ -1,7 +1,11 @@
 # Mvvm-Tools
 A Visual Studio extension to help move between view/viewmodel and other MVVM XAML tasks, for any project type.
 
-By Chris Bordeman
+Copyright 2015 Chris Bordeman
+
+LICENSE
+
+This code is covered under the GNU Lesser General Public License.
 
 CURRENT FEATURES
 
