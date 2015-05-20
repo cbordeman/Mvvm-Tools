@@ -67,7 +67,7 @@
         <Parent guid="MvvmToolsPackageCmdSet" id="MyMenuGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
-          <ButtonText>Switch View / ViewModel</ButtonText>
+          <ButtonText>Switch to View / ViewModel</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -86,21 +86,6 @@
   <Symbols>
     <!-- This is the package guid. -->
     <GuidSymbol name="GuidMvvmToolsPackage" value="{e4370a0b-2a09-437a-9d02-04b2d52dc044}" />
-
-
-    <!-- This is the guid used to group the menu commands together -->
-    <!--
-    <GuidSymbol name="GuidMvvMToolsMenuBaseGroup" value="{186512ff-6c4e-42c9-b9a1-032f35109993}">
-      <IDSymbol name="GroupIDMvvMToolsMenuBaseGroup" value="0x1020" />
-    </GuidSymbol>
-
-    -->
-    <!-- These are the command sets for the menu -->
-    <!--
-    <GuidSymbol name="GuidMvvMToolsMenuCleanupGroup" value="{eb1c95fd-1b99-47ab-913a-62e7f69a0319}">
-      <IDSymbol name="GroupIDMvvMToolsMenuCleanupGroup" value="0x1021" />
-    </GuidSymbol>-->
-
 
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="MvvmToolsPackageCmdSet" value="{a244c5bf-b5d1-471b-9189-507dd1c78957}">
