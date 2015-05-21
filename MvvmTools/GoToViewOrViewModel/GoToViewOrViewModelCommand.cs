@@ -1,21 +1,16 @@
 ﻿//------------------------------------------------------------------------------
-// <copyright file="GoToViewOrViewModelCommand.cs" company="Company">
-//     Copyright (c) Company.  All rights reserved.
+// <copyright file="GoToViewOrViewModelCommand.cs" company="Chris Bordeman">
+//     Copyright (c) 2015 Chris Bordeman.  All rights reserved.
 // </copyright>
 //------------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Diagnostics.SymbolStore;
-using System.Globalization;
 using System.Linq;
-using System.Windows;
 using EnvDTE;
-using EnvDTE80;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Window = EnvDTE.Window;
+
+// ReSharper disable HeapView.BoxingAllocation
 
 namespace MvvmTools.GoToViewOrViewModel
 {
@@ -94,12 +89,7 @@ namespace MvvmTools.GoToViewOrViewModel
             }
         }
 
-        /// <summary>
-        /// Returns the non-nested classes in the code editor document.
-        /// </summary>
-        /// <param name="ad"></param>
-        /// <returns></returns>
-        public List<string> GetClassesInProjectItem(ProjectItem pi)
+        private List<string> GetClassesInProjectItem(ProjectItem pi)
         {
             var rval = new List<string>();
 
@@ -123,32 +113,26 @@ namespace MvvmTools.GoToViewOrViewModel
             if (pi?.FileCodeModel == null)
                 return rval;
 
-            FileCodeModel fileCM = pi.FileCodeModel;
+            FileCodeModel fileCm = pi.FileCodeModel;
             CodeElements elts = null;
-            elts = fileCM.CodeElements;
+            elts = fileCm.CodeElements;
             CodeElement elt = null;
             int i = 0;
             //MessageBox.Show("about to walk top-level code elements ...");
-            for (i = 1; i <= fileCM.CodeElements.Count; i++)
+            for (i = 1; i <= fileCm.CodeElements.Count; i++)
             {
-                elt = elts.Item((object)i);
-                CollapseElt(rval, elt, elts, i);
-            }
+                elt = elts.Item(i);
+                CollapseElt(rval, elt, elts, i, isXaml);
 
-            if (isXaml && rval.Count > 1)
-            {
-                // In the Xaml code behind, the first type must be the view type, so no
-                // sense looking at any other types.
-                return new List<string>
-                {
-                    rval[0]
-                };
+                // If a xaml.cs code behind file, the first class must be the view type, so we can stop early.
+                if (isXaml && rval.Count > 0)
+                    break;
             }
 
             return rval;
         }
 
-        public void CollapseElt(List<string> classes, CodeElement elt, CodeElements elts, long loc)
+        private void CollapseElt(List<string> classes, CodeElement elt, CodeElements elts, long loc, bool getFirstClassOnly)
         {
             EditPoint epStart = null;
             EditPoint epEnd = null;
@@ -158,10 +142,10 @@ namespace MvvmTools.GoToViewOrViewModel
             epStart.EndOfLine();
             if (((elt.IsCodeType) && (elt.Kind == vsCMElement.vsCMElementClass)))
             {
-                ///MessageBox.Show("Got class: " + elt.FullName);
                 CodeClass ct = null;
                 ct = ((CodeClass)(elt));
                 classes.Add(ct.Name);
+
                 //CodeElements mems = null;
                 //mems = ct.Members;
                 //int i = 0;
@@ -182,15 +166,19 @@ namespace MvvmTools.GoToViewOrViewModel
                 //MessageBox.Show("got cns.members");
                 int i = 0;
 
+                // Loop through child classes.
                 for (i = 1; i <= cns.Members.Count; i++)
                 {
-                    CollapseElt(classes, mems_vb.Item(i), mems_vb, i);
+                    CollapseElt(classes, mems_vb.Item(i), mems_vb, i, getFirstClassOnly);
+                    
+                    // If a xaml.cs code behind file, the first class must be the view type, so we can stop early.
+                    if (getFirstClassOnly && classes.Count > 0)
+                        return;
                 }
             }
         }
 
-
-        private static readonly string[] ViewSuffixes = { "View", "Flyout", "UserControl", "Page" };
+        private static readonly string[] ViewSuffixes = { "View", "Flyout", "UserControl", "Page", "Window" };
 
         public List<ProjectItemAndType> GetRelatedDocuments(ProjectItem pi)
         {
