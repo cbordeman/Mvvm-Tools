@@ -33,11 +33,11 @@
 
     <!-- Menu section definition -->
     <Menus>
-      <Menu guid="MvvmToolsPackageCmdSet" id="MyMenuGroup" priority="0x0700" type="Menu">
+      <Menu guid="GuidMvvmToolsPackageSubMenuGroup" id="MvvmToolsMenu" priority="0x0700" type="Menu">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_MM_TOOLSADDINS" />
         <Strings>
-          <ButtonText>&amp;MVVM</ButtonText>
-          <CommandName>&amp;MVVM</CommandName>
+          <ButtonText>MVVM Too&amp;ls</ButtonText>
+          <CommandName>MVVM Too&amp;ls</CommandName>
         </Strings>
       </Menu>
     </Menus>
@@ -47,8 +47,11 @@
          group as the part of a menu contained between two lines. The parent of a group 
          must be a menu. -->
     <Groups>
-      <Group guid="MvvmToolsPackageCmdSet" id="MyMenuGroup" priority="0x0600">
-        <Parent guid="MvvmToolsPackageCmdSet" id="MyMenuGroup"/>
+      <Group guid="GuidMvvmToolsPackageSubMenuGroup" id="GoToSubMenu" priority="0x0600">
+        <Parent guid="GuidMvvmToolsPackageSubMenuGroup" id="MvvmToolsMenu"/>
+      </Group>
+      <Group guid="GuidMvvmToolsPackageSubMenuGroup" id="OpsSubMenu" priority="0x0600">
+        <Parent guid="GuidMvvmToolsPackageSubMenuGroup" id="MvvmToolsMenu"/>
       </Group>
     </Groups>
 
@@ -63,11 +66,25 @@
               <CommandFlag>DefaultInvisible</CommandFlag>
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
-      <Button guid="MvvmToolsPackageCmdSet" id="GoToViewOrViewModelCommandId" priority="0x0100" type="Button">
-        <Parent guid="MvvmToolsPackageCmdSet" id="MyMenuGroup" />
+      <Button guid="GuidMvvmToolsPackageSubMenuGroup" id="GoToViewOrViewModelCommandId" priority="0x0100" type="Button">
+        <Parent guid="GuidMvvmToolsPackageSubMenuGroup" id="GoToSubMenu" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
           <ButtonText>Switch to View / ViewModel</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="GuidMvvmToolsPackageSubMenuGroup" id="ScaffoldViewAndViewModelCommandId" priority="0x0200" type="Button">
+        <Parent guid="GuidMvvmToolsPackageSubMenuGroup" id="OpsSubMenu" />
+        <Icon guid="guidImages" id="bmpPic1" />
+        <Strings>
+          <ButtonText>Scaffold New View and ViewModel</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="GuidMvvmToolsPackageSubMenuGroup" id="ExtractViewModelFromViewCommandId" priority="0x0300" type="Button">
+        <Parent guid="GuidMvvmToolsPackageSubMenuGroup" id="OpsSubMenu" />
+        <Icon guid="guidImages" id="bmpPic1" />
+        <Strings>
+          <ButtonText>Extract ViewModel from View</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -87,10 +104,14 @@
     <!-- This is the package guid. -->
     <GuidSymbol name="GuidMvvmToolsPackage" value="{e4370a0b-2a09-437a-9d02-04b2d52dc044}" />
 
-    <!-- This is the guid used to group the menu commands together -->
-    <GuidSymbol name="MvvmToolsPackageCmdSet" value="{a244c5bf-b5d1-471b-9189-507dd1c78957}">
-      <IDSymbol name="MyMenuGroup" value="0x1020" />
+    <!-- These are the guids used to group the menu commands together -->
+    <GuidSymbol name="GuidMvvmToolsPackageSubMenuGroup" value="{a244c5bf-b5d1-471b-9189-507dd1c78957}">
+      <IDSymbol name="MvvmToolsMenu" value="0x1010" />
+      <IDSymbol name="GoToSubMenu" value="0x1020" />
+      <IDSymbol name="OpsSubMenu" value="0x1030" />
       <IDSymbol name="GoToViewOrViewModelCommandId" value="0x0100" />
+      <IDSymbol name="ScaffoldViewAndViewModelCommandId" value="0x0200" />
+      <IDSymbol name="ExtractViewModelFromViewCommandId" value="0x0300" />
     </GuidSymbol>
 
     <GuidSymbol name="guidImages" value="{b8606cd6-2aa8-405a-bc1c-c4df18be9ac9}" >
@@ -104,7 +125,7 @@
   </Symbols>
 
   <KeyBindings>
-    <KeyBinding guid="MvvmToolsPackageCmdSet" id="GoToViewOrViewModelCommandId"
+    <KeyBinding guid="GuidMvvmToolsPackageSubMenuGroup" id="GoToViewOrViewModelCommandId"
         mod1="CONTROL" key1="E" mod2="CONTROL" key2="V" editor="guidVSStd97" />
   </KeyBindings>
 </CommandTable>

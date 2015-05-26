@@ -35,7 +35,7 @@ namespace MvvmTools
         /// <summary>
         /// Gets the hosting package.
         /// </summary>
-        protected MvvmToolsPackage Package { get; private set; }
+        protected MvvmToolsPackage Package { get; set; }
 
         /// <summary>
         /// Gets the service provider from the owner package.

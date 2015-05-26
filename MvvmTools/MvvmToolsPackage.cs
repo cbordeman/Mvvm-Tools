@@ -17,8 +17,7 @@ using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using MvvmTools.GoToViewOrViewModel;
+using MvvmTools.Commands;
 
 namespace MvvmTools
 {
@@ -84,6 +83,9 @@ namespace MvvmTools
         protected override void Initialize()
         {
             GoToViewOrViewModelCommand.Initialize(this);
+            ScaffoldViewAndViewModelCommand.Initialize(this);
+            ExtractViewModelFromViewCommand.Initialize(this);
+
             base.Initialize();
 
             RegisterCommands();
