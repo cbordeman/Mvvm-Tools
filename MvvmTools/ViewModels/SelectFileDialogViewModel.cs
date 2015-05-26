@@ -12,5 +12,15 @@ namespace MvvmTools.ViewModels
         {
             Documents = documents;
         }
+
+        #region SelectedDocument
+        private ProjectItemAndType _selectedDocument;
+        public ProjectItemAndType SelectedDocument
+        {
+            get { return _selectedDocument; }
+            set { SetProperty(ref _selectedDocument, value); }
+        }
+        #endregion SelectedDocument
+
     }
 }

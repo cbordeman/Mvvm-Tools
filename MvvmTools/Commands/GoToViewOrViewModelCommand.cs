@@ -4,16 +4,12 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Input;
-using Microsoft.VisualStudio.PlatformUI;
 using MvvmTools.Utilities;
+using MvvmTools.ViewModels;
+using MvvmTools.Views;
 
 // ReSharper disable HeapView.BoxingAllocation
 
@@ -93,102 +89,19 @@ namespace MvvmTools.Commands
 
         private void PresentViewViewModelOptions(List<ProjectItemAndType> docs)
         {
-            Window window = new DialogWindow
-            {
-                Title = "Select File - MVVM Tools",
-                Width = 600,
-                Height = 300,
-                WindowStartupLocation = WindowStartupLocation.CenterScreen
-            };
-
-            var grid = new Grid {Margin = new Thickness(5, 5, 5, 0)};
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(0, GridUnitType.Auto) });
-            
-            // Choices in a ListBox.
-            var listView = new ListView { ItemsSource = docs };
-            var gv = new GridView();
-            gv.Columns.Add(CreateGridViewColumn("File", ".ProjectItem.Name"));
-            gv.Columns.Add(CreateGridViewColumn("Class", "Type.Class"));
-            gv.Columns.Add(CreateGridViewColumn("Project", "ProjectItem.ContainingProject.Name"));
-            gv.Columns.Add(CreateGridViewColumn("Namespace", "RelativeNamespace"));
-            listView.View = gv;
-            listView.Loaded += (sender, args) =>
-            {
-                listView.Focus();
-                listView.SelectedItem = listView.Items[0];
-                // Have to do this because the ListView doesn't fully select the first item, user would
-                // otherwise have to press down twice to get the selection to move to the second item.
-                KeyboardUtilities.PressKey(listView, Key.Down);
-            };
-            grid.Children.Add(listView);
-
-            // Bottom StackPanel for the OK and Cancel buttons.
-            var btnStackPanel = new StackPanel
-            {
-                HorizontalAlignment = HorizontalAlignment.Right,
-                Margin = new Thickness(0, 10, 0, 0),
-                Orientation = Orientation.Horizontal
-            };
-            Grid.SetRow(btnStackPanel, 1);
-            grid.Children.Add(btnStackPanel);
-
-            // Add OK and Cancel buttons.
-            var okBtn = new DialogButton
-            {
-                Content = "_OK",
-                IsDefault = true,
-                Height = 30,
-                VerticalAlignment = VerticalAlignment.Top
-            };
-
-            okBtn.Click += (sender, args) =>
-            {
-                if (listView.SelectedItem != null)
-                    window.DialogResult = true;
-            };
-            var cancelBtn = new DialogButton
-            {
-                Content = "Cancel",
-                Height = 30,
-                VerticalAlignment = VerticalAlignment.Top
-            };
-            cancelBtn.Click += (sender, args) => { window.DialogResult = false; };
-
-            //// Weirdly, the OK button wants to change to a really tall height.  This line is a hack to make it right.
-            //okBtn.Loaded += (sender, args) => { okBtn.Height = cancelBtn.ActualHeight; };
-
-            btnStackPanel.Children.Add(okBtn);
-            btnStackPanel.Children.Add(cancelBtn);
-
-            window.Content = grid;
+            var window = new SelectFileDialog();
+            var vm = new SelectFileDialogViewModel(docs);
+            window.DataContext = vm;
 
             var result = window.ShowDialog();
 
             if (result.GetValueOrDefault())
             {
                 // Go to the selected project item.
-                var win = ((ProjectItemAndType)listView.SelectedValue).ProjectItem.Open();
+                var win = vm.SelectedDocument.ProjectItem.Open();
                 win.Visible = true;
                 win.Activate();
             }
-        }
-
-        private GridViewColumn CreateGridViewColumn(string header, string binding)
-        {
-            var col = new GridViewColumn { Header = header };
-            //col.HeaderContainerStyle.Setters.Add(new Setter
-            //{
-            //    Property = FrameworkElement.HorizontalAlignmentProperty,
-            //    Value = HorizontalAlignment.Left
-            //});
-            var dt = new DataTemplate();
-            var tbFactory = new FrameworkElementFactory(typeof(TextBlock));
-            tbFactory.SetBinding(TextBlock.TextProperty, new Binding(binding));
-            col.CellTemplate = dt;
-            col.CellTemplate.VisualTree = tbFactory;
-
-            return col;
         }
     }
 }
