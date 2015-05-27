@@ -54,10 +54,12 @@
     <Compile Include="Commands\ScaffoldViewAndViewModelCommand.cs" />
     <Compile Include="Commands\ExtractViewModelFromViewCommand.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="Options\OptionsPageGeneral.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Utilities\DllImports.cs" />
     <Compile Include="Commands\GoToViewOrViewModelCommand.cs" />
     <Compile Include="MvvmToolsPackage.cs" />
-    <Compile Include="MvvmToolsPackageGuids.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\KeyboardUtilities.cs" />
     <Compile Include="Utilities\PathUtilities.cs" />

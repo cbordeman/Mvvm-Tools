@@ -18,6 +18,7 @@ using EnvDTE80;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using MvvmTools.Commands;
+using MvvmTools.Options;
 
 namespace MvvmTools
 {
@@ -39,10 +40,13 @@ namespace MvvmTools
     /// </para>
     /// </remarks>
     [PackageRegistration(UseManagedResourcesOnly = true)]
+    [ProvideOptionPage(typeof(OptionsPageGeneral), "MVVM Tools", "General", 101, 106, true)]
+    [ProvideProfileAttribute(typeof(OptionsPageGeneral), "MVVM Tools", "General", 101, 106, true, DescriptionResourceID = 101)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [Guid(MvvmToolsPackageGuids.PackageGuidString)]
+    [Guid(Constants.GuidPackage)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
+    
     public sealed class MvvmToolsPackage : Package
     {
         /// <summary>
@@ -55,7 +59,7 @@ namespace MvvmTools
             // not sited yet inside Visual Studio environment. The place to do all the other 
             // initialization is the Initialize method.
 
-            Debug.WriteLine("Entering constructor for: {0}", this);
+            Trace.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
 
             if (Application.Current != null)
                 Application.Current.DispatcherUnhandledException += OnDispatcherUnhandledException;

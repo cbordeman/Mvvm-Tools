@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using EnvDTE;
+using EnvDTE80;
 
 namespace MvvmTools.Utilities
 {
@@ -31,75 +32,51 @@ namespace MvvmTools.Utilities
             if (pi?.FileCodeModel == null)
                 return rval;
 
-            FileCodeModel fileCm = pi.FileCodeModel;
-            CodeElements elts = null;
-            elts = fileCm.CodeElements;
-            CodeElement elt = null;
-            int i = 0;
-
             var isXaml = pi.Name.EndsWith(".xaml.cs", StringComparison.OrdinalIgnoreCase);
-            for (i = 1; i <= fileCm.CodeElements.Count; i++)
+            var fileCm = (FileCodeModel2) pi.FileCodeModel;
+            if (fileCm?.CodeElements != null)
             {
-                elt = elts.Item(i);
-                CollapseElt(rval, elt, elts, i, isXaml);
-
-                // If a xaml.cs code behind file, the first class must be the view type, so we can stop early.
-                if (isXaml && rval.Count > 0)
-                    break;
+                foreach (CodeElement2 ce in fileCm.CodeElements)
+                {
+                    ExamineCodeElement(rval, ce, isXaml);
+            
+                    // If a xaml.cs code behind file, the first class must be the view type, so we can stop early.
+                    if (isXaml && rval.Count > 0)
+                        break;
+                }
             }
 
             return rval;
         }
 
-        private static void CollapseElt(List<NamespaceClass> classes, CodeElement elt, CodeElements elts, long loc, bool getFirstClassOnly)
+        // recursively examine code elements
+        private static void ExamineCodeElement(List<NamespaceClass> classes, CodeElement2 codeElement, bool getFirstClassOnly)
         {
-            EditPoint epStart = null;
-            EditPoint epEnd = null;
-            epStart = elt.StartPoint.CreateEditPoint();
-            // Do this because we move it later.
-            epEnd = elt.EndPoint.CreateEditPoint();
-            epStart.EndOfLine();
-
-            var eltKind = elt.Kind;
-
-            if (((elt.IsCodeType) && (elt.Kind == vsCMElement.vsCMElementClass)))
+            try
             {
-                CodeClass ct = null;
-                ct = ((CodeClass)(elt));
-                classes.Add(new NamespaceClass(ct.Namespace.Name, ct.Name));
-
-                //CodeElements mems = null;
-                //mems = ct.Members;
-                //int i = 0;
-                //for (i = 1; i <= ct.Members.Count; i++)
-                //{
-                //    CollapseElt(mems.Item(i), mems, i);
-                //}
-            }
-            else if ((elt.Kind == vsCMElement.vsCMElementNamespace))
-            {
-                //MessageBox.Show("got a namespace, named: " + elt.Name);
-                CodeNamespace cns = null;
-                cns = ((CodeNamespace)(elt));
-                //MessageBox.Show("set cns = elt, named: " + cns.Name);
-
-                CodeElements mems_vb = null;
-                mems_vb = cns.Members;
-                //MessageBox.Show("got cns.members");
-                int i = 0;
-
-                // Loop through child classes.
-                for (i = 1; i <= cns.Members.Count; i++)
+                if (codeElement.Kind == vsCMElement.vsCMElementClass)
                 {
-                    CollapseElt(classes, mems_vb.Item(i), mems_vb, i, getFirstClassOnly);
+                    var ct = (CodeClass2) codeElement;
+                    classes.Add(new NamespaceClass(ct.Namespace.Name, ct.Name));
+                }
+                else if (codeElement.Kind == vsCMElement.vsCMElementNamespace)
+                {
+                    foreach (CodeElement2 childElement in codeElement.Children)
+                    {
+                        ExamineCodeElement(classes, childElement, getFirstClassOnly);
 
-                    // If a xaml.cs code behind file, the first class must be the view type, so we can stop early.
-                    if (getFirstClassOnly && classes.Count > 0)
-                        return;
+                        // If a xaml.cs code behind file, the first class must be the view type, so we can stop early.
+                        if (getFirstClassOnly && classes.Count > 0)
+                            return;
+                    }
                 }
             }
+            catch
+            {
+                //Console.WriteLine(new string('\t', tabs) + "codeElement without name: {0}", codeElement.Kind.ToString());
+            }
         }
-
+        
         public static List<ProjectItemAndType> GetRelatedDocuments(ProjectItem pi, IEnumerable<string> typeNamesInFile)
         {
             var rval = new List<ProjectItemAndType>();
