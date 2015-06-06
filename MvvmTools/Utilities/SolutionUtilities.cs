@@ -32,15 +32,16 @@ namespace MvvmTools.Utilities
             if (pi?.FileCodeModel == null)
                 return rval;
 
-            var isXaml = pi.Name.EndsWith(".xaml.cs", StringComparison.OrdinalIgnoreCase);
-            var fileCm = (FileCodeModel2) pi.FileCodeModel;
+            var isXaml = pi.Name.EndsWith(".xaml.cs", StringComparison.OrdinalIgnoreCase) ||
+                         pi.Name.EndsWith(".xaml.vb", StringComparison.OrdinalIgnoreCase);
+            var fileCm = (FileCodeModel2)pi.FileCodeModel;
             if (fileCm?.CodeElements != null)
             {
                 foreach (CodeElement2 ce in fileCm.CodeElements)
                 {
-                    ExamineCodeElement(rval, ce, isXaml);
-            
-                    // If a xaml.cs code behind file, the first class must be the view type, so we can stop early.
+                    FindClassesRecursive(rval, ce, isXaml);
+
+                    // If a xaml.cs or xaml.vb code behind file, the first class must be the view type, so we can stop early.
                     if (isXaml && rval.Count > 0)
                         break;
                 }
@@ -49,24 +50,24 @@ namespace MvvmTools.Utilities
             return rval;
         }
 
-        // recursively examine code elements
-        private static void ExamineCodeElement(List<NamespaceClass> classes, CodeElement2 codeElement, bool getFirstClassOnly)
+        // Recursively examine code elements.
+        private static void FindClassesRecursive(List<NamespaceClass> classes, CodeElement2 codeElement, bool isXaml)
         {
             try
             {
                 if (codeElement.Kind == vsCMElement.vsCMElementClass)
                 {
-                    var ct = (CodeClass2) codeElement;
+                    var ct = (CodeClass2)codeElement;
                     classes.Add(new NamespaceClass(ct.Namespace.Name, ct.Name));
                 }
                 else if (codeElement.Kind == vsCMElement.vsCMElementNamespace)
                 {
                     foreach (CodeElement2 childElement in codeElement.Children)
                     {
-                        ExamineCodeElement(classes, childElement, getFirstClassOnly);
+                        FindClassesRecursive(classes, childElement, isXaml);
 
-                        // If a xaml.cs code behind file, the first class must be the view type, so we can stop early.
-                        if (getFirstClassOnly && classes.Count > 0)
+                        // If a xaml.cs or xaml.vb code behind file, the first class must be the view type, so we can stop early.
+                        if (isXaml && classes.Count > 0)
                             return;
                     }
                 }
@@ -76,7 +77,7 @@ namespace MvvmTools.Utilities
                 //Console.WriteLine(new string('\t', tabs) + "codeElement without name: {0}", codeElement.Kind.ToString());
             }
         }
-        
+
         public static List<ProjectItemAndType> GetRelatedDocuments(ProjectItem pi, IEnumerable<string> typeNamesInFile)
         {
             var rval = new List<ProjectItemAndType>();
@@ -84,7 +85,7 @@ namespace MvvmTools.Utilities
             var candidateTypeNames = GetTypeCandidates(typeNamesInFile);
 
             // Look for the candidate types in current project first, excluding the selected project item.
-            var documents = FindDocumentsContainingTypes(pi.ContainingProject, pi, candidateTypeNames);
+            var documents = FindDocumentsContainingTypes(pi.ContainingProject, null, pi, candidateTypeNames);
 
             // Then add candidates from the rest of the solution.
             var solution = pi.DTE?.Solution;
@@ -95,7 +96,7 @@ namespace MvvmTools.Utilities
                     if (project == pi.ContainingProject)
                         continue;
 
-                    var docs = FindDocumentsContainingTypes(project, pi, candidateTypeNames);
+                    var docs = FindDocumentsContainingTypes(project, pi.ContainingProject, pi, candidateTypeNames);
                     documents.AddRange(docs);
                 }
             }
@@ -151,16 +152,16 @@ namespace MvvmTools.Utilities
             return candidates;
         }
 
-        public static List<ProjectItemAndType> FindDocumentsContainingTypes(Project project, ProjectItem excludeProjectItem, List<string> typesToFind)
+        public static List<ProjectItemAndType> FindDocumentsContainingTypes(Project project, Project excludeProject, ProjectItem excludeProjectItem, List<string> typesToFind)
         {
             var results = new List<ProjectItemAndType>();
 
-            FindDocumentsContainingTypesRecursive(excludeProjectItem, project.ProjectItems, typesToFind, null, results);
+            FindDocumentsContainingTypesRecursive(excludeProjectItem, excludeProject, project.ProjectItems, typesToFind, null, results);
 
             return results;
         }
 
-        private static void FindDocumentsContainingTypesRecursive(ProjectItem excludeProjectItem, ProjectItems projectItems, List<string> typesToFind, ProjectItem parentProjectItem, List<ProjectItemAndType> results)
+        private static void FindDocumentsContainingTypesRecursive(ProjectItem excludeProjectItem, Project excludeProject, ProjectItems projectItems, List<string> typesToFind, ProjectItem parentProjectItem, List<ProjectItemAndType> results)
         {
             if (typesToFind.Count == 0 || projectItems == null)
                 return;
@@ -173,11 +174,17 @@ namespace MvvmTools.Utilities
                 if (pi == excludeProjectItem)
                     continue;
 
+                // Exclude the project already searched.
+                if (excludeProject != null && pi.ContainingProject != null && 
+                    pi.ContainingProject == excludeProject)
+                    return;
+
                 // Recursive call
                 if (pi.Name.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
-                    FindDocumentsContainingTypesRecursive(excludeProjectItem, pi.ProjectItems, typesToFind, pi, tmpResults);
+                    FindDocumentsContainingTypesRecursive(excludeProjectItem, excludeProject, pi.ProjectItems, typesToFind,
+                        pi, tmpResults);
                 else
-                    FindDocumentsContainingTypesRecursive(excludeProjectItem, pi.ProjectItems ?? pi.SubProject?.ProjectItems, typesToFind,
+                    FindDocumentsContainingTypesRecursive(excludeProjectItem, excludeProject, pi.ProjectItems ?? pi.SubProject?.ProjectItems, typesToFind,
                         null, tmpResults);
 
                 // Only search source files.
@@ -194,7 +201,7 @@ namespace MvvmTools.Utilities
                     {
                         if (!xamlSaved && parentProjectItem != null)
                         {
-                            // Parent is the xaml file corresponding to this xaml.cs.  We save it once.
+                            // Parent is the xaml file corresponding to this xaml.cs or xaml.vb.  We save it once.
                             tmpResults.Add(new ProjectItemAndType(parentProjectItem, c));
                             xamlSaved = true;
                         }
@@ -203,7 +210,7 @@ namespace MvvmTools.Utilities
                     }
                 }
             }
-            
+
             results.AddRange(tmpResults);
         }
 
@@ -224,10 +231,10 @@ namespace MvvmTools.Utilities
 
     public class ProjectItemAndType
     {
-        public ProjectItemAndType(ProjectItem projectItem, NamespaceClass fullType)
+        public ProjectItemAndType(ProjectItem projectItem, NamespaceClass type)
         {
             ProjectItem = projectItem;
-            Type = fullType;
+            Type = type;
         }
 
         public ProjectItem ProjectItem { get; set; }
@@ -242,6 +249,11 @@ namespace MvvmTools.Utilities
                 else
                     return Type.Namespace;
             }
+        }
+
+        public override string ToString()
+        {
+            return RelativeNamespace + "." + Type;
         }
     }
 

@@ -33,7 +33,7 @@
 
     <!-- Menu section definition -->
     <Menus>
-      <Menu guid="GuidMvvmToolsPackageSubMenuGroup" id="MvvmToolsMenu" priority="0x0700" type="Menu">
+      <Menu guid="GuidMvvmToolsTopLevelMenuGroup" id="MvvmToolsMenu" priority="0x0700" type="Menu">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_MM_TOOLSADDINS" />
         <Strings>
           <ButtonText>MVVM Too&amp;ls</ButtonText>
@@ -47,11 +47,11 @@
          group as the part of a menu contained between two lines. The parent of a group 
          must be a menu. -->
     <Groups>
-      <Group guid="GuidMvvmToolsPackageSubMenuGroup" id="GoToSubMenu" priority="0x0600">
-        <Parent guid="GuidMvvmToolsPackageSubMenuGroup" id="MvvmToolsMenu"/>
+      <Group guid="GuidMvvmToolsTopLevelMenuGroup" id="GoToSubMenu" priority="0x0600">
+        <Parent guid="GuidMvvmToolsTopLevelMenuGroup" id="MvvmToolsMenu"/>
       </Group>
-      <Group guid="GuidMvvmToolsPackageSubMenuGroup" id="OpsSubMenu" priority="0x0600">
-        <Parent guid="GuidMvvmToolsPackageSubMenuGroup" id="MvvmToolsMenu"/>
+      <Group guid="GuidMvvmToolsTopLevelMenuGroup" id="OpsSubMenu" priority="0x0600">
+        <Parent guid="GuidMvvmToolsTopLevelMenuGroup" id="MvvmToolsMenu"/>
       </Group>
     </Groups>
 
@@ -66,27 +66,27 @@
               <CommandFlag>DefaultInvisible</CommandFlag>
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
-      <Button guid="GuidMvvmToolsPackageSubMenuGroup" id="GoToViewOrViewModelCommandId" priority="0x0100" type="Button">
-        <Parent guid="GuidMvvmToolsPackageSubMenuGroup" id="GoToSubMenu" />
+      <Button guid="GuidMvvmToolsTopLevelMenuGroup" id="GoToViewOrViewModelCommandId" priority="0x0100" type="Button">
+        <Parent guid="GuidMvvmToolsTopLevelMenuGroup" id="GoToSubMenu" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
           <ButtonText>Switch to View / ViewModel</ButtonText>
         </Strings>
       </Button>
-      <Button guid="GuidMvvmToolsPackageSubMenuGroup" id="ScaffoldViewAndViewModelCommandId" priority="0x0200" type="Button">
-        <Parent guid="GuidMvvmToolsPackageSubMenuGroup" id="OpsSubMenu" />
+      <Button guid="GuidMvvmToolsTopLevelMenuGroup" id="ScaffoldViewAndViewModelCommandId" priority="0x0200" type="Button">
+        <Parent guid="GuidMvvmToolsTopLevelMenuGroup" id="OpsSubMenu" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
           <ButtonText>Scaffold New View and ViewModel</ButtonText>
         </Strings>
       </Button>
-      <Button guid="GuidMvvmToolsPackageSubMenuGroup" id="ExtractViewModelFromViewCommandId" priority="0x0300" type="Button">
-        <Parent guid="GuidMvvmToolsPackageSubMenuGroup" id="OpsSubMenu" />
+      <!--<Button guid="GuidMvvmToolsTopLevelMenuGroup" id="ExtractViewModelFromViewCommandId" priority="0x0300" type="Button">
+        <Parent guid="GuidMvvmToolsTopLevelMenuGroup" id="OpsSubMenu" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
           <ButtonText>Extract ViewModel from View</ButtonText>
         </Strings>
-      </Button>
+      </Button>-->
     </Buttons>
 
     <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
@@ -105,7 +105,7 @@
     <GuidSymbol name="GuidMvvmToolsPackage" value="{e4370a0b-2a09-437a-9d02-04b2d52dc044}" />
 
     <!-- These are the guids used to group the menu commands together -->
-    <GuidSymbol name="GuidMvvmToolsPackageSubMenuGroup" value="{a244c5bf-b5d1-471b-9189-507dd1c78957}">
+    <GuidSymbol name="GuidMvvmToolsTopLevelMenuGroup" value="{a244c5bf-b5d1-471b-9189-507dd1c78957}">
       <IDSymbol name="MvvmToolsMenu" value="0x1010" />
       <IDSymbol name="GoToSubMenu" value="0x1020" />
       <IDSymbol name="OpsSubMenu" value="0x1030" />
@@ -125,7 +125,7 @@
   </Symbols>
 
   <KeyBindings>
-    <KeyBinding guid="GuidMvvmToolsPackageSubMenuGroup" id="GoToViewOrViewModelCommandId"
+    <KeyBinding guid="GuidMvvmToolsTopLevelMenuGroup" id="GoToViewOrViewModelCommandId"
         mod1="CONTROL" key1="E" mod2="CONTROL" key2="V" editor="guidVSStd97" />
   </KeyBindings>
 </CommandTable>

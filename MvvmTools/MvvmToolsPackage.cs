@@ -40,18 +40,13 @@ namespace MvvmTools
     /// </para>
     /// </remarks>
     [PackageRegistration(UseManagedResourcesOnly = true)]
-    [ProvideOptionPage(typeof(OptionsPageGeneral), "MVVM Tools", "General", 101, 106, true)]
-    [ProvideProfileAttribute(typeof(OptionsPageGeneral), "MVVM Tools", "General", 101, 106, true, DescriptionResourceID = 101)]
-    [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
+    [ProvideOptionPage(typeof(OptionsPageGeneral), "MVVM Tools", "General", 101, 107, true)]
+    //[InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(Constants.GuidPackage)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
-    
     public sealed class MvvmToolsPackage : Package
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GoToViewOrViewModelCommand"/> class.
-        /// </summary>
         public MvvmToolsPackage()
         {
             // Inside this method you can place any initialization code that does not require 
@@ -74,7 +69,7 @@ namespace MvvmTools
         /// </param>
         private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            Debug.WriteLine("Caught and marked as handled the following DispatcherUnhandledException raised in Visual Studio:\n{0}", e.Exception);
+            Trace.WriteLine(string.Format(CultureInfo.CurrentCulture, "Caught and marked as handled the following DispatcherUnhandledException raised in Visual Studio:\n{0}", e.Exception));
             e.Handled = true;
         }
 
@@ -105,7 +100,8 @@ namespace MvvmTools
             {
                 // Create the individual commands, which internally register for command events.
                 _commands.Add(GoToViewOrViewModelCommand.Instance);
-                
+                _commands.Add(ScaffoldViewAndViewModelCommand.Instance);
+
                 // Add all commands to the menu command service.
                 foreach (var command in _commands)
                 {

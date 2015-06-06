@@ -4,19 +4,15 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
-using EnvDTE;
 using Microsoft.VisualStudio.PlatformUI;
 using MvvmTools.Utilities;
-using Window = System.Windows.Window;
 
 // ReSharper disable HeapView.BoxingAllocation
 

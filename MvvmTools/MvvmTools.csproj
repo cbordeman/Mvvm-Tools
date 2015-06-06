@@ -57,15 +57,26 @@
     <Compile Include="Options\OptionsPageGeneral.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Options\WinFormsHelper.cs" />
+    <Compile Include="Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Utilities\DllImports.cs" />
     <Compile Include="Commands\GoToViewOrViewModelCommand.cs" />
     <Compile Include="MvvmToolsPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\KeyboardUtilities.cs" />
     <Compile Include="Utilities\PathUtilities.cs" />
+    <Compile Include="Utilities\SettingsUtilities.cs" />
     <Compile Include="Utilities\SolutionUtilities.cs" />
     <Compile Include="ViewModels\BaseViewModel.cs" />
+    <Compile Include="ViewModels\OptionsViewModel.cs" />
     <Compile Include="ViewModels\SelectFileDialogViewModel.cs" />
+    <Compile Include="Views\OptionsUserControl.xaml.cs">
+      <DependentUpon>OptionsUserControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\SelectFileDialog.xaml.cs">
       <DependentUpon>SelectFileDialog.xaml</DependentUpon>
     </Compile>
@@ -158,6 +169,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\lib\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.VisualStudio.Settings, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=x86" />
     <Reference Include="Microsoft.VisualStudio.Shell.10.0, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\lib\Microsoft.VisualStudio.Shell.10.0.dll</HintPath>
@@ -223,6 +235,7 @@
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
+    <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
     <VSCTCompile Include="MvvmToolsPackage.vsct">
@@ -231,6 +244,10 @@
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
@@ -247,6 +264,10 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Page Include="Views\OptionsUserControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\SelectFileDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
