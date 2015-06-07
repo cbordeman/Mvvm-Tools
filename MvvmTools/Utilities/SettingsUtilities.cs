@@ -57,7 +57,7 @@ namespace MvvmTools.Utilities
 
         public static void SaveSettings(MvvmToolsSettings settings)
         {
-            if (_userSettingsStore.CollectionExists(SettingsName) == false)
+            if (!_userSettingsStore.CollectionExists(SettingsName))
                 _userSettingsStore.CreateCollection(SettingsName);
 
             SetEnum(GoToViewOrViewModelOptionPropertyName, settings.GoToViewOrViewModelOption);
