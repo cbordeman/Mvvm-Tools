@@ -4,7 +4,9 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using MvvmTools.Utilities;
@@ -73,7 +75,8 @@ namespace MvvmTools.Commands
                     return;
                 }
 
-                if (docs.Count == 1)
+                var settings = SettingsUtilities.LoadSettings();
+                if (docs.Count == 1 || settings.GoToViewOrViewModelOption == GoToViewOrViewModelOption.ChooseFirst)
                 {
                     var win = docs[0].ProjectItem.Open();
                     win.Visible = true;
@@ -82,8 +85,78 @@ namespace MvvmTools.Commands
                     return;
                 }
 
-                // Multiple results, let user choose.
-                PresentViewViewModelOptions(docs);
+                // Multiple results.
+                if (settings.GoToViewOrViewModelOption == GoToViewOrViewModelOption.ShowUi)
+                {
+                    PresentViewViewModelOptions(docs);
+                    return;
+                }
+
+                // If there are more than one .xaml files or there are more than one code
+                // behind files, then we must show the UI.
+                var countXaml = docs.Count(d => d.ProjectItem.Name.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase));
+                if (countXaml > 1)
+                {
+                    PresentViewViewModelOptions(docs);
+                    return;
+                }
+                var countCodeBehind = docs.Count(d => d.ProjectItem.Name.EndsWith(".xaml.cs", StringComparison.OrdinalIgnoreCase) ||
+                                                      d.ProjectItem.Name.EndsWith(".xaml.vb", StringComparison.OrdinalIgnoreCase));
+                if (countCodeBehind > 1)
+                {
+                    PresentViewViewModelOptions(docs);
+                    return;
+                }
+
+                // If the count of files is > 2 now, then we must show UI.
+                var count = docs.Count;
+                if (count > 2)
+                {
+                    PresentViewViewModelOptions(docs);
+                    return;
+                }
+
+                // If the remaining two files are xaml and code behind, we can apply the 
+                // 'prefer xaml' or 'prefer code behind' setting.
+                if (String.Compare(docs[0].ProjectItem.Name, docs[1].ProjectItem.Name + ".cs", StringComparison.OrdinalIgnoreCase) == 0 ||
+                    String.Compare(docs[0].ProjectItem.Name, docs[1].ProjectItem.Name + ".vb", StringComparison.OrdinalIgnoreCase) == 0)
+                {
+                    // First file is code behind, second is XAML.
+                    if (settings.GoToViewOrViewModelOption == GoToViewOrViewModelOption.ChooseCodeBehind)
+                    {
+                        var win = docs[0].ProjectItem.Open();
+                        win.Visible = true;
+                        win.Activate();
+                    }
+                    else
+                    {
+                        var win = docs[1].ProjectItem.Open();
+                        win.Visible = true;
+                        win.Activate();
+                    }
+                }
+                else if (String.Compare(docs[1].ProjectItem.Name, docs[0].ProjectItem.Name + ".cs", StringComparison.OrdinalIgnoreCase) == 0 ||
+                    String.Compare(docs[1].ProjectItem.Name, docs[0].ProjectItem.Name + ".vb", StringComparison.OrdinalIgnoreCase) == 0)
+                {
+                    // First file is XAML, second is code behind.
+                    if (settings.GoToViewOrViewModelOption == GoToViewOrViewModelOption.ChooseXaml)
+                    {
+                        var win = docs[0].ProjectItem.Open();
+                        win.Visible = true;
+                        win.Activate();
+                    }
+                    else
+                    {
+                        var win = docs[1].ProjectItem.Open();
+                        win.Visible = true;
+                        win.Activate();
+                    }
+                }
+                else
+                {
+                    // The two files are unrelated, must show UI.
+                    PresentViewViewModelOptions(docs);
+                }
             }
         }
 
