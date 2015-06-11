@@ -1,15 +1,20 @@
 ﻿using System;
 using System.ComponentModel;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
+using EnvDTE;
+using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
+using MvvmTools.Services;
 using MvvmTools.Utilities;
 using MvvmTools.ViewModels;
 using MvvmTools.Views;
+using Ninject;
 
 namespace MvvmTools.Options
 {
@@ -20,7 +25,7 @@ namespace MvvmTools.Options
     /// </summary>
 	[Guid(Constants.GuidOptionsPage)]
     [ComVisible(true)]
-    public class OptionsPageGeneral : DialogPage
+    internal class OptionsPageGeneral : DialogPage
     {
         #region Fields
 
@@ -28,11 +33,21 @@ namespace MvvmTools.Options
 
         #endregion Fields
 
+        #region Ctor and Init
+
+        public OptionsPageGeneral()
+        {
+            _settingsService = MvvmToolsPackage.Kernel.Get<ISettingsService>();
+        }
+
+        #endregion Ctor and Init
+
         #region Properties
         [Category("General")]
         [Description("If multiple classes are found, show the Select File dialog.  Otherwise just selects the first file.")]
         public bool ShowSelectFileDialog { get; set; } = false;
 
+        private readonly ISettingsService _settingsService;
 
         /// <summary>
         /// Gets the window an instance of DialogPage that it uses as its user interface.
@@ -58,7 +73,7 @@ namespace MvvmTools.Options
                 var optionsControl = new OptionsUserControl();
 
                 // Load settings (from defaults if necessary).
-                var settings = SettingsUtilities.LoadSettings();
+                var settings = _settingsService.LoadSettings();
 
                 // Create, initialize, and bind a view model to our user control.
                 _viewModel = new OptionsViewModel(settings);
@@ -156,7 +171,7 @@ namespace MvvmTools.Options
 
             _viewModel.CheckpointSettings();
             var settings = _viewModel.GetCurrentSettings();
-            SettingsUtilities.SaveSettings(settings);
+            _settingsService.SaveSettings(settings);
             
             //var result = MessageBox.Show(Resources.MessageOnApplyEntered);
 

@@ -4,13 +4,21 @@ using System.Linq;
 using EnvDTE;
 using EnvDTE80;
 
-namespace MvvmTools.Utilities
+namespace MvvmTools.Services
 {
-    internal static class SolutionUtilities
+    internal interface ISolutionService
+    {
+        List<NamespaceClass> GetClassesInProjectItem(ProjectItem pi);
+        List<ProjectItemAndType> GetRelatedDocuments(ProjectItem pi, IEnumerable<string> typeNamesInFile);
+        List<string> GetTypeCandidates(IEnumerable<string> typeNamesInFile);
+        List<ProjectItemAndType> FindDocumentsContainingTypes(Project project, Project excludeProject, ProjectItem excludeProjectItem, List<string> typesToFind);
+    }
+
+    internal class SolutionService : ISolutionService
     {
         private static readonly string[] ViewSuffixes = { "View", "Flyout", "UserControl", "Page", "Window", "Dialog" };
 
-        public static List<NamespaceClass> GetClassesInProjectItem(ProjectItem pi)
+        public List<NamespaceClass> GetClassesInProjectItem(ProjectItem pi)
         {
             var rval = new List<NamespaceClass>();
 
@@ -51,7 +59,7 @@ namespace MvvmTools.Utilities
         }
 
         // Recursively examine code elements.
-        private static void FindClassesRecursive(List<NamespaceClass> classes, CodeElement2 codeElement, bool isXaml)
+        private void FindClassesRecursive(List<NamespaceClass> classes, CodeElement2 codeElement, bool isXaml)
         {
             try
             {
@@ -78,10 +86,8 @@ namespace MvvmTools.Utilities
             }
         }
 
-        public static List<ProjectItemAndType> GetRelatedDocuments(ProjectItem pi, IEnumerable<string> typeNamesInFile)
+        public List<ProjectItemAndType> GetRelatedDocuments(ProjectItem pi, IEnumerable<string> typeNamesInFile)
         {
-            var rval = new List<ProjectItemAndType>();
-
             var candidateTypeNames = GetTypeCandidates(typeNamesInFile);
 
             // Look for the candidate types in current project first, excluding the selected project item.
@@ -101,12 +107,12 @@ namespace MvvmTools.Utilities
                 }
             }
 
-            rval = documents.Distinct(new ProjectItemAndTypeEqualityComparer()).ToList();
+            var rval = documents.Distinct(new ProjectItemAndTypeEqualityComparer()).ToList();
 
             return rval;
         }
 
-        public static List<string> GetTypeCandidates(IEnumerable<string> typeNamesInFile)
+        public List<string> GetTypeCandidates(IEnumerable<string> typeNamesInFile)
         {
             var candidates = new List<string>();
 
@@ -152,7 +158,7 @@ namespace MvvmTools.Utilities
             return candidates;
         }
 
-        public static List<ProjectItemAndType> FindDocumentsContainingTypes(Project project, Project excludeProject, ProjectItem excludeProjectItem, List<string> typesToFind)
+        public List<ProjectItemAndType> FindDocumentsContainingTypes(Project project, Project excludeProject, ProjectItem excludeProjectItem, List<string> typesToFind)
         {
             var results = new List<ProjectItemAndType>();
 
@@ -161,7 +167,7 @@ namespace MvvmTools.Utilities
             return results;
         }
 
-        private static void FindDocumentsContainingTypesRecursive(ProjectItem excludeProjectItem, Project excludeProject, ProjectItems projectItems, List<string> typesToFind, ProjectItem parentProjectItem, List<ProjectItemAndType> results)
+        private void FindDocumentsContainingTypesRecursive(ProjectItem excludeProjectItem, Project excludeProject, ProjectItems projectItems, List<string> typesToFind, ProjectItem parentProjectItem, List<ProjectItemAndType> results)
         {
             if (typesToFind.Count == 0 || projectItems == null)
                 return;
@@ -218,18 +224,19 @@ namespace MvvmTools.Utilities
         {
             public bool Equals(ProjectItemAndType x, ProjectItemAndType y)
             {
-                return x.ProjectItem.Name == y.ProjectItem.Name &&
-                       x.Type == y.Type;
+                return String.Equals(x.ProjectItem.Name, y.ProjectItem.Name, StringComparison.OrdinalIgnoreCase) &&
+                       String.Equals(x.Type.Class, y.Type.Class, StringComparison.OrdinalIgnoreCase) &&
+                       String.Equals(x.Type.Namespace, y.Type.Namespace, StringComparison.OrdinalIgnoreCase);
             }
 
             public int GetHashCode(ProjectItemAndType obj)
             {
-                return (obj.ProjectItem.Name + ";" + obj.Type).GetHashCode();
+                return (obj.ProjectItem.Name + ";" + obj.Type.Namespace + "." + obj.Type.Class).GetHashCode();
             }
         }
     }
 
-    public class ProjectItemAndType
+    internal class ProjectItemAndType
     {
         public ProjectItemAndType(ProjectItem projectItem, NamespaceClass type)
         {
@@ -246,18 +253,12 @@ namespace MvvmTools.Utilities
             {
                 if (Type.Namespace.StartsWith(ProjectItem.ContainingProject.Name))
                     return Type.Namespace.Substring(ProjectItem.ContainingProject.Name.Length);
-                else
-                    return Type.Namespace;
+                return Type.Namespace;
             }
-        }
-
-        public override string ToString()
-        {
-            return RelativeNamespace + "." + Type;
         }
     }
 
-    public class NamespaceClass
+    internal class NamespaceClass
     {
         public NamespaceClass(string @namespace, string @class)
         {

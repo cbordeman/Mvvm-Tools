@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using Controls.ViewModels;
-using MvvmTools.Utilities;
+using MvvmTools.Services;
 
 namespace MvvmTools.ViewModels
 {
@@ -8,7 +8,7 @@ namespace MvvmTools.ViewModels
     {
         private MvvmToolsSettings _checkpointedSettings;
 
-        public OptionsViewModel(MvvmToolsSettings checkpointedSettings)
+        internal OptionsViewModel(MvvmToolsSettings checkpointedSettings)
         {
             _checkpointedSettings = checkpointedSettings;
 
@@ -42,7 +42,7 @@ namespace MvvmTools.ViewModels
         }
         #endregion SelectedGoToViewOrViewModelOption
 
-        public MvvmToolsSettings GetCurrentSettings()
+        internal MvvmToolsSettings GetCurrentSettings()
         {
             // Extracts settings from view model properties.  These are considered the 
             // 'current' settings, while the original settings values are store in

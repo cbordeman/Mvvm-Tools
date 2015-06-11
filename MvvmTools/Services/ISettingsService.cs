@@ -1,30 +1,43 @@
 ﻿using System;
+using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
 
-namespace MvvmTools.Utilities
+namespace MvvmTools.Services
 {
-    public static class SettingsUtilities
+    internal interface ISettingsService
     {
+        MvvmToolsSettings LoadSettings();
+        void SaveSettings(MvvmToolsSettings settings);
+    }
+
+    [Export(typeof(ISettingsService))]
+    internal class SettingsService : ISettingsService
+    {
+        #region Data
         private const string SettingsName = "MvvmToolsSettings";
         private const string GoToViewOrViewModelOptionPropertyName = "GoToViewOrViewModelOption";
+        
+        private readonly WritableSettingsStore _userSettingsStore;
 
-        private static IComponentModel _componentModel;
-        private static SVsServiceProvider _vsServiceProvider;
-        private static ShellSettingsManager _shellSettingsManager;
-        private static WritableSettingsStore _userSettingsStore;
+        #endregion Data
 
-        static SettingsUtilities()
+        #region Ctor and Init
+
+        public SettingsService(IComponentModel componentModel)
         {
-            _componentModel = Package.GetGlobalService(typeof(SComponentModel)) as IComponentModel;
-            _vsServiceProvider = _componentModel.GetService<SVsServiceProvider>();
-            _shellSettingsManager = new ShellSettingsManager(_vsServiceProvider);
-            _userSettingsStore = _shellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
+            var vsServiceProvider = componentModel.GetService<SVsServiceProvider>();
+            var shellSettingsManager = new ShellSettingsManager(vsServiceProvider);
+            _userSettingsStore = shellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
         }
 
-        public static MvvmToolsSettings LoadSettings()
+        #endregion Ctor and Init
+
+        #region Public Methods
+
+        public MvvmToolsSettings LoadSettings()
         {
             var rval = new MvvmToolsSettings();
 
@@ -43,25 +56,31 @@ namespace MvvmTools.Utilities
             return rval;
         }
 
-        private static T GetEnum<T>(string settingName)
-        {
-            var setting = _userSettingsStore.GetString(SettingsName, settingName);
-            var rval = (T)Enum.Parse(typeof(T), setting);
-            return rval;
-        }
-
-        private static void SetEnum<T>(string settingName, T val)
-        {
-            _userSettingsStore.SetString(SettingsName, settingName, val.ToString());
-        }
-
-        public static void SaveSettings(MvvmToolsSettings settings)
+        public void SaveSettings(MvvmToolsSettings settings)
         {
             if (!_userSettingsStore.CollectionExists(SettingsName))
                 _userSettingsStore.CreateCollection(SettingsName);
 
             SetEnum(GoToViewOrViewModelOptionPropertyName, settings.GoToViewOrViewModelOption);
         }
+
+        #endregion Public Methods
+
+        #region Private Helpers
+
+        private T GetEnum<T>(string settingName)
+        {
+            var setting = _userSettingsStore.GetString(SettingsName, settingName);
+            var rval = (T)Enum.Parse(typeof(T), setting);
+            return rval;
+        }
+
+        private void SetEnum<T>(string settingName, T val)
+        {
+            _userSettingsStore.SetString(SettingsName, settingName, val.ToString());
+        }
+
+        #endregion Private Helpers
     }
 
     public class MvvmToolsSettings

@@ -2,6 +2,9 @@
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Shell;
+using MvvmTools.Services;
+using MvvmTools.Utilities;
+using Ninject;
 
 namespace MvvmTools
 {
@@ -17,25 +20,21 @@ namespace MvvmTools
         /// </summary>
         /// <param name="package">The hosting package.</param>
         /// <param name="id">The id for the command.</param>
-        protected BaseCommand(MvvmToolsPackage package, CommandID id)
+        protected BaseCommand(CommandID id)
             : base(BaseCommand_Execute, id)
         {
-            if (package == null)
-                throw new ArgumentNullException("package");
-
-            Package = package;
-
             BeforeQueryStatus += BaseCommand_BeforeQueryStatus;
         }
 
         #endregion Constructors
 
         #region Properties
-        
-        /// <summary>
-        /// Gets the hosting package.
-        /// </summary>
-        protected MvvmToolsPackage Package { get; set; }
+
+        [Inject]
+        public IMvvmToolsPackage Package { protected get; set; }
+
+        [Inject]
+        public ISettingsService SettingsService { protected get; set; }
 
         /// <summary>
         /// Gets the service provider from the owner package.

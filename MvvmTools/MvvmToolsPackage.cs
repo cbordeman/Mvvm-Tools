@@ -6,22 +6,37 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Threading;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using MvvmTools.Commands;
 using MvvmTools.Options;
+using MvvmTools.Services;
+using MvvmTools.Utilities;
+using Ninject;
+using Ninject.Infrastructure;
 
 namespace MvvmTools
 {
+    public interface IMvvmToolsPackage : IVsPackage, Microsoft.VisualStudio.OLE.Interop.IServiceProvider, IOleCommandTarget, IVsPersistSolutionOpts, IServiceContainer, System.IServiceProvider, IVsUserSettings, IVsUserSettingsMigration, IVsToolWindowFactory, IVsToolboxItemProvider
+    {
+        Document ActiveDocument { get; }
+        double IdeVersion { get; }
+        DTE2 Ide { get; }
+    }
+
     /// <summary>
     /// This is the class that implements the package exposed by this assembly.
     /// </summary>
@@ -45,8 +60,20 @@ namespace MvvmTools
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(Constants.GuidPackage)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
-    public sealed class MvvmToolsPackage : Package
+    [Export(typeof(IMvvmToolsPackage))]
+    public sealed class MvvmToolsPackage : Package, IMvvmToolsPackage
     {
+        #region Fields
+
+        #endregion Fields
+
+        #region Ctor and Init
+
+        static MvvmToolsPackage()
+        {
+            Kernel = new StandardKernel();
+        }
+
         public MvvmToolsPackage()
         {
             // Inside this method you can place any initialization code that does not require 
@@ -59,6 +86,50 @@ namespace MvvmTools
             if (Application.Current != null)
                 Application.Current.DispatcherUnhandledException += OnDispatcherUnhandledException;
         }
+
+        #endregion Ctor and Init
+
+        #region Properties
+
+        /// <summary>
+        /// An internal collection of the commands registered by this package.
+        /// </summary>
+        private ICollection<BaseCommand> _commands = new List<BaseCommand>();
+
+        private DTE2 _ide;
+        public DTE2 Ide => _ide ?? (_ide = (DTE2)GetService(typeof(DTE)));
+
+        /// <summary>
+        /// Gets the currently active document, otherwise null.
+        /// </summary>
+        public Document ActiveDocument
+        {
+            get
+            {
+                try
+                {
+                    return Kernel.Get<DTE2>().ActiveDocument;
+                }
+                catch (Exception)
+                {
+                    // If a project property page is active, accessing the ActiveDocument causes an exception.
+                    return null;
+                }
+            }
+        }
+
+        private double _ideVersion;
+        public double IdeVersion => _ideVersion != 0 ? _ideVersion : (_ideVersion = Convert.ToDouble(Ide.Version, CultureInfo.InvariantCulture));
+
+        #region Kernel
+
+        internal static readonly IKernel Kernel;
+
+        #endregion Kernel
+
+        #endregion Properties
+
+        #region Private Helpers
 
         /// <summary>
         /// Called when a DispatcherUnhandledException is raised by Visual Studio.
@@ -73,6 +144,8 @@ namespace MvvmTools
             e.Handled = true;
         }
 
+        #endregion Private Helpers
+
         #region Package Members
 
         /// <summary>
@@ -81,9 +154,22 @@ namespace MvvmTools
         /// </summary>
         protected override void Initialize()
         {
-            GoToViewOrViewModelCommand.Initialize(this);
-            ScaffoldViewAndViewModelCommand.Initialize(this);
-            ExtractViewModelFromViewCommand.Initialize(this);
+            // Set up Ninject container
+
+            // Add package and package specific services.
+            Kernel.Bind<IMvvmToolsPackage>().ToConstant(this);
+            Kernel.Bind<IComponentModel>().ToConstant(GetGlobalService(typeof(SComponentModel)) as IComponentModel);
+            Kernel.Bind<IMenuCommandService>().ToConstant(GetService(typeof(IMenuCommandService)) as OleMenuCommandService);
+
+            // Our own singleton services.
+            Kernel.Bind<ISettingsService>().To<SettingsService>().InSingletonScope();
+            Kernel.Bind<ISolutionService>().To<SolutionService>().InSingletonScope();
+
+            // Commands, which are singletons.
+            Kernel.Bind<GoToViewOrViewModelCommand>().ToSelf().InSingletonScope();
+            Kernel.Bind<ScaffoldViewAndViewModelCommand>().ToSelf().InSingletonScope();
+            Kernel.Bind<ExtractViewModelFromViewCommand>().ToSelf().InSingletonScope();
+
 
             base.Initialize();
 
@@ -95,89 +181,20 @@ namespace MvvmTools
         /// </summary>
         private void RegisterCommands()
         {
-            var menuCommandService = MenuCommandService;
+            var menuCommandService = Kernel.Get<IMenuCommandService>();
             if (menuCommandService != null)
             {
                 // Create the individual commands, which internally register for command events.
-                _commands.Add(GoToViewOrViewModelCommand.Instance);
-                _commands.Add(ScaffoldViewAndViewModelCommand.Instance);
+                _commands.Add(Kernel.Get<GoToViewOrViewModelCommand>());
+                _commands.Add(Kernel.Get<ScaffoldViewAndViewModelCommand>());
+                _commands.Add(Kernel.Get<ExtractViewModelFromViewCommand>());
 
                 // Add all commands to the menu command service.
                 foreach (var command in _commands)
-                {
                     menuCommandService.AddCommand(command);
-                }
             }
         }
 
         #endregion
-
-        #region Data
-
-        /// <summary>
-        /// An internal collection of the commands registered by this package.
-        /// </summary>
-        private readonly ICollection<BaseCommand> _commands = new List<BaseCommand>();
-
-        /// <summary>
-        /// The IComponentModel service.
-        /// </summary>
-        private IComponentModel _componentModel;
-
-        /// <summary>
-        /// Gets the IComponentModel service.
-        /// </summary>
-        public IComponentModel ComponentModel
-        {
-            get { return _componentModel ?? (_componentModel = GetGlobalService(typeof(SComponentModel)) as IComponentModel); }
-        }
-
-        /// <summary>
-        /// Gets the currently active document, otherwise null.
-        /// </summary>
-        public Document ActiveDocument
-        {
-            get
-            {
-                try
-                {
-                    return Ide.ActiveDocument;
-                }
-                catch (Exception)
-                {
-                    // If a project property page is active, accessing the ActiveDocument causes an exception.
-                    return null;
-                }
-            }
-        }
-
-        private DTE2 _ide;
-        /// <summary>
-        /// Gets the top level application instance of the VS IDE that is executing this package.
-        /// </summary>
-        public DTE2 Ide
-        {
-            get { return _ide ?? (_ide = (DTE2)GetService(typeof(DTE))); }
-        }
-
-        /// <summary>
-        /// Gets the version of the running IDE instance.
-        /// </summary>
-        public double IdeVersion => Convert.ToDouble(Ide.Version, CultureInfo.InvariantCulture);
-
-        /// <summary>
-        /// Gets the menu command service.
-        /// </summary>
-        public OleMenuCommandService MenuCommandService
-        {
-            get { return GetService(typeof(IMenuCommandService)) as OleMenuCommandService; }
-        }
-
-        public new object GetGlobalService(Type t)
-        {
-            return Package.GetGlobalService(t);
-        }
-
-        #endregion Data
     }
 }

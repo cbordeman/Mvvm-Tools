@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using Controls.ViewModels;
+using MvvmTools.Services;
 using MvvmTools.Utilities;
 
 namespace MvvmTools.ViewModels
 {
-    public class SelectFileDialogViewModel : BaseViewModel
+    internal class SelectFileDialogViewModel : BaseViewModel
     {
         public List<ProjectItemAndType> Documents { get; set; }
 

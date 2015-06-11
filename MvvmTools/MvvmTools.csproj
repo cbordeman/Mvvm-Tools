@@ -51,6 +51,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BaseCommand.cs" />
+    <Compile Include="Bootstrapper.cs" />
     <Compile Include="Commands\ScaffoldViewAndViewModelCommand.cs" />
     <Compile Include="Commands\ExtractViewModelFromViewCommand.cs" />
     <Compile Include="Constants.cs" />
@@ -69,8 +70,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\KeyboardUtilities.cs" />
     <Compile Include="Utilities\PathUtilities.cs" />
-    <Compile Include="Utilities\SettingsUtilities.cs" />
-    <Compile Include="Utilities\SolutionUtilities.cs" />
+    <Compile Include="Services\ISettingsService.cs" />
+    <Compile Include="Services\ISolutionService.cs" />
     <Compile Include="ViewModels\BaseViewModel.cs" />
     <Compile Include="ViewModels\OptionsViewModel.cs" />
     <Compile Include="ViewModels\SelectFileDialogViewModel.cs" />
@@ -218,12 +219,17 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\lib\Microsoft.VSSDK.UnitTestLibrary.dll</HintPath>
     </Reference>
+    <Reference Include="Ninject, Version=3.2.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
+      <HintPath>..\packages\Ninject.3.2.2.0\lib\net45-full\Ninject.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="stdole, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Data" />
     <Reference Include="System.Design" />
     <Reference Include="System.Drawing" />

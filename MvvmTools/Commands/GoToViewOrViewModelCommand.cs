@@ -6,12 +6,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Windows;
-using MvvmTools.Utilities;
+using MvvmTools.Services;
 using MvvmTools.ViewModels;
 using MvvmTools.Views;
+using Ninject;
 
 // ReSharper disable HeapView.BoxingAllocation
 
@@ -26,25 +26,13 @@ namespace MvvmTools.Commands
         /// Initializes a new instance of the <see cref="GoToViewOrViewModelCommand"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
-        /// <param name="package">Owner package, not null.</param>
-        internal GoToViewOrViewModelCommand(MvvmToolsPackage package)
-            : base(package, Constants.GoToViewOrViewModelCommandId)
+        public GoToViewOrViewModelCommand()
+            : base(Constants.GoToViewOrViewModelCommandId)
         {
         }
 
-        /// <summary>
-        /// Gets the instance of the command.
-        /// </summary>
-        public static GoToViewOrViewModelCommand Instance { get; private set; }
-
-        /// <summary>
-        /// Initializes the singleton instance of the command.
-        /// </summary>
-        /// <param name="package">Owner package, not null.</param>
-        public static void Initialize(MvvmToolsPackage package)
-        {
-            Instance = new GoToViewOrViewModelCommand(package);
-        }
+        [Inject]
+        public ISolutionService SolutionService { get; set; }
 
         protected override void OnExecute()
         {
@@ -52,7 +40,7 @@ namespace MvvmTools.Commands
 
             if (Package.ActiveDocument?.ProjectItem != null)
             {
-                var classesInFile = SolutionUtilities.GetClassesInProjectItem(Package.ActiveDocument.ProjectItem);
+                var classesInFile = SolutionService.GetClassesInProjectItem(Package.ActiveDocument.ProjectItem);
 
                 if (classesInFile.Count == 0)
                 {
@@ -60,7 +48,7 @@ namespace MvvmTools.Commands
                     return;
                 }
 
-                var docs = SolutionUtilities.GetRelatedDocuments(Package.ActiveDocument.ProjectItem, classesInFile.Select(c => c.Class));
+                var docs = SolutionService.GetRelatedDocuments(Package.ActiveDocument.ProjectItem, classesInFile.Select(c => c.Class));
 
                 if (docs.Count == 0)
                 {
@@ -75,7 +63,7 @@ namespace MvvmTools.Commands
                     return;
                 }
 
-                var settings = SettingsUtilities.LoadSettings();
+                var settings = SettingsService.LoadSettings();
                 if (docs.Count == 1 || settings.GoToViewOrViewModelOption == GoToViewOrViewModelOption.ChooseFirst)
                 {
                     var win = docs[0].ProjectItem.Open();
