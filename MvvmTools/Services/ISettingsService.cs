@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
+using System.Collections.Generic;
 
 namespace MvvmTools.Services
 {
@@ -18,8 +20,14 @@ namespace MvvmTools.Services
     {
         #region Data
         private const string SettingsName = "MvvmToolsSettings";
-        private const string GoToViewOrViewModelOptionPropertyName = "GoToViewOrViewModelOption";
-        
+        private const string GoToViewOrViewModelPropName = "GoToViewOrViewModelOption";
+        private const string ScaffoldingViewModelAutoPropName = "ScaffoldingViewModelAuto";
+        private const string ScaffoldingViewModelPathOffProjectPropName = "ScaffoldingViewModelPathOffProject";
+        private const string ScaffoldingViewModelNamespacePropName = "ScaffoldingViewModelNamespace";
+        private const string ScaffoldingViewAutoPropName = "ScaffoldingViewAuto";
+        private const string ScaffoldingViewPathOffProjectPropName = "ScaffoldingViewPathOffProject";
+        private const string ScaffoldingViewNamespacePropName = "ScaffoldingViewNamespace";
+
         private readonly WritableSettingsStore _userSettingsStore;
 
         #endregion Data
@@ -39,18 +47,19 @@ namespace MvvmTools.Services
 
         public MvvmToolsSettings LoadSettings()
         {
+            // rval starts out containing default values.
             var rval = new MvvmToolsSettings();
 
             // Get any saved settings
             if (_userSettingsStore.CollectionExists(SettingsName))
             {
-                if (_userSettingsStore.PropertyExists(SettingsName, GoToViewOrViewModelOptionPropertyName))
-                    rval.GoToViewOrViewModelOption = GetEnum<GoToViewOrViewModelOption>(GoToViewOrViewModelOptionPropertyName);
-            }
-            else
-            {
-                // Set defaults
-                rval.GoToViewOrViewModelOption = GoToViewOrViewModelOption.ShowUi;
+                rval.GoToViewOrViewModelOption = GetEnum(GoToViewOrViewModelPropName, GoToViewOrViewModelOption.ShowUi);
+                rval.ScaffoldingOptions.ViewModelDescriptor.Auto = GetBool(ScaffoldingViewModelAutoPropName, true);
+                rval.ScaffoldingOptions.ViewModelDescriptor.PathOffProject = GetString(ScaffoldingViewModelPathOffProjectPropName, null);
+                rval.ScaffoldingOptions.ViewModelDescriptor.Namespace = GetString(ScaffoldingViewModelNamespacePropName, null);
+                rval.ScaffoldingOptions.ViewDescriptor.Auto = GetBool(ScaffoldingViewAutoPropName, true);
+                rval.ScaffoldingOptions.ViewDescriptor.PathOffProject = GetString(ScaffoldingViewPathOffProjectPropName, null);
+                rval.ScaffoldingOptions.ViewDescriptor.Namespace = GetString(ScaffoldingViewNamespacePropName, null);
             }
 
             return rval;
@@ -61,18 +70,46 @@ namespace MvvmTools.Services
             if (!_userSettingsStore.CollectionExists(SettingsName))
                 _userSettingsStore.CreateCollection(SettingsName);
 
-            SetEnum(GoToViewOrViewModelOptionPropertyName, settings.GoToViewOrViewModelOption);
+            SetEnum(GoToViewOrViewModelPropName, settings.GoToViewOrViewModelOption);
+            SetBool(ScaffoldingViewModelAutoPropName, settings.ScaffoldingOptions.ViewModelDescriptor.Auto);
+            SetString(ScaffoldingViewModelPathOffProjectPropName, settings.ScaffoldingOptions.ViewModelDescriptor.PathOffProject);
+            SetString(ScaffoldingViewModelNamespacePropName, settings.ScaffoldingOptions.ViewModelDescriptor.Namespace);
+            SetBool(ScaffoldingViewAutoPropName, settings.ScaffoldingOptions.ViewDescriptor.Auto);
+            SetString(ScaffoldingViewPathOffProjectPropName, settings.ScaffoldingOptions.ViewDescriptor.PathOffProject);
+            SetString(ScaffoldingViewNamespacePropName, settings.ScaffoldingOptions.ViewDescriptor.Namespace);
         }
 
         #endregion Public Methods
 
         #region Private Helpers
 
-        private T GetEnum<T>(string settingName)
+        private T GetEnum<T>(string settingName, T defaultValue)
         {
+            if (!_userSettingsStore.PropertyExists(SettingsName, settingName))
+                return defaultValue;
+
             var setting = _userSettingsStore.GetString(SettingsName, settingName);
             var rval = (T)Enum.Parse(typeof(T), setting);
             return rval;
+        }
+
+        private bool GetBool(string settingName, bool defaultValue)
+        {
+            if (!_userSettingsStore.PropertyExists(SettingsName, settingName))
+                return defaultValue;
+
+            var setting = _userSettingsStore.GetString(SettingsName, settingName);
+            var rval = String.Equals(setting, "True", StringComparison.OrdinalIgnoreCase);
+            return rval;
+        }
+
+        private string GetString(string settingName, string defaultValue)
+        {
+            if (!_userSettingsStore.PropertyExists(SettingsName, settingName))
+                return defaultValue;
+
+            var setting = _userSettingsStore.GetString(SettingsName, settingName);
+            return setting;
         }
 
         private void SetEnum<T>(string settingName, T val)
@@ -80,12 +117,30 @@ namespace MvvmTools.Services
             _userSettingsStore.SetString(SettingsName, settingName, val.ToString());
         }
 
+        private void SetBool(string settingName, bool val)
+        {
+            _userSettingsStore.SetString(SettingsName, settingName, val.ToString());
+        }
+
+        private void SetString(string settingName, string val)
+        {
+            _userSettingsStore.SetString(SettingsName, settingName, val);
+        }
+
         #endregion Private Helpers
     }
 
     public class MvvmToolsSettings
     {
+        public MvvmToolsSettings()
+        {
+            // Set default values.
+            GoToViewOrViewModelOption = GoToViewOrViewModelOption.ShowUi;
+            ScaffoldingOptions = new ScaffoldingOptions();
+        }
+
         public GoToViewOrViewModelOption GoToViewOrViewModelOption { get; set; }
+        public ScaffoldingOptions ScaffoldingOptions { get; set; }
     }
 
     public enum GoToViewOrViewModelOption
@@ -94,5 +149,18 @@ namespace MvvmTools.Services
         ChooseXaml,
         ChooseCodeBehind,
         ChooseFirst
+    }
+
+    public class ScaffoldingOptions
+    {
+        public ProjectItemDescriptor ViewModelDescriptor { get; set; }
+        public ProjectItemDescriptor ViewDescriptor { get; set; }
+    }
+
+    public class ProjectItemDescriptor
+    {
+        public bool Auto { get; set; }
+        public string PathOffProject { get; set; }
+        public string Namespace { get; set; }
     }
 }

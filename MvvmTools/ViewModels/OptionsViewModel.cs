@@ -6,12 +6,10 @@ namespace MvvmTools.ViewModels
 {
     public class OptionsViewModel : BaseViewModel
     {
-        private MvvmToolsSettings _checkpointedSettings;
+        private MvvmToolsSettings _unmodifiedSettings;
 
-        internal OptionsViewModel(MvvmToolsSettings checkpointedSettings)
+        internal OptionsViewModel(MvvmToolsSettings unmodifiedSettings)
         {
-            _checkpointedSettings = checkpointedSettings;
-
             GoToViewOrViewModelOptions = new List<ValueDescriptor<GoToViewOrViewModelOption>>()
             {
                 new ValueDescriptor<GoToViewOrViewModelOption>(GoToViewOrViewModelOption.ShowUi, "Ask"),
@@ -20,7 +18,10 @@ namespace MvvmTools.ViewModels
                 new ValueDescriptor<GoToViewOrViewModelOption>(GoToViewOrViewModelOption.ChooseFirst, "Always open the first item found")
             };
 
-            // This actually applies the settings from _checkpointedSettings to the properties.
+            // Save the original, unmodified settings.
+            _unmodifiedSettings = unmodifiedSettings;
+
+            // This actually applies the _unmodifiedSettings to the properties.
             RevertSettings();
         }
 
@@ -44,9 +45,9 @@ namespace MvvmTools.ViewModels
 
         internal MvvmToolsSettings GetCurrentSettings()
         {
-            // Extracts settings from view model properties.  These are considered the 
-            // 'current' settings, while the original settings values are store in
-            // _checkpointedSettings.
+            // Extracts settings from view model properties.  These are the 
+            // 'current' settings, while the unmodified settings values are store in
+            // _unmodifiedSettings.
             var settings = new MvvmToolsSettings
             {
                 GoToViewOrViewModelOption = SelectedGoToViewOrViewModelOption
@@ -56,17 +57,17 @@ namespace MvvmTools.ViewModels
 
         public void RevertSettings()
         {
-            // Reverts properties to the values saved in _checkpointedSettings.  This
+            // Reverts properties to the values saved in _unmodifiedSettings.  This
             // is used to cancel changes.
-            this.SelectedGoToViewOrViewModelOption = _checkpointedSettings.GoToViewOrViewModelOption;
+            this.SelectedGoToViewOrViewModelOption = _unmodifiedSettings.GoToViewOrViewModelOption;
         }
 
         public void CheckpointSettings()
         {
-            // Saves the view model properties into _checkpointedSettings so that future calls
+            // Saves the view model properties into _unmodifiedSettings so that future calls
             // to RevertSettings() can go back to this point.  This method is typically called 
             // when the user hits Apply or OK on the settings window. 
-            _checkpointedSettings = GetCurrentSettings();
+            _unmodifiedSettings = GetCurrentSettings();
         }
     }
 
@@ -81,6 +82,4 @@ namespace MvvmTools.ViewModels
         public T Value { get; set; }
         public string Description { get; set; }
     }
-
-    
 }

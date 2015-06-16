@@ -11,11 +11,13 @@
              x:ClassModifier="internal"
              mc:Ignorable="d">
     <UserControl.Resources>
-        <SolidColorBrush x:Key="AccentBrush" Color="#008BDE" />
+        <SolidColorBrush x:Key="GroupLvl1AccentBrush" Color="#0c0636" />
+        <SolidColorBrush x:Key="GroupLvl2AccentBrush" Color="#095169" />
+
         <Style TargetType="{x:Type GroupBox}">
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource GroupLvl1AccentBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="0,5" />
+            <Setter Property="Padding" Value="0,5,0,0" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type GroupBox}">
@@ -50,14 +52,15 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <TextBlock Margin="0,0,0,3"
-                   FontSize="16"
+        <TextBlock Margin="0,0,0,2"
+                   FontSize="14"
                    FontWeight="SemiBold"
                    Text="MVVM Tools" />
-        <TextBlock Margin="0,0,0,5"
+        <TextBlock Margin="0,0,0,3"
                    HorizontalAlignment="Right"
                    VerticalAlignment="Bottom"
                    FontSize="10"
@@ -72,37 +75,71 @@
                    VerticalAlignment="Bottom"
                    Stroke="Silver" />
 
-        <Grid Grid.Row="2" Margin="0,15,0,0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition />
-            </Grid.RowDefinitions>
+        <GroupBox Grid.Row="2"
+                  Margin="0,15,0,0"
+                  Header="Switch To View / ViewModel">
+            <Grid Margin="20,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
 
-            <GroupBox Header="Switch To View / ViewModel">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
+                <TextBlock Margin="0,0,5,5"
+                           VerticalAlignment="Center"
+                           Text="When there are multiple possibilities:" />
+                <ComboBox Grid.Column="1"
+                          Margin="0,0,0,5"
+                          DisplayMemberPath="Description"
+                          ItemsSource="{Binding GoToViewOrViewModelOptions}"
+                          SelectedValue="{Binding SelectedGoToViewOrViewModelOption}"
+                          SelectedValuePath="Value" />
+            </Grid>
+        </GroupBox>
 
-                    <TextBlock Margin="0,0,5,5"
-                               VerticalAlignment="Center"
-                               Text="When there are multiple possibilities:" />
-                    <ComboBox Grid.Column="1"
-                              Margin="0,0,0,5"
-                              DisplayMemberPath="Description"
-                              ItemsSource="{Binding GoToViewOrViewModelOptions}"
-                              SelectedValue="{Binding SelectedGoToViewOrViewModelOption}"
-                              SelectedValuePath="Value" />
-                </Grid>
-            </GroupBox>
-        </Grid>
+        <GroupBox Grid.Row="3"
+                  Margin="0,0,0,0"
+                  Header="Scaffolding">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
+                <GroupBox Grid.ColumnSpan="2"
+                          Margin="20,0,0,0"
+                          BorderBrush="{StaticResource GroupLvl2AccentBrush}"
+                          Header="View Model">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <RadioButton>
+                            <TextBlock Margin="0,1,0,0"
+                                       VerticalAlignment="Center"
+                                       Text="Standard Settings" />
+                        </RadioButton>
+                        <RadioButton Grid.Row="1" Margin="0,3,0,0">
+                            <Button Margin="0,1,0,0"
+                                    VerticalAlignment="Center"
+                                    Content="Custom Settings..."
+                                    Padding="2,0" />
+                        </RadioButton>
+                    </Grid>
+                </GroupBox>
+            </Grid>
+        </GroupBox>
     </Grid>
 </UserControl>
