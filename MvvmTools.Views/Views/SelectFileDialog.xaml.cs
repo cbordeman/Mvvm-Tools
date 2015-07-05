@@ -1,9 +1,9 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using MvvmTools.Utilities;
+using MvvmTools.Core.Utilities;
 
-namespace MvvmTools.Views
+namespace MvvmTools.Core.Views
 {
     /// <summary>
     /// Interaction logic for SelectFileWindow.xaml
@@ -15,7 +15,7 @@ namespace MvvmTools.Views
             InitializeComponent();
         }
 
-        private void MyListView_OnLoaded(object sender, System.Windows.RoutedEventArgs e)
+        private void MyListView_OnLoaded(object sender, RoutedEventArgs e)
         {
             this.MyListView.Focus();
             this.MyListView.SelectedItem = this.MyListView.Items[0];
@@ -24,7 +24,7 @@ namespace MvvmTools.Views
             KeyboardUtilities.PressKey(this.MyListView, Key.Down);
         }
 
-        private void OkButton_OnClick(object sender, System.Windows.RoutedEventArgs e)
+        private void OkButton_OnClick(object sender, RoutedEventArgs e)
         {
             DialogResult = true;
         }

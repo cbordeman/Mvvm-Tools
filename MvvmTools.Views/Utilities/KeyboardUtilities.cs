@@ -6,7 +6,7 @@ using JetBrains.Annotations;
 
 // ReSharper disable AssignNullToNotNullAttribute
 
-namespace MvvmTools.Utilities
+namespace MvvmTools.Core.Utilities
 {
     public static class KeyboardUtilities
     {

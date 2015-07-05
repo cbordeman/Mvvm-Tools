@@ -4,9 +4,9 @@ using System.Linq;
 using EnvDTE;
 using EnvDTE80;
 
-namespace MvvmTools.Services
+namespace MvvmTools.Core.Services
 {
-    internal interface ISolutionService
+    public interface ISolutionService
     {
         List<NamespaceClass> GetClassesInProjectItem(ProjectItem pi);
         List<ProjectItemAndType> GetRelatedDocuments(ProjectItem pi, IEnumerable<string> typeNamesInFile);
@@ -14,7 +14,7 @@ namespace MvvmTools.Services
         List<ProjectItemAndType> FindDocumentsContainingTypes(Project project, Project excludeProject, ProjectItem excludeProjectItem, List<string> typesToFind);
     }
 
-    internal class SolutionService : ISolutionService
+    public class SolutionService : ISolutionService
     {
         private static readonly string[] ViewSuffixes = { "View", "Flyout", "UserControl", "Page", "Window", "Dialog" };
 
@@ -236,7 +236,7 @@ namespace MvvmTools.Services
         }
     }
 
-    internal class ProjectItemAndType
+    public class ProjectItemAndType
     {
         public ProjectItemAndType(ProjectItem projectItem, NamespaceClass type)
         {
@@ -258,7 +258,7 @@ namespace MvvmTools.Services
         }
     }
 
-    internal class NamespaceClass
+    public class NamespaceClass
     {
         public NamespaceClass(string @namespace, string @class)
         {

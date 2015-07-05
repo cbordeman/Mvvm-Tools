@@ -2,8 +2,7 @@
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Shell;
-using MvvmTools.Services;
-using MvvmTools.Utilities;
+using MvvmTools.Core.Services;
 using Ninject;
 
 namespace MvvmTools

@@ -11,7 +11,6 @@ using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Threading;
@@ -22,11 +21,9 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using MvvmTools.Commands;
+using MvvmTools.Core.Services;
 using MvvmTools.Options;
-using MvvmTools.Services;
-using MvvmTools.Utilities;
 using Ninject;
-using Ninject.Infrastructure;
 
 namespace MvvmTools
 {
@@ -164,6 +161,8 @@ namespace MvvmTools
             // Our own singleton services.
             Kernel.Bind<ISettingsService>().To<SettingsService>().InSingletonScope();
             Kernel.Bind<ISolutionService>().To<SolutionService>().InSingletonScope();
+            Kernel.Bind<IViewFactory>().To<ViewFactory>().InSingletonScope();
+            Kernel.Bind<IDialogService>().To<DialogService>().InSingletonScope();
 
             // Commands, which are singletons.
             Kernel.Bind<GoToViewOrViewModelCommand>().ToSelf().InSingletonScope();

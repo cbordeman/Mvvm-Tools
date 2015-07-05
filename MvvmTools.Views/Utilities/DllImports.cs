@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
 
-namespace MvvmTools.Utilities
+namespace MvvmTools.Core.Utilities
 {
     internal static class DllImports
     {

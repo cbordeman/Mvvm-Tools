@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace MvvmTools.Utilities
+namespace MvvmTools.Core.Utilities
 {
     internal class PathUtilities
     {

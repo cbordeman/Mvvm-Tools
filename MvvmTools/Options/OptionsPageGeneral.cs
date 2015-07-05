@@ -1,23 +1,19 @@
 ﻿using System;
 using System.ComponentModel;
-using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Drawing;
-using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-using EnvDTE;
-using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
-using MvvmTools.Services;
-using MvvmTools.Utilities;
-using MvvmTools.ViewModels;
-using MvvmTools.Views;
+using MvvmTools.Core.Services;
+using MvvmTools.Core.ViewModels;
+using MvvmTools.Core.Views;
 using Ninject;
+using Ninject.Parameters;
 
 namespace MvvmTools.Options
 {
+    // Note: The Visual Studio designer for this file (WinForms) won't work.
+
     /// <summary>
     // Extends a standard dialog functionality for implementing ToolsOptions pages, 
     // with support for the Visual Studio automation model, Windows Forms, and state 
@@ -29,7 +25,7 @@ namespace MvvmTools.Options
     {
         #region Fields
 
-        private OptionsViewModel _viewModel;
+        private OptionsUserControlViewModel _viewModel;
 
         #endregion Fields
 
@@ -76,11 +72,8 @@ namespace MvvmTools.Options
                 var settings = _settingsService.LoadSettings();
 
                 // Create, initialize, and bind a view model to our user control.
-                _viewModel = new OptionsViewModel(settings);
+                _viewModel = MvvmToolsPackage.Kernel.Get<OptionsUserControlViewModel>(new ConstructorArgument("unmodifiedSettings", settings));
                 optionsControl.DataContext = _viewModel;
-
-                // Create a link from the user control back to this to use as necessary.
-                optionsControl.OptionsPage = this;
 
                 // Put user control inside the element host and we're done.
                 elementHost.Child = optionsControl;

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Practices.Prism.Mvvm;
 
-namespace Controls.ViewModels
+namespace MvvmTools.Core.ViewModels
 {
     public class BaseViewModel : BindableBase
     {

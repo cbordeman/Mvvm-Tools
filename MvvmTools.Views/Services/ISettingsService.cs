@@ -1,22 +1,19 @@
 ﻿using System;
-using System.Collections;
-using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
-using System.Collections.Generic;
+using MvvmTools.Core.Models;
 
-namespace MvvmTools.Services
+namespace MvvmTools.Core.Services
 {
-    internal interface ISettingsService
+    public interface ISettingsService
     {
         MvvmToolsSettings LoadSettings();
         void SaveSettings(MvvmToolsSettings settings);
     }
-
-    [Export(typeof(ISettingsService))]
-    internal class SettingsService : ISettingsService
+    
+    public class SettingsService : ISettingsService
     {
         #region Data
         private const string SettingsName = "MvvmToolsSettings";
@@ -124,43 +121,9 @@ namespace MvvmTools.Services
 
         private void SetString(string settingName, string val)
         {
-            _userSettingsStore.SetString(SettingsName, settingName, val);
+            _userSettingsStore.SetString(SettingsName, settingName, val ?? String.Empty);
         }
 
         #endregion Private Helpers
-    }
-
-    public class MvvmToolsSettings
-    {
-        public MvvmToolsSettings()
-        {
-            // Set default values.
-            GoToViewOrViewModelOption = GoToViewOrViewModelOption.ShowUi;
-            ScaffoldingOptions = new ScaffoldingOptions();
-        }
-
-        public GoToViewOrViewModelOption GoToViewOrViewModelOption { get; set; }
-        public ScaffoldingOptions ScaffoldingOptions { get; set; }
-    }
-
-    public enum GoToViewOrViewModelOption
-    {
-        ShowUi,
-        ChooseXaml,
-        ChooseCodeBehind,
-        ChooseFirst
-    }
-
-    public class ScaffoldingOptions
-    {
-        public ProjectItemDescriptor ViewModelDescriptor { get; set; }
-        public ProjectItemDescriptor ViewDescriptor { get; set; }
-    }
-
-    public class ProjectItemDescriptor
-    {
-        public bool Auto { get; set; }
-        public string PathOffProject { get; set; }
-        public string Namespace { get; set; }
     }
 }

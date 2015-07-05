@@ -8,9 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using MvvmTools.Services;
-using MvvmTools.ViewModels;
-using MvvmTools.Views;
+using MvvmTools.Core.Models;
+using MvvmTools.Core.Services;
+using MvvmTools.Core.ViewModels;
+using MvvmTools.Core.Views;
 using Ninject;
 
 // ReSharper disable HeapView.BoxingAllocation
