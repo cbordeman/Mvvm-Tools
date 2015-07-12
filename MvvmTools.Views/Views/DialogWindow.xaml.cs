@@ -1,5 +1,4 @@
-﻿using System.Windows;
-using Microsoft.VisualStudio.PlatformUI;
+﻿using System.Windows.Input;
 
 namespace MvvmTools.Core.Views
 {
@@ -11,6 +10,12 @@ namespace MvvmTools.Core.Views
         public DialogWindow()
         {
             InitializeComponent();
+        }
+
+        private void DialogWindow_OnKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+                DialogResult = false;
         }
     }
 }

@@ -1,0 +1,48 @@
+﻿<UserControl x:Class="MvvmTools.Core.Views.StringDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:MvvmTools.Core.ViewModels"
+             Width="400"
+             d:DataContext="{d:DesignInstance viewModels:StringDialogViewModel}"
+             d:DesignHeight="300"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary Source="../Styles/Validation.xaml" />
+    </UserControl.Resources>
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Margin="0,0,5,0" Text="{Binding Label, FallbackValue='New Value:'}" />
+        <TextBox x:Name="ValueBox"
+                 Grid.Column="1"
+                 Loaded="ValueBox_OnLoaded"
+                 Text="{Binding Value,
+                                UpdateSourceTrigger=PropertyChanged,
+                                ValidatesOnDataErrors=True,
+                                NotifyOnValidationError=True}" />
+
+        <StackPanel Grid.Row="1"
+                    Grid.ColumnSpan="2"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal">
+            <Button Width="50"
+                    Command="{Binding OkCommand}"
+                    Content="_Ok"
+                    IsDefault="True" />
+            <Button Width="50"
+                    Margin="5,0,0,0"
+                    Command="{Binding CancelCommand}"
+                    Content="Cancel" />
+        </StackPanel>
+    </Grid>
+</UserControl>

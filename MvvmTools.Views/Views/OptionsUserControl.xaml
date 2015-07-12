@@ -48,14 +48,14 @@
             </DataTemplate>
         </ResourceDictionary>
     </UserControl.Resources>
+
     <Grid Margin="5">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition />
         </Grid.RowDefinitions>
 
+        <!--  Header  -->
         <TextBlock Margin="0,0,0,2"
                    FontSize="14"
                    FontWeight="SemiBold"
@@ -75,64 +75,165 @@
                    VerticalAlignment="Bottom"
                    Stroke="Silver" />
 
-        <GroupBox Grid.Row="2"
-                  Margin="0,15,0,0"
-                  Header="Switch To View / ViewModel">
-            <Grid>
+        <ScrollViewer Grid.Row="1"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+            <Grid Margin="0,0,5,0">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition />
                 </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
 
-                <TextBlock Margin="0,0,5,5"
-                           VerticalAlignment="Center"
-                           Text="When there are multiple possibilities:" />
-                <ComboBox Grid.Column="1"
-                          Margin="0,0,0,5"
-                          DisplayMemberPath="Description"
-                          ItemsSource="{Binding GoToViewOrViewModelOptions}"
-                          SelectedValue="{Binding SelectedGoToViewOrViewModelOption}"
-                          SelectedValuePath="Value" />
-            </Grid>
-        </GroupBox>
-
-        <GroupBox Grid.Row="3"
-                  Margin="0,10,0,0"
-                  Header="Scaffolding">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-
-                <!--  Uses the data template above.  -->
-                <GroupBox Grid.ColumnSpan="2"
-                          Margin="15,0,0,0"
-                          BorderBrush="{StaticResource GroupLvl2AccentBrush}"
-                          Content="{Binding ProjectItemDescriptorForViewModel}"
-                          ContentTemplate="{StaticResource PiDataTemplate}"
-                          Header="View Models" />
-
-                <!--  Uses the data template above.  -->
+                <!--  Row 1 contains the view model Suffix and the view suffixes.  -->
                 <GroupBox Grid.Row="1"
-                          Grid.ColumnSpan="2"
-                          Margin="15,0,0,0"
-                          BorderBrush="{StaticResource GroupLvl2AccentBrush}"
-                          Content="{Binding ProjectItemDescriptorForView}"
-                          ContentTemplate="{StaticResource PiDataTemplate}"
-                          Header="Views" />
+                          Margin="0,15,0,0"
+                          Header="Suffixes">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!--  View Model Suffix  -->
+                        <TextBlock Margin="0,0,5,5"
+                                   VerticalAlignment="Center"
+                                   Text="View Model Suffix:" />
+                        <TextBox Grid.Column="1"
+                                 Margin="0,0,0,5"
+                                 VerticalAlignment="Center"
+                                 Text="{Binding ViewModelSuffix}" />
+                        <Button Grid.Column="2"
+                                Margin="5,0,0,5"
+                                VerticalAlignment="Center"
+                                Command="{Binding ResetViewModelSuffixCommand}"
+                                Content="Default"
+                                Padding="3,0" />
+
+                        <!--  View Suffixes  -->
+                        <TextBlock Grid.Row="1"
+                                   Margin="0,0,5,0"
+                                   VerticalAlignment="Top"
+                                   Text="View Suffixes:" />
+                        <DataGrid x:Name="ViewSuffixesDataGrid"
+                                  Grid.Row="1"
+                                  Grid.Column="1"
+                                  Height="100"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  CanUserReorderColumns="False"
+                                  CanUserResizeColumns="False"
+                                  CanUserResizeRows="False"
+                                  CanUserSortColumns="False"
+                                  GridLinesVisibility="None"
+                                  HeadersVisibility="None"
+                                  ItemsSource="{Binding ViewSuffixesView}">
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Width="*">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate DataType="viewModels:StringViewModel">
+                                            <TextBlock MouseLeftButtonDown="UIElement_OnMouseLeftButtonDown"
+                                                       Padding="3,1"
+                                                       Text="{Binding Value,
+                                                                      Mode=OneWay}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <StackPanel Grid.Row="1"
+                                    Grid.Column="2"
+                                    Width="50"
+                                    Margin="5,0,0,0"
+                                    VerticalAlignment="Top">
+                            <Button Command="{Binding AddViewSuffixCommand}"
+                                    Content="Add"
+                                    Padding="3,0" />
+                            <Button Margin="0,5,0,0"
+                                    Command="{Binding EditViewSuffixCommand}"
+                                    Content="Edit"
+                                    Padding="3,0" />
+                            <Button Margin="0,5,0,0"
+                                    Command="{Binding DeleteViewSuffixCommand}"
+                                    Content="Delete"
+                                    Padding="3,0" />
+                        </StackPanel>
+                        <Button Grid.Row="1"
+                                Grid.Column="2"
+                                Margin="5,0,0,0"
+                                VerticalAlignment="Bottom"
+                                Command="{Binding RestoreDefaultViewSuffixesCommand}"
+                                Content="Defaults"
+                                Padding="3,0" />
+                    </Grid>
+                </GroupBox>
+
+                <!--  Row 2 contains the view model and view location data.  -->
+                <GroupBox Grid.Row="2"
+                          Margin="0,10,0,0"
+                          Header="Locations">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+
+                        <!--  Uses the data template above.  -->
+                        <GroupBox Margin="15,0,0,0"
+                                  BorderBrush="{StaticResource GroupLvl2AccentBrush}"
+                                  Content="{Binding ProjectItemDescriptorForViewModel}"
+                                  ContentTemplate="{StaticResource PiDataTemplate}"
+                                  Header="View Models" />
+
+                        <!--  Uses the data template above.  -->
+                        <GroupBox Grid.Column="1"
+                                  Margin="5,0,0,0"
+                                  BorderBrush="{StaticResource GroupLvl2AccentBrush}"
+                                  Content="{Binding ProjectItemDescriptorForView}"
+                                  ContentTemplate="{StaticResource PiDataTemplate}"
+                                  Header="Views" />
+                    </Grid>
+                </GroupBox>
+
+                <!--  Row 3 are the switching options.  -->
+                <GroupBox Grid.Row="3"
+                          Margin="0,15,0,0"
+                          Header="Switch To View / ViewModel">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Margin="0,0,5,5"
+                                   VerticalAlignment="Center"
+                                   Text="When there are multiple possibilities:" />
+                        <ComboBox Grid.Column="1"
+                                  Margin="0,0,0,5"
+                                  DisplayMemberPath="Description"
+                                  ItemsSource="{Binding GoToViewOrViewModelOptions}"
+                                  SelectedValue="{Binding SelectedGoToViewOrViewModelOption}"
+                                  SelectedValuePath="Value" />
+                    </Grid>
+                </GroupBox>
             </Grid>
-        </GroupBox>
+        </ScrollViewer>
     </Grid>
 </UserControl>

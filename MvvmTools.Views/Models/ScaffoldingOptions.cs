@@ -1,16 +1,14 @@
-using MvvmTools.Core.Services;
-
 namespace MvvmTools.Core.Models
 {
     public class ScaffoldingOptions
     {
         public ScaffoldingOptions()
         {
-            ViewModelDescriptor = new ProjectItemDescriptor();
-            ViewDescriptor = new ProjectItemDescriptor();
+            ViewModelLocation = new LocationDescriptor();
+            ViewLocation = new LocationDescriptor();
         }
 
-        public ProjectItemDescriptor ViewModelDescriptor { get; set; }
-        public ProjectItemDescriptor ViewDescriptor { get; set; }
+        public LocationDescriptor ViewModelLocation { get; set; }
+        public LocationDescriptor ViewLocation { get; set; }
     }
 }

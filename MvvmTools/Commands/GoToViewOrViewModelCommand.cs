@@ -49,7 +49,9 @@ namespace MvvmTools.Commands
                     return;
                 }
 
-                var docs = SolutionService.GetRelatedDocuments(Package.ActiveDocument.ProjectItem, classesInFile.Select(c => c.Class));
+                var settings = SettingsService.LoadSettings();
+
+                var docs = SolutionService.GetRelatedDocuments(Package.ActiveDocument.ProjectItem, classesInFile.Select(c => c.Class), settings.ViewSuffixes, settings.ViewModelSuffix);
 
                 if (docs.Count == 0)
                 {
@@ -64,7 +66,6 @@ namespace MvvmTools.Commands
                     return;
                 }
 
-                var settings = SettingsService.LoadSettings();
                 if (docs.Count == 1 || settings.GoToViewOrViewModelOption == GoToViewOrViewModelOption.ChooseFirst)
                 {
                     var win = docs[0].ProjectItem.Open();

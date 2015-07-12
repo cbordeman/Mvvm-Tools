@@ -1,8 +1,7 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.PlatformUI;
 using MvvmTools.Core.ViewModels;
+using MvvmTools.Core.Views;
 using Ninject;
 
 namespace MvvmTools.Core.Services
@@ -17,9 +16,11 @@ namespace MvvmTools.Core.Services
         [Inject]
         public IViewFactory ViewFactory { get; set; }
 
+        private readonly Dictionary<BaseDialogViewModel, DialogWindow> _dialogs = new Dictionary<BaseDialogViewModel, DialogWindow>();
+
         public bool ShowDialog(BaseDialogViewModel vm)
         {
-            var dialog = new Views.DialogWindow
+            var dialog = new DialogWindow
             {
                 DataContext = vm
             };
@@ -31,21 +32,29 @@ namespace MvvmTools.Core.Services
             var view = ViewFactory.GetView(vm);
             dialog.Content = view;
 
+            _dialogs.Add(vm, dialog);
+
             // BaseDialogViewModel can read its own properties such as vm.DialogResult
             // or it can just read the bool returned by dialog.ShowDialog().
             var result = dialog.ShowDialog().GetValueOrDefault();
+            if (_dialogs.ContainsKey(vm))
+                _dialogs.Remove(vm);
 
             vm.PropertyChanged -= VmOnPropertyChanged;
+
+            if (!result)
+                vm.DialogResult = result;
 
             return result;
         }
 
         private void VmOnPropertyChanged(object sender, PropertyChangedEventArgs args)
         {
-            var dialog = (DialogWindow) sender;
             if (args.PropertyName == "DialogResult")
             {
-                var vm = (BaseDialogViewModel)dialog.DataContext;
+                var vm = (BaseDialogViewModel) sender;
+                var dialog = _dialogs[vm];
+                _dialogs.Remove(vm);
                 dialog.DialogResult = vm.DialogResult;
             }
         }
