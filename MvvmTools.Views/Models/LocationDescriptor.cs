@@ -2,15 +2,6 @@
 {
     public class LocationDescriptor
     {
-        public LocationDescriptor()
-        {
-            Auto = true;
-            AppendViewType = true;
-        }
-
-        // If auto is true, all other options are treated as if null or default.
-        public bool Auto { get; set; }
-        
         // The current project is assumed if null.
         public string ProjectIdentifier { get; set; }
         
@@ -21,9 +12,31 @@
         // if starts with a dot.
         public string Namespace { get; set; }
 
-        // If true (default), automatically appends view type such as 'Pages' to namespace and 
+        // If true, automatically appends view type such as 'Pages' to namespace and 
         // PathOffProject.  If view type is "View" then ignored.
         public bool AppendViewType { get; set; }
+
+        public void ApplyInherited(LocationDescriptor inherited)
+        {
+            PathOffProject = inherited.PathOffProject;
+            Namespace = inherited.Namespace;
+            ProjectIdentifier = inherited.ProjectIdentifier;
+            AppendViewType = inherited.AppendViewType;
+        }
+
+        public bool InheritsFully(LocationDescriptor inherited)
+        {
+            if (PathOffProject != inherited.PathOffProject)
+                return false;
+            if (Namespace != inherited.Namespace)
+                return false;
+            if (ProjectIdentifier != inherited.ProjectIdentifier)
+                return false;
+            if (AppendViewType != inherited.AppendViewType)
+                return false;
+
+            return true;
+        }
     }
     
 }

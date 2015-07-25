@@ -1,58 +1,68 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows.Data;
 using MvvmTools.Core.Models;
 using MvvmTools.Core.Services;
+using MvvmTools.Core.Utilities;
 using Ninject;
-using Ninject.Parameters;
+
+// ReSharper disable ExplicitCallerInfoArgument
 
 namespace MvvmTools.Core.ViewModels
 {
     public class OptionsUserControlViewModel : BaseViewModel
     {
         #region Data
+
         private MvvmToolsSettings _unmodifiedSettings;
-        private readonly Regex _suffixRegex = new Regex(@"^[_a-zA-Z0-9]*$");
-        private const string SuffixRegexErrorMessage = "Not a valid suffix.";
+
+        private static readonly Regex SuffixRegex = new Regex(@"^[_a-zA-Z0-9]*$");
+        private const string SuffixRegexErrorMessage = "Not a valid view suffix.";
+
+        // Used to store original values of the solutions' properties so they can
+        // be applied to inherited properties in each project.
+        private object _oldValue;
+
         #endregion Data
 
         #region Ctor and Init
 
-        public OptionsUserControlViewModel(MvvmToolsSettings unmodifiedSettings, IKernel kernel)
+        public void Init()
         {
-            GoToViewOrViewModelOptions = new List<ValueDescriptor<GoToViewOrViewModelOption>>
-            {
-                new ValueDescriptor<GoToViewOrViewModelOption>(GoToViewOrViewModelOption.ShowUi, "Ask"),
-                new ValueDescriptor<GoToViewOrViewModelOption>(GoToViewOrViewModelOption.ChooseXaml, "If view, open the XAML"),
-                new ValueDescriptor<GoToViewOrViewModelOption>(GoToViewOrViewModelOption.ChooseCodeBehind, "If view, open the code behind"),
-                new ValueDescriptor<GoToViewOrViewModelOption>(GoToViewOrViewModelOption.ChooseFirst, "Always open the first item found")
-            };
+            //var currentContext = SynchronizationContext.Current;
 
-            // Save the original, unmodified settings.
-            _unmodifiedSettings = unmodifiedSettings;
+            IsBusy = true;
 
-            // Initialize properties.  Note the ctor param 'title' must be unique because
-            // it is used as both the Title and the radio button group.
+            // Load settings (from defaults if necessary).
+            var loadSettingsTask = SettingsSvc.LoadSettings();
 
-            ProjectItemDescriptorForViewModel = kernel.Get<ProjectItemDescriptorDialogViewModel>(
-                new ConstructorArgument("title", "View Models Location"));
-            ProjectItemDescriptorForViewModel.PathOffProject =
-                unmodifiedSettings.ScaffoldingOptions.ViewModelLocation.PathOffProject;
-            ProjectItemDescriptorForViewModel.Namespace =
-                unmodifiedSettings.ScaffoldingOptions.ViewModelLocation.Namespace;
+            loadSettingsTask.ContinueWith(
+                task =>
+                {
+                    IsBusy = false;
 
-            ProjectItemDescriptorForView = kernel.Get<ProjectItemDescriptorDialogViewModel>(
-                new ConstructorArgument("title", "Views Location"));
-            ProjectItemDescriptorForView.PathOffProject =
-                unmodifiedSettings.ScaffoldingOptions.ViewLocation.PathOffProject;
-            ProjectItemDescriptorForView.Namespace =
-                unmodifiedSettings.ScaffoldingOptions.ViewLocation.Namespace;
+                    var settings = task.Result;
 
-            // This actually applies the _unmodifiedSettings to the properties.
-            RevertSettings();
+                    // Save the original, unmodified settings.
+                    _unmodifiedSettings = settings;
+
+                    GoToViewOrViewModelOptions = new List<ValueDescriptor<GoToViewOrViewModelOption>>
+                    {
+                        new ValueDescriptor<GoToViewOrViewModelOption>(GoToViewOrViewModelOption.ShowUi, "Ask"),
+                        new ValueDescriptor<GoToViewOrViewModelOption>(GoToViewOrViewModelOption.ChooseXaml, "If view, open the XAML"),
+                        new ValueDescriptor<GoToViewOrViewModelOption>(GoToViewOrViewModelOption.ChooseCodeBehind, "If view, open the code behind"),
+                        new ValueDescriptor<GoToViewOrViewModelOption>(GoToViewOrViewModelOption.ChooseFirst, "Always open the first item found")
+                    };
+
+                    // This actually applies the _unmodifiedSettings to the properties.
+                    RevertSettings().Forget();
+                }, TaskContinuationOptions.ExecuteSynchronously);
         }
 
         #endregion Ctor and Init
@@ -61,6 +71,76 @@ namespace MvvmTools.Core.ViewModels
 
         [Inject]
         public IDialogService DialogService { get; set; }
+
+        [Inject]
+        public ISettingsService SettingsSvc { get; set; }
+
+        #region IsBusy
+        private bool _isBusy;
+        public bool IsBusy
+        {
+            get { return _isBusy; }
+            set { SetProperty(ref _isBusy, value); }
+        }
+        #endregion IsBusy
+
+        #region ViewSuffixesView
+        private ListCollectionView _viewSuffixesView;
+        public ListCollectionView ViewSuffixesView
+        {
+            get { return _viewSuffixesView; }
+            set { SetProperty(ref _viewSuffixesView, value); }
+        }
+        #endregion ViewSuffixesView
+
+        #region ViewSuffixes
+        private ObservableCollection<StringViewModel> _viewSuffixes;
+        public ObservableCollection<StringViewModel> ViewSuffixes
+        {
+            get { return _viewSuffixes; }
+            set
+            {
+                if (SetProperty(ref _viewSuffixes, value))
+                {
+                    if (ViewSuffixesView != null)
+                        ViewSuffixesView.CurrentChanged -= ViewSuffixesViewOnCurrentChanged;
+                    ViewSuffixesView = new ListCollectionView(value);
+                    ViewSuffixesView.CurrentChanged += ViewSuffixesViewOnCurrentChanged;
+                }
+            }
+        }
+        #endregion ViewSuffixes
+
+        #region ProjectsOptions
+        private List<ProjectOptionsUserControlViewModel> _projectsOptions;
+        public List<ProjectOptionsUserControlViewModel> ProjectsOptions
+        {
+            get { return _projectsOptions; }
+            set
+            {
+                if (SetProperty(ref _projectsOptions, value))
+                    SelectedProjectOption = value.FirstOrDefault();
+            }
+        }
+        #endregion ProjectsOptions
+
+        #region SelectedProjectOption
+        private ProjectOptionsUserControlViewModel _selectedProjectOption;
+        public ProjectOptionsUserControlViewModel SelectedProjectOption
+        {
+            get { return _selectedProjectOption; }
+            set
+            {
+                if (SetProperty(ref _selectedProjectOption, value))
+                    OnPropertyChanged(nameof(ShowResetAll));
+            }
+        }
+        #endregion SelectedProjectOption
+
+        #region ShowResetAll
+        public bool ShowResetAll => SelectedProjectOption != null && SelectedProjectOption == ProjectsOptions?[0];
+
+        #endregion ShowResetAll
 
         #region GoToViewOrViewModelOptions
         private List<ValueDescriptor<GoToViewOrViewModelOption>> _goToViewOrViewModelOptions;
@@ -80,174 +160,257 @@ namespace MvvmTools.Core.ViewModels
         }
         #endregion SelectedGoToViewOrViewModelOption
 
-        #region ProjectItemDescriptorForViewModel
-        private ProjectItemDescriptorDialogViewModel _projectItemDescriptorForViewModel;
-        public ProjectItemDescriptorDialogViewModel ProjectItemDescriptorForViewModel
-        {
-            get { return _projectItemDescriptorForViewModel; }
-            set { SetProperty(ref _projectItemDescriptorForViewModel, value); }
-        }
-        #endregion ProjectItemDescriptorForViewModel
-
-        #region ProjectItemDescriptorForView
-        private ProjectItemDescriptorDialogViewModel _projectItemDescriptorForView;
-        public ProjectItemDescriptorDialogViewModel ProjectItemDescriptorForView
-        {
-            get { return _projectItemDescriptorForView; }
-            set { SetProperty(ref _projectItemDescriptorForView, value); }
-        }
-        #endregion ProjectItemDescriptorForView
-
-        #region ViewModelSuffix
-        private string _viewModelSuffix;
-        public string ViewModelSuffix
-        {
-            get { return _viewModelSuffix; }
-            set { SetProperty(ref _viewModelSuffix, value); }
-        }
-        #endregion ViewModelSuffix
-
-        #region ViewSuffixes
-        private ObservableCollection<StringViewModel> _viewSuffixes;
-        public ObservableCollection<StringViewModel> ViewSuffixes
-        {
-            get { return _viewSuffixes; }
-            set
-            {
-                if (SetProperty(ref _viewSuffixes, value))
-                {
-                    if (this.ViewSuffixesView != null)
-                        ViewSuffixesView.CurrentChanged -= ViewSuffixesViewOnCurrentChanged;
-                    ViewSuffixesView = new ListCollectionView(value);
-                    ViewSuffixesView.CurrentChanged += ViewSuffixesViewOnCurrentChanged;
-                }
-            }
-        }
-        #endregion ViewSuffixes
-
-        #region ViewSuffixesView
-        private ListCollectionView _viewSuffixesView;
-        public ListCollectionView ViewSuffixesView
-        {
-            get { return _viewSuffixesView; }
-            set { SetProperty(ref _viewSuffixesView, value); }
-        }
-        #endregion ViewSuffixesView
-
         #endregion Properties
-
-        #region Commands
-
-        #region OpenScaffoldingDialogCommand
-        DelegateCommand<ProjectItemDescriptorDialogViewModel> _openScaffoldingDialogCommand;
-        public DelegateCommand<ProjectItemDescriptorDialogViewModel> OpenScaffoldingDialogCommand => _openScaffoldingDialogCommand ?? (_openScaffoldingDialogCommand = new DelegateCommand<ProjectItemDescriptorDialogViewModel>(ExecuteOpenScaffoldingDialogCommand, CanOpenScaffoldingDialogCommand));
-        public bool CanOpenScaffoldingDialogCommand(ProjectItemDescriptorDialogViewModel dlgVm) => true;
-        public void ExecuteOpenScaffoldingDialogCommand(ProjectItemDescriptorDialogViewModel dlgVm)
-        {
-            dlgVm.Auto = false;
-            dlgVm.InitializeFromSolution();
-            bool result = DialogService.ShowDialog(dlgVm);
-        }
-        #endregion
-        
-        #region ResetViewModelSuffixCommand
-        DelegateCommand _resetViewModelSuffixCommand;
-        public DelegateCommand ResetViewModelSuffixCommand => _resetViewModelSuffixCommand ?? (_resetViewModelSuffixCommand = new DelegateCommand(ExecuteResetViewModelSuffixCommand, CanResetViewModelSuffixCommand));
-        public bool CanResetViewModelSuffixCommand() => true;
-        public void ExecuteResetViewModelSuffixCommand()
-        {
-            this.ViewModelSuffix = SettingsService.DefaultViewModelSuffix;
-        }
-        #endregion
-
-        #region RestoreDefaultViewSuffixesCommand
-        DelegateCommand _restoreDefaultViewSuffixesCommand;
-        public DelegateCommand RestoreDefaultViewSuffixesCommand => _restoreDefaultViewSuffixesCommand ?? (_restoreDefaultViewSuffixesCommand = new DelegateCommand(ExecuteRestoreDefaultViewSuffixesCommand, CanRestoreDefaultViewSuffixesCommand));
-        public bool CanRestoreDefaultViewSuffixesCommand() => true;
-        public void ExecuteRestoreDefaultViewSuffixesCommand()
-        {
-            this.ViewSuffixes = new ObservableCollection<StringViewModel>(SettingsService.DefaultViewSuffixes.Select(s => new StringViewModel(s)));
-        }
-
-        #endregion
-        
-        #region DeleteViewSuffixCommand
-        DelegateCommand _deleteViewSuffixCommand;
-        public DelegateCommand DeleteViewSuffixCommand => _deleteViewSuffixCommand ?? (_deleteViewSuffixCommand = new DelegateCommand(ExecuteDeleteViewSuffixCommand, CanDeleteViewSuffixCommand));
-        public bool CanDeleteViewSuffixCommand() => this.ViewSuffixesView.CurrentItem != null;
-        public void ExecuteDeleteViewSuffixCommand()
-        {
-            this.ViewSuffixesView.Remove(ViewSuffixesView.CurrentItem);
-        }
-        #endregion
-        
-        #region AddViewSuffixCommand
-        DelegateCommand _addViewSuffixCommand;
-        public DelegateCommand AddViewSuffixCommand => _addViewSuffixCommand ?? (_addViewSuffixCommand = new DelegateCommand(ExecuteAddViewSuffixCommand, CanAddViewSuffixCommand));
-        public bool CanAddViewSuffixCommand() => true;
-        public void ExecuteAddViewSuffixCommand()
-        {
-            var vm = Kernel.Get<StringDialogViewModel>();
-            vm.Add("Add View Suffix", "View Suffix:", this.ViewSuffixes.Select(s => s.Value),
-                _suffixRegex, SuffixRegexErrorMessage);
-            if (this.DialogService.ShowDialog(vm))
-            {
-                var newItem = new StringViewModel(vm.Value);
-                this.ViewSuffixesView.AddNewItem(newItem);
-                this.ViewSuffixesView.MoveCurrentToPosition(this.ViewSuffixes.IndexOf(newItem));
-            }
-        }
-        #endregion
-
-        #region EditViewSuffixCommand
-        DelegateCommand _editViewSuffixCommand;
-        public DelegateCommand EditViewSuffixCommand => _editViewSuffixCommand ?? (_editViewSuffixCommand = new DelegateCommand(ExecuteEditViewSuffixCommand, CanEditViewSuffixCommand));
-        public bool CanEditViewSuffixCommand() => this.ViewSuffixesView.CurrentItem != null;
-        public void ExecuteEditViewSuffixCommand()
-        {
-            var cur = this.ViewSuffixesView.CurrentItem as StringViewModel;
-
-            var vm = Kernel.Get<StringDialogViewModel>();
-            vm.Edit("Edit View Suffix", "View Suffix:", cur.Value, this.ViewSuffixes.Select(s => s.Value),
-                _suffixRegex, SuffixRegexErrorMessage);
-            if (this.DialogService.ShowDialog(vm))
-                cur.Value = vm.Value;
-        }
-        #endregion
-
-        #endregion Commands
 
         #region Public Methods
 
         public MvvmToolsSettings GetCurrentSettings()
         {
+            if (ProjectsOptions == null || ViewSuffixes == null)
+                return null;
+
             // Extracts settings from view model properties.  These are the 
             // 'current' settings, while the unmodified settings values are store in
             // _unmodifiedSettings.
             var settings = new MvvmToolsSettings
             {
                 GoToViewOrViewModelOption = SelectedGoToViewOrViewModelOption,
-                ScaffoldingOptions =
-                {
-                    ViewModelLocation = ProjectItemDescriptorForViewModel.GetDescriptor(),
-                    ViewLocation = ProjectItemDescriptorForView.GetDescriptor()
-                },
-                ViewModelSuffix = ViewModelSuffix,
-                ViewSuffixes = ViewSuffixes.Select(s => s.Value).ToArray()
+                ViewSuffixes = ViewSuffixes.Select(vs => vs.Value).ToArray()
             };
-            
+
+            for (int index = 0; index < ProjectsOptions.Count; index++)
+            {
+                // First item is the solution, subsequent items are the projects.
+                if (index == 0)
+                    settings.SolutionOptions = ConvertToProjectOptions(ProjectsOptions[0]);
+                else
+                {
+                    var po = ProjectsOptions[index];
+                    settings.ProjectOptions.Add(ConvertToProjectOptions(po));
+                }
+            }
+
             return settings;
         }
 
-        public void RevertSettings()
+        private ProjectOptions ConvertToProjectOptions(ProjectOptionsUserControlViewModel projectOptionsVm)
         {
+            var rval = new ProjectOptions
+            {
+                ProjectModel = projectOptionsVm.ProjectModel,
+                ViewModelSuffix = projectOptionsVm.ViewModelSuffix,
+                ViewLocation = projectOptionsVm.LocationDescriptorForView.GetDescriptor(),
+                ViewModelLocation = projectOptionsVm.LocationDescriptorForViewModel.GetDescriptor()
+            };
+
+            return rval;
+        }
+
+        public async Task RevertSettings()
+        {
+            // If we haven't fully loaded and the user cancels the dialog,
+            // _unmodifiedSettings will be null so abort.
+            if (_unmodifiedSettings == null)
+                return;
+
             // Reverts properties to the values saved in _unmodifiedSettings.  This
             // is used to cancel changes.
+
+            // Unsubscribe from solution events on the old solution.
+            var oldSolutionVm = ProjectsOptions?.FirstOrDefault();
+            if (oldSolutionVm != null)
+            {
+                oldSolutionVm.PropertyChanging -= SolutionProjectOptionsVmOnPropertyChanging;
+                oldSolutionVm.LocationDescriptorForViewModel.PropertyChanging -= LocationDescriptorOnPropertyChanging;
+                oldSolutionVm.LocationDescriptorForView.PropertyChanging -= LocationDescriptorOnPropertyChanging;
+
+                oldSolutionVm.PropertyChanged -= SolutionProjectOptionsVmOnPropertyChanged;
+                oldSolutionVm.LocationDescriptorForViewModel.PropertyChanged -= LocationDescriptorForViewModelOnPropertyChanged;
+                oldSolutionVm.LocationDescriptorForView.PropertyChanged -= LocationDescriptorForViewOnPropertyChanged;
+            }
+
             SelectedGoToViewOrViewModelOption = _unmodifiedSettings.GoToViewOrViewModelOption;
-            ProjectItemDescriptorForViewModel.SetFromDescriptor(_unmodifiedSettings.ScaffoldingOptions.ViewModelLocation);
-            ProjectItemDescriptorForView.SetFromDescriptor(_unmodifiedSettings.ScaffoldingOptions.ViewLocation);
-            ViewModelSuffix = _unmodifiedSettings.ViewModelSuffix;
             ViewSuffixes = new ObservableCollection<StringViewModel>(_unmodifiedSettings.ViewSuffixes.Select(s => new StringViewModel(s)));
+
+            // Add solution and other projects.
+            var tmp = new List<ProjectOptionsUserControlViewModel>();
+            if (_unmodifiedSettings.SolutionOptions != null)
+            {
+                // Create global vm defaults using the global defaults.
+                var solutiondefaultProjectOptionsVm = await CreateProjectOptionsUserControlViewModel(SettingsService.SolutionDefaultProjectOptions, null, false);
+                // Use the global defaults in the solution vm.
+                var solutionProjectOptionsVm = await CreateProjectOptionsUserControlViewModel(_unmodifiedSettings.SolutionOptions, solutiondefaultProjectOptionsVm, false);
+                tmp.Add(solutionProjectOptionsVm);
+
+                // Subscribe to solution PropertyChanging and PropertyChanged events so we can
+                // pass them down to the projects.
+                solutionProjectOptionsVm.PropertyChanging += SolutionProjectOptionsVmOnPropertyChanging;
+                solutionProjectOptionsVm.LocationDescriptorForViewModel.PropertyChanging += LocationDescriptorOnPropertyChanging;
+                solutionProjectOptionsVm.LocationDescriptorForView.PropertyChanging += LocationDescriptorOnPropertyChanging;
+
+                solutionProjectOptionsVm.PropertyChanged += SolutionProjectOptionsVmOnPropertyChanged;
+                solutionProjectOptionsVm.LocationDescriptorForViewModel.PropertyChanged += LocationDescriptorForViewModelOnPropertyChanged;
+                solutionProjectOptionsVm.LocationDescriptorForView.PropertyChanged += LocationDescriptorForViewOnPropertyChanged;
+
+                // Use the solution vm as the inherited for all the projects.
+                foreach (var po in _unmodifiedSettings.ProjectOptions)
+                    tmp.Add(await CreateProjectOptionsUserControlViewModel(po, solutionProjectOptionsVm, true));
+            }
+            ProjectsOptions = tmp;
+
+            ResetAllToInheritedCommand.RaiseCanExecuteChanged();
+        }
+
+        private void LocationDescriptorOnPropertyChanging(object sender, PropertyChangingEventArgs args)
+        {
+            // Save inherited values so in PropertyChanged event we can copy
+            // them into any property in the projects that are unchanged .
+            // Note that we define inheritance as a value that remains unchanged
+            // from the solution's value.
+
+            LocationDescriptorUserControlViewModel location;
+
+            switch (args.PropertyName)
+            {
+                case "ProjectIdentifier":
+                    location = (LocationDescriptorUserControlViewModel)sender;
+                    _oldValue = location.ProjectIdentifier;
+                    break;
+                case "PathOffProject":
+                    location = (LocationDescriptorUserControlViewModel)sender;
+                    _oldValue = location.PathOffProject;
+                    break;
+                case "AppendViewType":
+                    location = (LocationDescriptorUserControlViewModel)sender;
+                    _oldValue = location.AppendViewType;
+                    break;
+                case "Namespace":
+                    location = (LocationDescriptorUserControlViewModel)sender;
+                    _oldValue = location.Namespace;
+                    break;
+            }
+        }
+
+        private void SolutionProjectOptionsVmOnPropertyChanging(object sender, PropertyChangingEventArgs propertyChangingEventArgs)
+        {
+            switch (propertyChangingEventArgs.PropertyName)
+            {
+                case "ViewModelSuffix":
+                    var solution = (ProjectOptionsUserControlViewModel)sender;
+                    _oldValue = solution.ViewModelSuffix;
+                    break;
+            }
+        }
+
+        private void LocationDescriptorForViewModelOnPropertyChanged(object sender, PropertyChangedEventArgs args)
+        {
+            // This logic is moved to a method for consolidation.
+            UpdateLocationDescriptor(args.PropertyName, false);
+        }
+
+        private void LocationDescriptorForViewOnPropertyChanged(object sender, PropertyChangedEventArgs args)
+        {
+            // This logic is moved to a method for consolidation.
+            UpdateLocationDescriptor(args.PropertyName, true);
+        }
+
+        private void UpdateLocationDescriptor(string propertyName, bool isView)
+        {
+            // This method is called by each of the PropertyChanged handlers, once
+            // with isView==true, and once isView==false.
+            // The path here is to use the _oldValue (which is the property value 
+            // we saved in the PropertyChanging event handler), and if the
+            // solution's original value (_oldValue) is the same as the location
+            // descriptor vm (for the chainged property), we copy in (inherit)
+            // the the project's location descriptor.
+
+            // Index 0 is the solution, so we start at 1.
+            for (int index = 1; index < ProjectsOptions.Count; index++)
+            {
+                var projectOptions = ProjectsOptions[index];
+
+                var solution = ProjectsOptions[0];
+
+                switch (propertyName)
+                {
+                    case "ProjectIdentifier":
+                        if (isView)
+                        {
+                            if (projectOptions.LocationDescriptorForView.ProjectIdentifier == (string)_oldValue)
+                                projectOptions.LocationDescriptorForView.ProjectIdentifier = solution.LocationDescriptorForView.ProjectIdentifier;
+                        }
+                        else
+                        {
+                            if (projectOptions.LocationDescriptorForViewModel.ProjectIdentifier == (string)_oldValue)
+                                projectOptions.LocationDescriptorForViewModel.ProjectIdentifier = solution.LocationDescriptorForViewModel.ProjectIdentifier;
+                        }
+                        ResetAllToInheritedCommand.RaiseCanExecuteChanged();
+                        break;
+                    case "PathOffProject":
+                        if (isView)
+                        {
+                            if (projectOptions.LocationDescriptorForView.PathOffProject == (string)_oldValue)
+                                projectOptions.LocationDescriptorForView.PathOffProject = solution.LocationDescriptorForView.PathOffProject;
+                        }
+                        else
+                        {
+                            if (projectOptions.LocationDescriptorForViewModel.PathOffProject == (string)_oldValue)
+                                projectOptions.LocationDescriptorForViewModel.PathOffProject = solution.LocationDescriptorForViewModel.PathOffProject;
+                        }
+                        ResetAllToInheritedCommand.RaiseCanExecuteChanged();
+                        break;
+                    case "AppendViewType":
+                        if (isView)
+                        {
+                            if (projectOptions.LocationDescriptorForView.AppendViewType == (bool)_oldValue)
+                                projectOptions.LocationDescriptorForView.AppendViewType = solution.LocationDescriptorForView.AppendViewType;
+                        }
+                        else
+                        {
+                            if (projectOptions.LocationDescriptorForViewModel.AppendViewType == (bool)_oldValue)
+                                projectOptions.LocationDescriptorForViewModel.AppendViewType = solution.LocationDescriptorForViewModel.AppendViewType;
+                        }
+                        ResetAllToInheritedCommand.RaiseCanExecuteChanged();
+                        break;
+                    case "Namespace":
+                        if (isView)
+                        {
+                            if (projectOptions.LocationDescriptorForView.Namespace == (string)_oldValue)
+                                projectOptions.LocationDescriptorForView.Namespace = solution.LocationDescriptorForView.Namespace;
+                        }
+                        else
+                        {
+                            if (projectOptions.LocationDescriptorForViewModel.Namespace == (string)_oldValue)
+                                projectOptions.LocationDescriptorForViewModel.Namespace = solution.LocationDescriptorForViewModel.Namespace;
+                        }
+                        ResetAllToInheritedCommand.RaiseCanExecuteChanged();
+                        break;
+                }
+            }
+        }
+
+        private void SolutionProjectOptionsVmOnPropertyChanged(object sender, PropertyChangedEventArgs args)
+        {
+            var solution = (ProjectOptionsUserControlViewModel)sender;
+
+            // Index 0 is the solution, so we start at 1.
+            for (int index = 1; index < ProjectsOptions.Count; index++)
+            {
+                var po = ProjectsOptions[index];
+
+                switch (args.PropertyName)
+                {
+                    case "ViewModelSuffix":
+                        // if the solution's old suffix was the same as the project's current
+                        // value, update it to match the solution's new suffix.  If the old value
+                        // was different from the project's suffix, then the user has changed
+                        // it and the suffix is no longer considered inherited so we do nothing.
+                        if (po.ViewModelSuffix == (string)_oldValue)
+                            po.ViewModelSuffix = solution.ViewModelSuffix;
+                        ResetAllToInheritedCommand.RaiseCanExecuteChanged();
+                        break;
+                }
+            }
         }
 
         public void CheckpointSettings()
@@ -260,6 +423,131 @@ namespace MvvmTools.Core.ViewModels
 
         #endregion Public Methods
 
+        #region Commands
+
+        #region ResetAllToInheritedCommand
+        DelegateCommand _resetAllToInheritedCommand;
+        public DelegateCommand ResetAllToInheritedCommand => _resetAllToInheritedCommand ?? (_resetAllToInheritedCommand = new DelegateCommand(ExecuteResetAllToInheritedCommand, CanResetAllToInheritedCommand));
+        public bool CanResetAllToInheritedCommand()
+        {
+            if (ProjectsOptions == null)
+                return false;
+
+            // Return true is at least one project is not inherited.
+
+            // Solution is at index 0, so we start at 1.
+            for (var i = 1; i < ProjectsOptions.Count; i++)
+            {
+                var po = ProjectsOptions[i];
+
+                // Reset project to inherited values.
+                if (!po.IsInherited)
+                    return true;
+            }
+            return false;
+        }
+
+        public void ExecuteResetAllToInheritedCommand()
+        {
+            // Solution is at index 0, so we start at 1.
+            for (var i = 1; i < ProjectsOptions.Count; i++)
+            {
+                var po = ProjectsOptions[i];
+
+                // Reset project to inherited values.
+                po.ResetToInherited();
+            }
+        }
+        #endregion
+
+        #region RestoreDefaultViewSuffixesCommand
+        DelegateCommand _restoreDefaultViewSuffixesCommand;
+        public DelegateCommand RestoreDefaultViewSuffixesCommand => _restoreDefaultViewSuffixesCommand ?? (_restoreDefaultViewSuffixesCommand = new DelegateCommand(ExecuteRestoreDefaultViewSuffixesCommand, CanRestoreDefaultViewSuffixesCommand));
+        public bool CanRestoreDefaultViewSuffixesCommand() => true;
+        public void ExecuteRestoreDefaultViewSuffixesCommand()
+        {
+            try
+            {
+                ViewSuffixes = new ObservableCollection<StringViewModel>(SettingsService.DefaultViewSuffixes.Select(s => new StringViewModel(s)));
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+
+        #endregion
+
+        #region DeleteViewSuffixCommand
+        DelegateCommand _deleteViewSuffixCommand;
+        public DelegateCommand DeleteViewSuffixCommand => _deleteViewSuffixCommand ?? (_deleteViewSuffixCommand = new DelegateCommand(ExecuteDeleteViewSuffixCommand, CanDeleteViewSuffixCommand));
+        public bool CanDeleteViewSuffixCommand() => ViewSuffixesView?.CurrentItem != null;
+        public void ExecuteDeleteViewSuffixCommand()
+        {
+            try
+            {
+                ViewSuffixesView.Remove(ViewSuffixesView.CurrentItem);
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+        #endregion
+
+        #region AddViewSuffixCommand
+        DelegateCommand _addViewSuffixCommand;
+        public DelegateCommand AddViewSuffixCommand => _addViewSuffixCommand ?? (_addViewSuffixCommand = new DelegateCommand(ExecuteAddViewSuffixCommand, CanAddViewSuffixCommand));
+        public bool CanAddViewSuffixCommand() => true;
+        public void ExecuteAddViewSuffixCommand()
+        {
+            try
+            {
+                var vm = Kernel.Get<StringDialogViewModel>();
+                vm.Add("Add View Suffix", "View Suffix:", ViewSuffixes?.Select(s => s.Value),
+                    SuffixRegex, SuffixRegexErrorMessage);
+
+                if (DialogService.ShowDialog(vm))
+                {
+                    var newItem = new StringViewModel(vm.Value);
+                    ViewSuffixesView.AddNewItem(newItem);
+                    // ReSharper disable once PossibleNullReferenceException
+                    ViewSuffixesView.MoveCurrentToPosition(ViewSuffixes.IndexOf(newItem));
+                }
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+        #endregion
+
+        #region EditViewSuffixCommand
+        DelegateCommand _editViewSuffixCommand;
+        public DelegateCommand EditViewSuffixCommand => _editViewSuffixCommand ?? (_editViewSuffixCommand = new DelegateCommand(ExecuteEditViewSuffixCommand, CanEditViewSuffixCommand));
+        public bool CanEditViewSuffixCommand() => ViewSuffixesView?.CurrentItem != null;
+        public void ExecuteEditViewSuffixCommand()
+        {
+            try
+            {
+                var cur = ViewSuffixesView.CurrentItem as StringViewModel;
+                Debug.Assert(cur != null);
+
+                var vm = Kernel.Get<StringDialogViewModel>();
+                vm.Edit("Edit View Suffix", "View Suffix:", cur.Value, ViewSuffixes.Select(s => s.Value),
+                    SuffixRegex, SuffixRegexErrorMessage);
+                if (DialogService.ShowDialog(vm))
+                    cur.Value = vm.Value;
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+        #endregion
+
+        #endregion Commands
+
         #region Private Methods
 
         private void ViewSuffixesViewOnCurrentChanged(object sender, EventArgs eventArgs)
@@ -267,6 +555,25 @@ namespace MvvmTools.Core.ViewModels
             DeleteViewSuffixCommand.RaiseCanExecuteChanged();
             EditViewSuffixCommand.RaiseCanExecuteChanged();
         }
+
+        // Passed in inherited view model could be from SettingsService (for the solution),
+        // or from the solution (for the projects) (mutable). 
+        private async Task<ProjectOptionsUserControlViewModel> CreateProjectOptionsUserControlViewModel(ProjectOptions projectOptions, ProjectOptionsUserControlViewModel inherited,
+            bool isProject)
+        {
+            var rval = Kernel.Get<ProjectOptionsUserControlViewModel>();
+
+            await rval.Initialize(
+                projectOptions,
+                isProject,
+                inherited,
+                projectOptions.ViewModelSuffix,
+                Kernel.Get<LocationDescriptorUserControlViewModel>(),
+                Kernel.Get<LocationDescriptorUserControlViewModel>());
+
+            return rval;
+        }
+
 
         #endregion Private Methods
     }

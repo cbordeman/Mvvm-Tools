@@ -11,5 +11,6 @@ namespace MvvmTools.Core.Services
         Document ActiveDocument { get; }
         double IdeVersion { get; }
         DTE2 Ide { get; }
+        bool SolutionIsLoaded { get; }
     }
 }

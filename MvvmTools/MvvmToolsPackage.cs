@@ -1,10 +1,4 @@
-﻿//------------------------------------------------------------------------------
-// <copyright file="GoToViewOrViewModelCommandPackage.cs" company="Company">
-//     Copyright (c) Company.  All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
@@ -16,12 +10,16 @@ using System.Windows;
 using System.Windows.Threading;
 using EnvDTE;
 using EnvDTE80;
+using Microsoft.Practices.ServiceLocation;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using MvvmTools.Commands;
 using MvvmTools.Core.Services;
+using MvvmTools.Core.Utilities;
 using MvvmTools.Options;
 using Ninject;
+using IServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace MvvmTools
 {
@@ -49,11 +47,15 @@ namespace MvvmTools
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(Constants.GuidPackage)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
+    [ProvideAutoLoad(UIContextGuids.SolutionExists)]
     [Export(typeof(IMvvmToolsPackage))]
     public sealed class MvvmToolsPackage : Package, IMvvmToolsPackage
     {
         #region Fields
 
+        private IVsSolution _solution;
+        private uint _solutionEventsCookie = 0;
+        
         #endregion Fields
 
         #region Ctor and Init
@@ -108,6 +110,7 @@ namespace MvvmTools
         }
 
         private double _ideVersion;
+        
         public double IdeVersion => _ideVersion != 0 ? _ideVersion : (_ideVersion = Convert.ToDouble(Ide.Version, CultureInfo.InvariantCulture));
 
         #region Kernel
@@ -115,6 +118,25 @@ namespace MvvmTools
         internal static readonly IKernel Kernel;
 
         #endregion Kernel
+
+        #region SolutionIsLoaded
+        private readonly object _solutionIsLoadedLock = new object();
+        private bool _solutionIsLoaded;
+        public bool SolutionIsLoaded
+        {
+            get
+            {
+                lock(_solutionIsLoadedLock)
+                    return _solutionIsLoaded;
+            }
+            set
+            {
+                lock(_solutionIsLoadedLock)
+                    _solutionIsLoaded = value;
+            }
+        }
+        #endregion SolutionIsLoaded
+        
 
         #endregion Properties
 
@@ -152,7 +174,6 @@ namespace MvvmTools
 
             // Our own singleton services.
             Kernel.Bind<ISettingsService>().To<SettingsService>().InSingletonScope();
-            Kernel.Bind<ISolutionService>().To<SolutionService>().InSingletonScope();
             Kernel.Bind<IViewFactory>().To<ViewFactory>().InSingletonScope();
             Kernel.Bind<IDialogService>().To<DialogService>().InSingletonScope();
 
@@ -161,9 +182,17 @@ namespace MvvmTools
             Kernel.Bind<ScaffoldViewAndViewModelCommand>().ToSelf().InSingletonScope();
             Kernel.Bind<ExtractViewModelFromViewCommand>().ToSelf().InSingletonScope();
 
+            ServiceLocator.SetLocatorProvider(() => new NinjectServiceLocator(Kernel));
 
+            // Add solution services.
+            Kernel.Bind<ISolutionService>().To<SolutionService>().InSingletonScope();
+            var ss = Kernel.Get<ISolutionService>();
+            _solution = base.GetService(typeof(SVsSolution)) as IVsSolution;
+            _solution?.AdviseSolutionEvents(ss, out _solutionEventsCookie);
+            Kernel.Bind<IVsSolution>().ToConstant(_solution);
+            
             base.Initialize();
-
+            
             RegisterCommands();
         }
 
@@ -186,6 +215,19 @@ namespace MvvmTools
             }
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            if (_solutionEventsCookie != 0)
+            {
+                _solution.UnadviseSolutionEvents(_solutionEventsCookie);
+                _solutionEventsCookie = 0;
+            }
+
+            base.Dispose(disposing);
+        }
+        
         #endregion
+            
     }
+    
 }

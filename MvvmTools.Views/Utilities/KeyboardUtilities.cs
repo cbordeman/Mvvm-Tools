@@ -12,7 +12,7 @@ namespace MvvmTools.Core.Utilities
     {
         internal static void PressKey([NotNull] Visual targetVisual, Key key)
         {
-            if (targetVisual == null) throw new ArgumentNullException("targetVisual");
+            if (targetVisual == null) throw new ArgumentNullException(nameof(targetVisual));
 
             var target = Keyboard.FocusedElement;    // Target element
             var routedEvent = Keyboard.KeyDownEvent; // Event to send

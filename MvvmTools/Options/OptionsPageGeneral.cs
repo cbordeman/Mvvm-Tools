@@ -68,11 +68,8 @@ namespace MvvmTools.Options
                 var elementHost = new ElementHost();
                 var optionsControl = new OptionsUserControl();
 
-                // Load settings (from defaults if necessary).
-                var settings = _settingsService.LoadSettings();
-
                 // Create, initialize, and bind a view model to our user control.
-                _viewModel = MvvmToolsPackage.Kernel.Get<OptionsUserControlViewModel>(new ConstructorArgument("unmodifiedSettings", settings));
+                _viewModel = MvvmToolsPackage.Kernel.Get<OptionsUserControlViewModel>();
                 optionsControl.DataContext = _viewModel;
 
                 // Put user control inside the element host and we're done.
@@ -102,6 +99,8 @@ namespace MvvmTools.Options
             //    e.Cancel = true;
             //}
 
+            _viewModel.Init();
+
             base.OnActivate(e);
         }
 
@@ -111,11 +110,11 @@ namespace MvvmTools.Options
 		/// <devdoc>
 		/// This event is raised when the page is closed.
 		/// </devdoc>
-        protected override void OnClosed(EventArgs e)
+        protected override async void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
 
-            _viewModel.RevertSettings();
+            await _viewModel.RevertSettings();
 
             //WinFormsHelper.ShowMessageBox(Resources.MessageOnClosed);
         }
@@ -144,11 +143,11 @@ namespace MvvmTools.Options
             //}
         }
 
-        public override void ResetSettings()
+        public override async void ResetSettings()
         {
             base.ResetSettings();
 
-            _viewModel.RevertSettings();
+            await _viewModel.RevertSettings();
         }
 
         /// <summary>
@@ -164,8 +163,11 @@ namespace MvvmTools.Options
 
             _viewModel.CheckpointSettings();
             var settings = _viewModel.GetCurrentSettings();
-            _settingsService.SaveSettings(settings);
-            
+            if (settings != null)
+                _settingsService.SaveSettings(settings);
+            else
+                e.ApplyBehavior = DialogPage.ApplyKind.Cancel;
+
             //var result = MessageBox.Show(Resources.MessageOnApplyEntered);
 
             //if (result == DialogResult.Cancel)

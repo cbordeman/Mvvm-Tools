@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Windows.Input;
 
-namespace MvvmTools.Core
+namespace MvvmTools.Core.Utilities
 {
     /// <summary>
     /// Use a DelegateCommand to implement an ICommand by simply passing CanExecute-/Execute-delegates.

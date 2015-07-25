@@ -1,4 +1,6 @@
-﻿namespace MvvmTools.Core.ViewModels
+﻿using MvvmTools.Core.Utilities;
+
+namespace MvvmTools.Core.ViewModels
 {
     public abstract class BaseDialogViewModel : BaseViewModel
     {

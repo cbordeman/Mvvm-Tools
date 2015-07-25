@@ -1,21 +1,30 @@
-using Microsoft.VisualStudio.Settings;
+using System.Collections.Generic;
 using MvvmTools.Core.Services;
 
 namespace MvvmTools.Core.Models
 {
+    /// <summary>
+    /// This class contains the entire Mvvm Tools configuration settings.
+    /// </summary>
     public class MvvmToolsSettings
     {
         public MvvmToolsSettings()
         {
             // Set default values.
             GoToViewOrViewModelOption = GoToViewOrViewModelOption.ShowUi;
-            ScaffoldingOptions = new ScaffoldingOptions();
+            ProjectOptions = new List<ProjectOptions>();
+
             ViewSuffixes = SettingsService.DefaultViewSuffixes;
         }
 
         public GoToViewOrViewModelOption GoToViewOrViewModelOption { get; set; }
-        public string ViewModelSuffix { get; set; }
+
         public string[] ViewSuffixes { get; set; }
-        public ScaffoldingOptions ScaffoldingOptions { get; set; }
+
+        // Configuration settings for the solutions.
+        public ProjectOptions SolutionOptions { get; set; }
+
+        // Contains the list of configuration settings for the projects.
+        public IList<ProjectOptions> ProjectOptions { get; set; }
     }
 }

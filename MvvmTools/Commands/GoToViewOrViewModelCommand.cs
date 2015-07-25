@@ -35,7 +35,7 @@ namespace MvvmTools.Commands
         [Inject]
         public ISolutionService SolutionService { get; set; }
 
-        protected override void OnExecute()
+        protected override async void OnExecute()
         {
             base.OnExecute();
 
@@ -49,9 +49,10 @@ namespace MvvmTools.Commands
                     return;
                 }
 
-                var settings = SettingsService.LoadSettings();
+                var settings = await SettingsService.LoadSettings();
 
-                var docs = SolutionService.GetRelatedDocuments(Package.ActiveDocument.ProjectItem, classesInFile.Select(c => c.Class), settings.ViewSuffixes, settings.ViewModelSuffix);
+                var docs = SolutionService.GetRelatedDocuments(Package.ActiveDocument.ProjectItem,
+                    classesInFile.Select(c => c.Class), null, null); //settings.ViewSuffixes, settings.ViewModelSuffix);
 
                 if (docs.Count == 0)
                 {
@@ -59,9 +60,8 @@ namespace MvvmTools.Commands
                     foreach (var c in classesInFile)
                         classes += c.Class + "\n        ";
 
-                    MessageBox.Show(string.Format("Couldn't find any matching view or view model classes.\n\nClasses found in this file ({0}):\n{1}",
-                        Package.ActiveDocument.FullName,
-                        classes), "MVVM Tools");
+                    MessageBox.Show(
+                        $"Couldn't find any matching view or view model classes.\n\nClasses found in this file ({Package.ActiveDocument.FullName}):\n{classes}", "MVVM Tools");
 
                     return;
                 }

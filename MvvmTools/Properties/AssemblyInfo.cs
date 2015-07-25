@@ -1,12 +1,10 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Windows;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Mvvm Tools")]
+[assembly: AssemblyTitle("MVVM Tools")]
 [assembly: AssemblyDescription("A Visual Studio extension providing MVVM tools for XAML developers.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Chris Bordeman")]
@@ -30,9 +28,9 @@ using System.Windows;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.1.8.*")]
+[assembly: AssemblyVersion("0.1.9.*")]
 #pragma warning disable CS7035 // The specified version string does not conform to the recommended format - major.minor.build.revision
-[assembly: AssemblyFileVersion("0.1.8.*")]
+[assembly: AssemblyFileVersion("0.1.9.*")]
 #pragma warning restore CS7035 // The specified version string does not conform to the recommended format - major.minor.build.revision
 
 

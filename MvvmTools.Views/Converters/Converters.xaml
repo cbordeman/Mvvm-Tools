@@ -7,5 +7,10 @@
     <system:Boolean x:Key="False">False</system:Boolean>
 
     <local:RadioButtonCheckedConverter x:Key="RadioButtonCheckedConverter" />
+    <local:NullToVisibleConverter x:Key="NullToVisibleConverter" />
+    <local:NullToCollapsedConverter x:Key="NullToCollapsedConverter" />
+    <local:FalseToVisibleConverter x:Key="FalseToVisibleConverter" />
+    <local:BoolInvertedConverter x:Key="BoolInvertedConverter" />
+    <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 
 </ResourceDictionary>

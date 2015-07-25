@@ -1,30 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using EnvDTE;
 using EnvDTE80;
+using Microsoft.VisualStudio.Shell.Interop;
 using MvvmTools.Core.Models;
+using MvvmTools.Core.Utilities;
 
 namespace MvvmTools.Core.Services
 {
-    public interface ISolutionService
+    public enum SolutionLoadState
+    {
+        NoSolution,
+        Loading,
+        Unloading,
+        Loaded
+    }
+
+    public interface ISolutionService : IVsSolutionLoadEvents, IVsSolutionEvents3, IVsSolutionEvents4, IVsSolutionEvents5
     {
         List<NamespaceClass> GetClassesInProjectItem(ProjectItem pi);
         List<ProjectItemAndType> GetRelatedDocuments(ProjectItem pi, IEnumerable<string> typeNamesInFile, string[] viewSuffixes, string viewModelSuffix);
         List<string> GetTypeCandidates(IEnumerable<string> typeNamesInFile, string[] viewSuffixes, string viewModelSuffix);
         List<ProjectItemAndType> FindDocumentsContainingTypes(Project project, Project excludeProject, ProjectItem excludeProjectItem, List<string> typesToFind);
-        List<ProjectModel> GetSolutionTree();
+        //SolutionLoadState SolutionLoadState { get; }
+        Task<ProjectModel> GetSolution();
     }
 
     public class SolutionService : ISolutionService
     {
         #region Data
 
-        private const string SolutionFolderKind = "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}";
-        private const string ProjectFolderKind = "{6BB5F8EF-4483-11D3-8BCF-00C04F8EC28C}";
-
         private readonly IMvvmToolsPackage _mvvmToolsPackage;
-
+        private readonly object _solutionLock = new object();
+        private ProjectModel _solution;
+        
         #endregion Data
 
         #region Ctor and Init
@@ -32,87 +43,51 @@ namespace MvvmTools.Core.Services
         public SolutionService(IMvvmToolsPackage mvvmToolsPackage)
         {
             _mvvmToolsPackage = mvvmToolsPackage;
+            var solution = _mvvmToolsPackage.Ide.Solution;
+            SolutionLoadState = solution.IsOpen ? SolutionLoadState.Unloading : SolutionLoadState.NoSolution;
         }
 
         #endregion Ctor and Init
 
+        #region Properties
+
+        #region SolutionLoadState
+        private SolutionLoadState _solutionLoadState;
+        private SolutionLoadState SolutionLoadState
+        {
+            get
+            {
+                lock (_solutionLock)
+                    return _solutionLoadState;
+            }
+            set
+            {
+                lock (_solutionLock)
+                    _solutionLoadState = value;
+            }
+        }
+        #endregion SolutionLoadState
+
+        #endregion Properties
+
         #region Public Methods
 
-        public List<ProjectModel> GetSolutionTree()
+        public async Task<ProjectModel> GetSolution()
         {
-            var solution = _mvvmToolsPackage.Ide.Solution;
-
-            var topLevelProjects = solution.Projects.Cast<Project>().Where(p => p.Name != "Solution Items").ToArray();
-            var topLevelProjectModels = new List<ProjectModel>();
-            foreach (Project p in topLevelProjects)
+            while (true)
             {
-                var projectModels = GetProjectModelsRecursive(p);
-                topLevelProjectModels.AddRange(projectModels);
-            }
-            
-            return topLevelProjectModels;
-        }
-
-        private static List<ProjectModel> GetProjectModelsRecursive(Project project)
-        {
-            var rval = new List<ProjectModel>();
-
-            // Add the project.
-            var projectModel = new ProjectModel(
-                project.Name, 
-                project.UniqueName,
-                project.Kind == SolutionFolderKind ? ProjectKind.SolutionFolder : ProjectKind.Project);
-            rval.Add(projectModel);
-
-            // Look through all this project's items and recursively add any 
-            // which are sub-projects and folders.
-            foreach (ProjectItem pi in project.ProjectItems)
-            {
-                var itemProjectModels = new List<ProjectModel>();
-                if (pi.Kind == ProjectFolderKind)
+                switch (SolutionLoadState)
                 {
-                    if (pi.Name != "Properties")
-                    {
-                        var folderModels = GetProjectFolderModelsRecursive(pi);
-                        itemProjectModels.AddRange(folderModels);
-                    }
-                }
-                else if (pi.SubProject != null)
-                {
-                    // Recursive call.
-                    itemProjectModels = GetProjectModelsRecursive(pi.SubProject);
-                }
-                projectModel.Children.AddRange(itemProjectModels);
-            }
-
-            return rval;
-        }
-
-        private static List<ProjectModel> GetProjectFolderModelsRecursive(ProjectItem projectFolder)
-        {
-            var rval = new List<ProjectModel>();
-
-            // Add node for projectFolder.
-            var projectFolderModel = new ProjectModel(
-                            projectFolder.Name,
-                            projectFolder.Name,
-                            ProjectKind.ProjectFolder);
-            rval.Add(projectFolderModel);
-
-            if (projectFolder.ProjectItems == null)
-                return rval;
-
-            // Collect project folder's Project Items that are either SubProject or other
-            // project folders, then add them as children of this project folder.
-            foreach (ProjectItem pi in projectFolder.ProjectItems)
-            {
-                if (pi.Kind == ProjectFolderKind)
-                {
-                    var subFolderModels = GetProjectFolderModelsRecursive(pi);
-                    projectFolderModel.Children.AddRange(subFolderModels);
+                    case SolutionLoadState.NoSolution:
+                    case SolutionLoadState.Unloading:
+                        return null;
+                    case SolutionLoadState.Loaded:
+                        return _solution;
+                    case SolutionLoadState.Loading:
+                        await Task.Delay(1000);
+                        break;
                 }
             }
-            return rval;
         }
 
         public List<NamespaceClass> GetClassesInProjectItem(ProjectItem pi)
@@ -235,11 +210,53 @@ namespace MvvmTools.Core.Services
 
             return results;
         }
-        
+
         #endregion Public Methods
 
         #region Private Methods
-        
+        // Call only from WaitForSolutionToLoad().
+        private static List<ProjectModel> GetProjectModelsRecursive(Project project)
+        {
+            var rval = new List<ProjectModel>();
+
+            // Sometimes unloaded or some project types projects throw on .FullName.
+            string fullName = null;
+            try
+            {
+                fullName = project.FullName;
+            }
+            catch
+            {
+                // Ignore error.
+            }
+
+            // Add the project.
+            var projectModel = new ProjectModel(
+                project.Name,
+                fullName,
+                project.UniqueName,
+                project.Kind == VsConstants.VsProjectItemKindSolutionFolder
+                    ? ProjectKind.SolutionFolder
+                    : ProjectKind.Project,
+                project.Kind);
+            rval.Add(projectModel);
+
+            // Look through all this project's items and recursively add any 
+            // which are sub-projects and folders.
+            foreach (ProjectItem pi in project.ProjectItems)
+            {
+                var itemProjectModels = new List<ProjectModel>();
+                if (pi.SubProject != null)
+                {
+                    // Recursive call.
+                    itemProjectModels = GetProjectModelsRecursive(pi.SubProject);
+                }
+                projectModel.Children.AddRange(itemProjectModels);
+            }
+
+            return rval;
+        }
+
         // Recursively examine code elements.
         private void FindClassesRecursive(List<NamespaceClass> classes, CodeElement2 codeElement, bool isXaml)
         {
@@ -337,6 +354,284 @@ namespace MvvmTools.Core.Services
         }
 
         #endregion Private Methods
+
+        #region IVsSolutionXXXXX
+
+        // Several interfaces implemented here.
+
+        public int OnBeforeOpenSolution(string pszSolutionFilename)
+        {
+            SolutionLoadState = SolutionLoadState.Loading;
+            return VsConstants.S_OK;
+        }
+
+        public int OnBeforeBackgroundSolutionLoadBegins()
+        {
+            return VsConstants.S_OK;
+        }
+
+        public int OnQueryBackgroundLoadProjectBatch(out bool pfShouldDelayLoadToNextIdle)
+        {
+            pfShouldDelayLoadToNextIdle = false;
+            return VsConstants.S_OK;
+        }
+
+        public int OnBeforeLoadProjectBatch(bool fIsBackgroundIdleBatch)
+        {
+            return VsConstants.S_OK;
+        }
+
+        public int OnAfterLoadProjectBatch(bool fIsBackgroundIdleBatch)
+        {
+            return VsConstants.S_OK;
+        }
+
+        public int OnAfterBackgroundSolutionLoadComplete()
+        {
+            SolutionLoadState = SolutionLoadState.Loading;
+
+            // Load solution in _solution.
+            lock (_solutionLock)
+            {
+                var solution = _mvvmToolsPackage.Ide.Solution;
+
+                var solutionModel = new ProjectModel(
+                    System.IO.Path.GetFileNameWithoutExtension(solution.FullName),
+                    solution.FullName,
+                    null,
+                    ProjectKind.Solution,
+                    null);
+
+                // Add each of the top level projects and children to the local solutionModel.
+                var topLevelProjects = solution.Projects.Cast<Project>().Where(p => p.Name != "Solution Items").ToArray();
+                foreach (var p in topLevelProjects)
+                {
+                    var projectModels = GetProjectModelsRecursive(p);
+                    solutionModel.Children.AddRange(projectModels);
+                }
+
+                // Set the backing field as to not create a deadlock on _solutionLock.
+                _solution = solutionModel;
+            }
+
+            SolutionLoadState = SolutionLoadState.Loaded;
+
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents3.OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents3.OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
+        {
+            SolutionLoadState = SolutionLoadState.Unloading;
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents3.OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents3.OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents3.OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents3.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents3.OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents3.OnBeforeCloseSolution(object pUnkReserved)
+        {
+            SolutionLoadState = SolutionLoadState.Unloading;
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents3.OnAfterCloseSolution(object pUnkReserved)
+        {
+            SolutionLoadState = SolutionLoadState.NoSolution;
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents3.OnAfterMergeSolution(object pUnkReserved)
+        {
+            return VsConstants.S_OK;
+        }
+
+        public int OnBeforeOpeningChildren(IVsHierarchy pHierarchy)
+        {
+            return VsConstants.S_OK;
+        }
+
+        public int OnAfterOpeningChildren(IVsHierarchy pHierarchy)
+        {
+            return VsConstants.S_OK;
+        }
+
+        public int OnBeforeClosingChildren(IVsHierarchy pHierarchy)
+        {
+            return VsConstants.S_OK;
+        }
+
+        public int OnAfterClosingChildren(IVsHierarchy pHierarchy)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents3.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents2.OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents2.OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents2.OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents2.OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents2.OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents2.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents2.OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents2.OnBeforeCloseSolution(object pUnkReserved)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents2.OnAfterCloseSolution(object pUnkReserved)
+        {
+            SolutionLoadState = SolutionLoadState.NoSolution;
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents2.OnAfterMergeSolution(object pUnkReserved)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents2.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents.OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents.OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents.OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents.OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents.OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
+        {
+            SolutionLoadState = SolutionLoadState.Unloading;
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents.OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
+        {
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents.OnBeforeCloseSolution(object pUnkReserved)
+        {
+            this.SolutionLoadState = SolutionLoadState.Unloading;
+            return VsConstants.S_OK;
+        }
+
+        int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved)
+        {
+            SolutionLoadState = SolutionLoadState.NoSolution;
+            return VsConstants.S_OK;
+        }
+
+        public int OnAfterRenameProject(IVsHierarchy pHierarchy)
+        {
+            return VsConstants.S_OK;
+        }
+
+        public int OnQueryChangeProjectParent(IVsHierarchy pHierarchy, IVsHierarchy pNewParentHier, ref int pfCancel)
+        {
+            return VsConstants.S_OK;
+        }
+
+        public int OnAfterChangeProjectParent(IVsHierarchy pHierarchy)
+        {
+            return VsConstants.S_OK;
+        }
+
+        public int OnAfterAsynchOpenProject(IVsHierarchy pHierarchy, int fAdded)
+        {
+            return VsConstants.S_OK;
+        }
+
+        public void OnBeforeOpenProject(ref Guid guidProjectID, ref Guid guidProjectType, string pszFileName)
+        {
+            SolutionLoadState = SolutionLoadState.Loading;
+        }
+
+        #endregion IVsSolutionXXXXX
     }
 
     public class ProjectItemAndType
