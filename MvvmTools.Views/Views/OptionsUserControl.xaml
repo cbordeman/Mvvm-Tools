@@ -93,7 +93,7 @@
                         </Grid>
                     </GroupBox>
 
-                    <!--  Row 1 contains the the view suffixes.  -->
+                    <!--  Row 1 contains the the view suffixes.  --><!--
                     <GroupBox Grid.Row="1"
                               Margin="0,15,0,0"
                               Header="View Suffixes">
@@ -104,7 +104,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <!--  View Suffixes  -->
+                            --><!--  View Suffixes  --><!--
                             <TextBlock Grid.Row="0"
                                        Margin="0,0,5,0"
                                        VerticalAlignment="Top"
@@ -162,7 +162,7 @@
                         </Grid>
                     </GroupBox>
 
-                    <!--  Row 2 contains the solution and projects location options.  -->
+                    --><!--  Row 2 contains the solution and projects location options.  --><!--
                     <GroupBox Grid.Row="2"
                               Margin="0,15,0,0"
                               Header="Solution and Project Options">
@@ -236,7 +236,7 @@
                                 <views:ProjectOptionsUserControl DataContext="{Binding SelectedProjectOption}" />
                             </ContentControl>
                         </Grid>
-                    </GroupBox>
+                    </GroupBox>-->
 
                 </Grid>
             </ScrollViewer>
