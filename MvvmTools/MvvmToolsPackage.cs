@@ -19,7 +19,6 @@ using MvvmTools.Core.Services;
 using MvvmTools.Core.Utilities;
 using MvvmTools.Options;
 using Ninject;
-using IServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace MvvmTools
 {
@@ -47,7 +46,7 @@ namespace MvvmTools
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(Constants.GuidPackage)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
-    [ProvideAutoLoad(UIContextGuids.SolutionExists)]
+    //[ProvideAutoLoad(UIContextGuids.SolutionExists)]
     [Export(typeof(IMvvmToolsPackage))]
     public sealed class MvvmToolsPackage : Package, IMvvmToolsPackage
     {
@@ -167,33 +166,43 @@ namespace MvvmTools
         {
             // Set up Ninject container
 
-            // Add package and package specific services.
-            Kernel.Bind<IMvvmToolsPackage>().ToConstant(this);
-            Kernel.Bind<IComponentModel>().ToConstant(GetGlobalService(typeof(SComponentModel)) as IComponentModel);
-            Kernel.Bind<IMenuCommandService>().ToConstant(GetService(typeof(IMenuCommandService)) as OleMenuCommandService);
-
-            // Our own singleton services.
-            Kernel.Bind<ISettingsService>().To<SettingsService>().InSingletonScope();
-            Kernel.Bind<IViewFactory>().To<ViewFactory>().InSingletonScope();
-            Kernel.Bind<IDialogService>().To<DialogService>().InSingletonScope();
-
-            // Commands, which are singletons.
-            Kernel.Bind<GoToViewOrViewModelCommand>().ToSelf().InSingletonScope();
-            Kernel.Bind<ScaffoldViewAndViewModelCommand>().ToSelf().InSingletonScope();
-            Kernel.Bind<ExtractViewModelFromViewCommand>().ToSelf().InSingletonScope();
-
-            ServiceLocator.SetLocatorProvider(() => new NinjectServiceLocator(Kernel));
-
-            // Add solution services.
-            Kernel.Bind<ISolutionService>().To<SolutionService>().InSingletonScope();
-            var ss = Kernel.Get<ISolutionService>();
-            _solution = base.GetService(typeof(SVsSolution)) as IVsSolution;
-            _solution?.AdviseSolutionEvents(ss, out _solutionEventsCookie);
-            Kernel.Bind<IVsSolution>().ToConstant(_solution);
+            Kernel.Bind<IOutputService>().To<OutputService>().InSingletonScope();
+            var os = Kernel.Get<IOutputService>();
             
-            base.Initialize();
-            
-            RegisterCommands();
+            try
+            {
+                // Add package and package specific services.
+                Kernel.Bind<IMvvmToolsPackage>().ToConstant(this);
+                Kernel.Bind<IComponentModel>().ToConstant(GetGlobalService(typeof(SComponentModel)) as IComponentModel);
+                Kernel.Bind<IMenuCommandService>().ToConstant(GetService(typeof(IMenuCommandService)) as OleMenuCommandService);
+
+                // Our own singleton services.
+                Kernel.Bind<ISettingsService>().To<SettingsService>().InSingletonScope();
+                Kernel.Bind<IViewFactory>().To<ViewFactory>().InSingletonScope();
+                Kernel.Bind<IDialogService>().To<DialogService>().InSingletonScope();
+
+                // Commands, which are singletons.
+                Kernel.Bind<GoToViewOrViewModelCommand>().ToSelf().InSingletonScope();
+                Kernel.Bind<ScaffoldViewAndViewModelCommand>().ToSelf().InSingletonScope();
+                Kernel.Bind<ExtractViewModelFromViewCommand>().ToSelf().InSingletonScope();
+
+                ServiceLocator.SetLocatorProvider(() => new NinjectServiceLocator(Kernel));
+
+                // Add solution services.
+                Kernel.Bind<ISolutionService>().To<SolutionService>().InSingletonScope();
+                var ss = Kernel.Get<ISolutionService>();
+                _solution = base.GetService(typeof(SVsSolution)) as IVsSolution;
+                _solution?.AdviseSolutionEvents(ss, out _solutionEventsCookie);
+                Kernel.Bind<IVsSolution>().ToConstant(_solution);
+
+                base.Initialize();
+
+                RegisterCommands();
+            }
+            catch (Exception ex)
+            {
+                os.WriteLine($"MVVM Tools service startup failed: {ex.Message}.");
+            }
         }
 
         /// <summary>

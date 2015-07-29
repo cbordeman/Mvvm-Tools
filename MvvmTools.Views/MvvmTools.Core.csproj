@@ -200,6 +200,7 @@
     <Compile Include="Converters\FalseToVisibleConverter.cs" />
     <Compile Include="Converters\NullToCollapsedConverter.cs" />
     <Compile Include="Converters\NullToVisibleConverter.cs" />
+    <Compile Include="Services\IOutputService.cs" />
     <Compile Include="Utilities\NinjectServiceLocator.cs" />
     <Compile Include="Utilities\ProjectExtensions.cs" />
     <Compile Include="Utilities\SourceControlUtilities.cs" />
