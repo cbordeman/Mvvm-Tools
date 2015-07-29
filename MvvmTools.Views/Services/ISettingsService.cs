@@ -34,6 +34,7 @@ namespace MvvmTools.Core.Services
 
         // Name of the global settings within Visual Studio's store.
         private const string GoToViewOrViewModelPropName = "GoToViewOrViewModel";
+        private const string GoToViewOrViewModelSearchSolutionPropName = "GoToViewOrViewModelSearchSolution";
         private const string ViewSuffixesPropName = "ViewSuffixes";
 
         // The physical store used by Visual Studio to save settings, instead of app.config,
@@ -53,7 +54,7 @@ namespace MvvmTools.Core.Services
         static SettingsService()
         {
             DefaultViewSuffixes = new [] { "View", "Flyout", "UserControl", "Page", "Window", "Dialog" };
-
+            
             SolutionDefaultProjectOptions = new ProjectOptions
             {
                 ViewModelSuffix = "ViewModel",
@@ -131,6 +132,7 @@ namespace MvvmTools.Core.Services
             if (_userSettingsStore.CollectionExists(SettingsPropName))
             {
                 rval.GoToViewOrViewModelOption = GetEnum(GoToViewOrViewModelPropName, GoToViewOrViewModelOption.ShowUi);
+                rval.GoToViewOrViewModelSearchSolution = GetBool(GoToViewOrViewModelSearchSolutionPropName, true);
                 rval.ViewSuffixes = GetStringCollection(ViewSuffixesPropName, DefaultViewSuffixes);
             }
 
@@ -191,6 +193,7 @@ namespace MvvmTools.Core.Services
                 _userSettingsStore.CreateCollection(SettingsPropName);
 
             SetEnum(GoToViewOrViewModelPropName, settings.GoToViewOrViewModelOption);
+            SetBool(GoToViewOrViewModelSearchSolutionPropName, settings.GoToViewOrViewModelSearchSolution);
             SetStringCollection(ViewSuffixesPropName, settings.ViewSuffixes);
 
             // If a solution is loaded...
@@ -223,8 +226,11 @@ namespace MvvmTools.Core.Services
                 SaveProjectOptionsToSettingsFile(projectOptions);
         }
 
-        private void DeleteFileIfExists(string fn)
+        private void DeleteFileIfExists([NotNull] string fn)
         {
+            if (fn == null)
+                throw new ArgumentNullException(nameof(fn));
+
             if (File.Exists(fn))
             {
                 try

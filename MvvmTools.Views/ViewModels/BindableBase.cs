@@ -33,11 +33,11 @@ namespace MvvmTools.Core.ViewModels
             // simply becuase the view model was a singleton and was being reused.
             // We also implement INotifyPropertyChainging.
 
-            this.OnPropertyChanging(propertyName);
+            OnPropertyChanging(propertyName);
 
             var orig = storage;
             storage = value;
-            this.OnPropertyChanged(propertyName);
+            OnPropertyChanged(propertyName);
 
             if (Equals(orig, value)) return false;
             return true;
@@ -51,7 +51,7 @@ namespace MvvmTools.Core.ViewModels
         /// that support <see cref="CallerMemberNameAttribute"/>.</param>
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
-            var eventHandler = this.PropertyChanged;
+            var eventHandler = PropertyChanged;
             eventHandler?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
@@ -63,7 +63,7 @@ namespace MvvmTools.Core.ViewModels
         /// that support <see cref="CallerMemberNameAttribute"/>.</param>
         protected void OnPropertyChanging([CallerMemberName] string propertyName = null)
         {
-            var eventHandler = this.PropertyChanging;
+            var eventHandler = PropertyChanging;
             eventHandler?.Invoke(this, new PropertyChangingEventArgs(propertyName));
         }
 

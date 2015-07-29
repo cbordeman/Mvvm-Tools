@@ -151,6 +151,15 @@ namespace MvvmTools.Core.ViewModels
         }
         #endregion GoToViewOrViewModelOptions
 
+        #region GoToViewOrViewModelSearchSolution
+        private bool _goToViewOrViewModelSearchSolution;
+        public bool GoToViewOrViewModelSearchSolution
+        {
+            get { return _goToViewOrViewModelSearchSolution; }
+            set { SetProperty(ref _goToViewOrViewModelSearchSolution, value); }
+        }
+        #endregion GoToViewOrViewModelSearchSolution
+
         #region SelectedGoToViewOrViewModelOption
         private GoToViewOrViewModelOption _selectedGoToViewOrViewModelOption;
         public GoToViewOrViewModelOption SelectedGoToViewOrViewModelOption
@@ -175,6 +184,7 @@ namespace MvvmTools.Core.ViewModels
             var settings = new MvvmToolsSettings
             {
                 GoToViewOrViewModelOption = SelectedGoToViewOrViewModelOption,
+                GoToViewOrViewModelSearchSolution = GoToViewOrViewModelSearchSolution,
                 ViewSuffixes = ViewSuffixes.Select(vs => vs.Value).ToArray()
             };
 
@@ -193,7 +203,7 @@ namespace MvvmTools.Core.ViewModels
             return settings;
         }
 
-        private ProjectOptions ConvertToProjectOptions(ProjectOptionsUserControlViewModel projectOptionsVm)
+        private static ProjectOptions ConvertToProjectOptions(ProjectOptionsUserControlViewModel projectOptionsVm)
         {
             var rval = new ProjectOptions
             {
@@ -230,6 +240,7 @@ namespace MvvmTools.Core.ViewModels
             }
 
             SelectedGoToViewOrViewModelOption = _unmodifiedSettings.GoToViewOrViewModelOption;
+            GoToViewOrViewModelSearchSolution = _unmodifiedSettings.GoToViewOrViewModelSearchSolution;
             ViewSuffixes = new ObservableCollection<StringViewModel>(_unmodifiedSettings.ViewSuffixes.Select(s => new StringViewModel(s)));
 
             // Add solution and other projects.

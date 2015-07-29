@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using MvvmTools.Core.ViewModels;
@@ -30,7 +29,7 @@ namespace MvvmTools.Core.Views
         {
             var s = HwndSource.FromVisual(this) as HwndSource;
                 if (s != null)
-                    s.AddHook(new HwndSourceHook(ChildHwndSourceHook));
+                    s.AddHook(ChildHwndSourceHook);
         }
 
         IntPtr ChildHwndSourceHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -47,7 +46,7 @@ namespace MvvmTools.Core.Views
         {
             if (e.ClickCount == 2)
             {
-                var vm = (OptionsUserControlViewModel)this.DataContext;
+                var vm = (OptionsUserControlViewModel)DataContext;
                 vm?.ExecuteEditViewSuffixCommand();
             }
         }

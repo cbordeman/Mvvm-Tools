@@ -18,9 +18,10 @@ namespace MvvmTools.Core.Models
         }
 
         public GoToViewOrViewModelOption GoToViewOrViewModelOption { get; set; }
+        public bool GoToViewOrViewModelSearchSolution { get; set; }
 
         public string[] ViewSuffixes { get; set; }
-
+        
         // Configuration settings for the solutions.
         public ProjectOptions SolutionOptions { get; set; }
 

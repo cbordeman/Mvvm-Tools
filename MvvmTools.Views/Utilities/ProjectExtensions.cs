@@ -8,7 +8,6 @@ using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
 using EnvDTE;
 using Microsoft.Build.Evaluation;
-using Microsoft.CSharp.RuntimeBinder;
 using Microsoft.Practices.ServiceLocation;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
@@ -63,24 +62,22 @@ namespace MvvmTools.Core.Utilities
         private static readonly IEnumerable<string> _folderKinds = new[] {VsConstants.VsProjectItemKindPhysicalFolder};
 
         // List of project types that cannot have references added to them
-        private static readonly string[] _unsupportedProjectTypesForAddingReferences = new[]
-        {
+        private static readonly string[] _unsupportedProjectTypesForAddingReferences = {
             VsConstants.WixProjectTypeGuid,
-            VsConstants.CppProjectTypeGuid,
+            VsConstants.CppProjectTypeGuid
         };
 
         // List of project types that cannot have binding redirects added
-        private static readonly string[] _unsupportedProjectTypesForBindingRedirects = new[]
-        {
+        private static readonly string[] _unsupportedProjectTypesForBindingRedirects = {
             VsConstants.WixProjectTypeGuid,
             VsConstants.JsProjectTypeGuid,
             VsConstants.NemerleProjectTypeGuid,
             VsConstants.CppProjectTypeGuid,
             VsConstants.SynergexProjectTypeGuid,
-            VsConstants.NomadForVisualStudioProjectTypeGuid,
+            VsConstants.NomadForVisualStudioProjectTypeGuid
         };
 
-        private static readonly char[] PathSeparatorChars = new[] {Path.DirectorySeparatorChar};
+        private static readonly char[] PathSeparatorChars = {Path.DirectorySeparatorChar};
 
         // Get the ProjectItems for a folder path
         public static ProjectItems GetProjectItems(this Project project, string folderPath,
@@ -157,9 +154,8 @@ namespace MvvmTools.Core.Utilities
                     var nestedProject = item.SubProject;
                     if (nestedProject == null)
                     {
-                        continue;
                     }
-                    else if (nestedProject.IsSupported())
+                    if (nestedProject.IsSupported())
                     {
                         yield return nestedProject;
                     }
@@ -214,18 +210,15 @@ namespace MvvmTools.Core.Utilities
                 ProjectItem item = project.GetProjectItem(path);
                 return item != null;
             }
-            else
+            IVsProject vsProject = (IVsProject) project.ToVsHierarchy();
+            if (vsProject == null)
             {
-                IVsProject vsProject = (IVsProject) project.ToVsHierarchy();
-                if (vsProject == null)
-                {
-                    return false;
-                }
-                int pFound;
-                uint itemId;
-                int hr = vsProject.IsDocumentInProject(path, out pFound, new VSDOCUMENTPRIORITY[0], out itemId);
-                return ErrorHandler.Succeeded(hr) && pFound == 1;
+                return false;
             }
+            int pFound;
+            uint itemId;
+            int hr = vsProject.IsDocumentInProject(path, out pFound, new VSDOCUMENTPRIORITY[0], out itemId);
+            return ErrorHandler.Succeeded(hr) && pFound == 1;
         }
 
         /// <summary>
@@ -471,7 +464,7 @@ namespace MvvmTools.Core.Utilities
                 // Get the sub folder
                 return subFolder;
             }
-            else if (createIfNotExists)
+            if (createIfNotExists)
             {
                 // The JS Metro project system has a bug whereby calling AddFolder() to an existing folder that
                 // does not belong to the project will throw. To work around that, we have to manually include 
@@ -667,14 +660,11 @@ namespace MvvmTools.Core.Utilities
 
                 return projectTypeGuids.Split(';');
             }
-            else if (!String.IsNullOrEmpty(project.Kind))
+            if (!String.IsNullOrEmpty(project.Kind))
             {
                 return new[] {project.Kind};
             }
-            else
-            {
-                return new string[0];
-            }
+            return new string[0];
         }
 
         //internal static IList<Project> GetReferencedProjects(this Project project)
@@ -744,22 +734,19 @@ namespace MvvmTools.Core.Utilities
                 // website projects always have unique name
                 return project.Name;
             }
-            else
+            Stack<string> nameParts = new Stack<string>();
+
+            Project cursor = project;
+            nameParts.Push(cursor.Name);
+
+            // walk up till the solution root
+            while (cursor.ParentProjectItem != null && cursor.ParentProjectItem.ContainingProject != null)
             {
-                Stack<string> nameParts = new Stack<string>();
-
-                Project cursor = project;
+                cursor = cursor.ParentProjectItem.ContainingProject;
                 nameParts.Push(cursor.Name);
-
-                // walk up till the solution root
-                while (cursor.ParentProjectItem != null && cursor.ParentProjectItem.ContainingProject != null)
-                {
-                    cursor = cursor.ParentProjectItem.ContainingProject;
-                    nameParts.Push(cursor.Name);
-                }
-
-                return String.Join("\\", nameParts);
             }
+
+            return String.Join("\\", nameParts);
         }
 
 
@@ -900,7 +887,7 @@ namespace MvvmTools.Core.Utilities
         SkipInitialEvaluation = 8,
         SuppressReevaluation = 16,
         StickyWrite = 37,
-        OptionMask = 2147483640,
+        OptionMask = 2147483640
 
     }
 }

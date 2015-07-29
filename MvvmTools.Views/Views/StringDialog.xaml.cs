@@ -1,4 +1,6 @@
-﻿namespace MvvmTools.Core.Views
+﻿using System.Windows;
+
+namespace MvvmTools.Core.Views
 {
     /// <summary>
     /// Interaction logic for EditStringUserControl.xaml
@@ -10,7 +12,7 @@
             InitializeComponent();
         }
 
-        private void ValueBox_OnLoaded(object sender, System.Windows.RoutedEventArgs e)
+        private void ValueBox_OnLoaded(object sender, RoutedEventArgs e)
         {
             ValueBox.Focus();
         }

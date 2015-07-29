@@ -161,8 +161,8 @@ namespace MvvmTools.Core.Utilities
     {
         #region Fields
 
-        private readonly System.Predicate<T> _canExecute;
-        private readonly System.Action<T> _execute;
+        private readonly Predicate<T> _canExecute;
+        private readonly Action<T> _execute;
         private List<WeakReference> _canExecuteChangedHandlers;
         private bool _isAutomaticRequeryDisabled;
 
@@ -241,15 +241,15 @@ namespace MvvmTools.Core.Utilities
 
         #region Constructors
 
-        public DelegateCommand(System.Action<T> execute)
+        public DelegateCommand(Action<T> execute)
             : this(execute, null, false)
         { }
 
-        public DelegateCommand(System.Action<T> execute, System.Predicate<T> canExecute)
+        public DelegateCommand(Action<T> execute, Predicate<T> canExecute)
             : this(execute, canExecute, false)
         { }
 
-        public DelegateCommand(System.Action<T> execute, System.Predicate<T> canExecute, bool isAutomaticRequeryDisabled)
+        public DelegateCommand(Action<T> execute, Predicate<T> canExecute, bool isAutomaticRequeryDisabled)
         {
             _execute = execute;
             _canExecute = canExecute;

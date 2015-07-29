@@ -52,7 +52,7 @@ namespace MvvmTools.Commands
                 var settings = await SettingsService.LoadSettings();
 
                 var docs = SolutionService.GetRelatedDocuments(Package.ActiveDocument.ProjectItem,
-                    classesInFile.Select(c => c.Class), null, null); //settings.ViewSuffixes, settings.ViewModelSuffix);
+                    classesInFile.Select(c => c.Class), settings.ViewSuffixes, "ViewModel"); //settings.SolutionOptions.ViewModelSuffix);
 
                 if (docs.Count == 0)
                 {

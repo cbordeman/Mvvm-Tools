@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using EnvDTE;
@@ -396,7 +397,7 @@ namespace MvvmTools.Core.Services
                 var solution = _mvvmToolsPackage.Ide.Solution;
 
                 var solutionModel = new ProjectModel(
-                    System.IO.Path.GetFileNameWithoutExtension(solution.FullName),
+                    Path.GetFileNameWithoutExtension(solution.FullName),
                     solution.FullName,
                     null,
                     ProjectKind.Solution,
@@ -596,7 +597,7 @@ namespace MvvmTools.Core.Services
 
         int IVsSolutionEvents.OnBeforeCloseSolution(object pUnkReserved)
         {
-            this.SolutionLoadState = SolutionLoadState.Unloading;
+            SolutionLoadState = SolutionLoadState.Unloading;
             return VsConstants.S_OK;
         }
 

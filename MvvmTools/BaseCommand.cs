@@ -38,7 +38,7 @@ namespace MvvmTools
         /// <summary>
         /// Gets the service provider from the owner package.
         /// </summary>
-        protected IServiceProvider ServiceProvider => this.Package;
+        protected IServiceProvider ServiceProvider => Package;
 
         #endregion Properties
 

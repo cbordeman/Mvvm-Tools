@@ -17,11 +17,11 @@ namespace MvvmTools.Core.Views
 
         private void MyListView_OnLoaded(object sender, RoutedEventArgs e)
         {
-            this.MyListView.Focus();
-            this.MyListView.SelectedItem = this.MyListView.Items[0];
+            MyListView.Focus();
+            MyListView.SelectedItem = MyListView.Items[0];
             // Have to do this because the ListView doesn't fully select the first item, user would
             // otherwise have to press down twice to get the selection to move to the second item.
-            KeyboardUtilities.PressKey(this.MyListView, Key.Down);
+            KeyboardUtilities.PressKey(MyListView, Key.Down);
         }
 
         private void OkButton_OnClick(object sender, RoutedEventArgs e)

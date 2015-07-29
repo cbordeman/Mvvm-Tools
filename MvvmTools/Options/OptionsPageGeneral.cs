@@ -8,7 +8,6 @@ using MvvmTools.Core.Services;
 using MvvmTools.Core.ViewModels;
 using MvvmTools.Core.Views;
 using Ninject;
-using Ninject.Parameters;
 
 namespace MvvmTools.Options
 {
@@ -166,7 +165,7 @@ namespace MvvmTools.Options
             if (settings != null)
                 _settingsService.SaveSettings(settings);
             else
-                e.ApplyBehavior = DialogPage.ApplyKind.Cancel;
+                e.ApplyBehavior = ApplyKind.Cancel;
 
             //var result = MessageBox.Show(Resources.MessageOnApplyEntered);
 

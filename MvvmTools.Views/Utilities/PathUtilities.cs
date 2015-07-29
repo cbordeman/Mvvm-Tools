@@ -26,8 +26,7 @@ namespace MvvmTools.Core.Utilities
             var p = path.ToString();
             if (p.StartsWith(".\\"))
                 return p.Substring(2);
-            else
-                return p;
+            return p;
         }
 
         private static int GetPathAttribute(string path)
@@ -90,15 +89,12 @@ namespace MvvmTools.Core.Utilities
                     root,
                     folder.Substring(folder.Length - remainingWidth));
             }
-            else
-            {
-                // no, show like VS solution explorer (drive+ellipsis+end)
-                return String.Format(
-                    CultureInfo.InvariantCulture,
-                    "{0}...{1}",
-                    root,
-                    folder);
-            }
+            // no, show like VS solution explorer (drive+ellipsis+end)
+            return String.Format(
+                CultureInfo.InvariantCulture,
+                "{0}...{1}",
+                root,
+                folder);
         }
 
         public static string EscapePSPath(string path)
@@ -118,11 +114,8 @@ namespace MvvmTools.Core.Utilities
                 // will be interpreted as variables. Thus we escape the $ characters.
                 return "\"" + path.Replace("$", "`$") + "\"";
             }
-            else
-            {
-                // if the path doesn't have apostrophe, then it's safe to enclose it with apostrophes
-                return "'" + path + "'";
-            }
+            // if the path doesn't have apostrophe, then it's safe to enclose it with apostrophes
+            return "'" + path + "'";
         }
     }
 }

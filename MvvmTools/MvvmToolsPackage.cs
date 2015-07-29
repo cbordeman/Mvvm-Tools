@@ -98,7 +98,7 @@ namespace MvvmTools
             {
                 try
                 {
-                    return Kernel.Get<DTE2>().ActiveDocument;
+                    return Ide.ActiveDocument;
                 }
                 catch (Exception)
                 {
@@ -166,8 +166,8 @@ namespace MvvmTools
         {
             // Set up Ninject container
 
-            Kernel.Bind<IOutputService>().To<OutputService>().InSingletonScope();
-            var os = Kernel.Get<IOutputService>();
+            //Kernel.Bind<IOutputService>().To<OutputService>().InSingletonScope();
+            //var os = Kernel.Get<IOutputService>();
             
             try
             {
@@ -189,6 +189,7 @@ namespace MvvmTools
                 ServiceLocator.SetLocatorProvider(() => new NinjectServiceLocator(Kernel));
 
                 // Add solution services.
+                Kernel.Bind<DTE2>().ToConstant(Ide);
                 Kernel.Bind<ISolutionService>().To<SolutionService>().InSingletonScope();
                 var ss = Kernel.Get<ISolutionService>();
                 _solution = base.GetService(typeof(SVsSolution)) as IVsSolution;
@@ -201,7 +202,7 @@ namespace MvvmTools
             }
             catch (Exception ex)
             {
-                os.WriteLine($"MVVM Tools service startup failed: {ex.Message}.");
+                //os.WriteLine($"MVVM Tools service startup failed: {ex.Message}.");
             }
         }
 
