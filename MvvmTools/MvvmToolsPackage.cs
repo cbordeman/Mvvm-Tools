@@ -118,25 +118,6 @@ namespace MvvmTools
 
         #endregion Kernel
 
-        #region SolutionIsLoaded
-        private readonly object _solutionIsLoadedLock = new object();
-        private bool _solutionIsLoaded;
-        public bool SolutionIsLoaded
-        {
-            get
-            {
-                lock(_solutionIsLoadedLock)
-                    return _solutionIsLoaded;
-            }
-            set
-            {
-                lock(_solutionIsLoadedLock)
-                    _solutionIsLoaded = value;
-            }
-        }
-        #endregion SolutionIsLoaded
-        
-
         #endregion Properties
 
         #region Private Helpers

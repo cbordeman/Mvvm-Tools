@@ -25,7 +25,6 @@ namespace MvvmTools.Core.Services
         List<ProjectItemAndType> GetRelatedDocuments(ProjectItem pi, IEnumerable<string> typeNamesInFile, string[] viewSuffixes, string viewModelSuffix);
         List<string> GetTypeCandidates(IEnumerable<string> typeNamesInFile, string[] viewSuffixes, string viewModelSuffix);
         List<ProjectItemAndType> FindDocumentsContainingTypes(Project project, Project excludeProject, ProjectItem excludeProjectItem, List<string> typesToFind);
-        //SolutionLoadState SolutionLoadState { get; }
         Task<ProjectModel> GetSolution();
     }
 
@@ -45,7 +44,7 @@ namespace MvvmTools.Core.Services
         {
             _mvvmToolsPackage = mvvmToolsPackage;
             var solution = _mvvmToolsPackage.Ide.Solution;
-            SolutionLoadState = solution.IsOpen ? SolutionLoadState.Unloading : SolutionLoadState.NoSolution;
+            _solutionLoadState = solution.IsOpen ? SolutionLoadState.Unloading : SolutionLoadState.NoSolution;
         }
 
         #endregion Ctor and Init
@@ -83,7 +82,8 @@ namespace MvvmTools.Core.Services
                     case SolutionLoadState.Unloading:
                         return null;
                     case SolutionLoadState.Loaded:
-                        return _solution;
+                        lock (_solutionLock)
+                            return _solution;
                     case SolutionLoadState.Loading:
                         await Task.Delay(1000);
                         break;
@@ -432,7 +432,6 @@ namespace MvvmTools.Core.Services
 
         int IVsSolutionEvents3.OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
         {
-            SolutionLoadState = SolutionLoadState.Unloading;
             return VsConstants.S_OK;
         }
 
@@ -581,7 +580,6 @@ namespace MvvmTools.Core.Services
 
         int IVsSolutionEvents.OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
         {
-            SolutionLoadState = SolutionLoadState.Unloading;
             return VsConstants.S_OK;
         }
 
@@ -629,7 +627,6 @@ namespace MvvmTools.Core.Services
 
         public void OnBeforeOpenProject(ref Guid guidProjectID, ref Guid guidProjectType, string pszFileName)
         {
-            SolutionLoadState = SolutionLoadState.Loading;
         }
 
         #endregion IVsSolutionXXXXX
