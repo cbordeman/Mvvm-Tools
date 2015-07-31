@@ -24,7 +24,7 @@ namespace MvvmTools.Core.Models
 
         public void ApplyInherited(ProjectOptions inherited)
         {
-            if (ViewModelSuffix == null)
+            if (ViewModelSuffix == inherited.ViewModelSuffix)
                 ViewModelSuffix = inherited.ViewModelSuffix;
 
             ViewModelLocation.ApplyInherited(inherited.ViewModelLocation);

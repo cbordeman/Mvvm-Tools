@@ -9,6 +9,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 using MvvmTools.Core.Models;
 using MvvmTools.Core.Utilities;
 
+// ReSharper disable SuspiciousTypeConversion.Global
+
 namespace MvvmTools.Core.Services
 {
     public enum SolutionLoadState
@@ -22,10 +24,10 @@ namespace MvvmTools.Core.Services
     public interface ISolutionService : IVsSolutionLoadEvents, IVsSolutionEvents3, IVsSolutionEvents4, IVsSolutionEvents5
     {
         List<NamespaceClass> GetClassesInProjectItem(ProjectItem pi);
-        List<ProjectItemAndType> GetRelatedDocuments(ProjectItem pi, IEnumerable<string> typeNamesInFile, string[] viewSuffixes, string viewModelSuffix);
-        List<string> GetTypeCandidates(IEnumerable<string> typeNamesInFile, string[] viewSuffixes, string viewModelSuffix);
+        List<ProjectItemAndType> GetRelatedDocuments(Project viewModelsProject, Project viewsProject, ProjectItem pi, IEnumerable<string> typeNamesInFile, string[] viewSuffixes, string viewModelSuffix);
         List<ProjectItemAndType> FindDocumentsContainingTypes(Project project, Project excludeProject, ProjectItem excludeProjectItem, List<string> typesToFind);
         Task<ProjectModel> GetSolution();
+        Project GetProject(string uniqueId);
     }
 
     public class SolutionService : ISolutionService
@@ -91,6 +93,41 @@ namespace MvvmTools.Core.Services
             }
         }
 
+        public Project GetProject(string uniqueId)
+        {
+            var solution = _mvvmToolsPackage.Ide.Solution;
+            // Loop through solution's top level projects.
+            foreach (var p in solution.Projects.Cast<Project>().Where(p => p.Name != "Solution Items"))
+            {
+                var project = FindProjectRecursive(p, uniqueId);
+                if (project != null)
+                    return project;
+            }
+            return null;
+
+        }
+
+        private static Project FindProjectRecursive(Project project, string uniqueId)
+        {
+            if (project.UniqueName == uniqueId)
+                return project;
+
+            // Look through all this project's items.
+            foreach (ProjectItem pi in project.ProjectItems)
+            {
+                if (pi.SubProject != null)
+                {
+                    // Recursive call.
+                    var p = FindProjectRecursive(pi.SubProject, uniqueId);
+                    if (p != null)
+                        return p;
+                }
+            }
+
+            return null;
+        }
+
+
         public List<NamespaceClass> GetClassesInProjectItem(ProjectItem pi)
         {
             var rval = new List<NamespaceClass>();
@@ -131,35 +168,68 @@ namespace MvvmTools.Core.Services
             return rval;
         }
 
-        public List<ProjectItemAndType> GetRelatedDocuments(ProjectItem pi, IEnumerable<string> typeNamesInFile, string[] viewSuffixes, string viewModelSuffix)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="viewModelsProject">null if searching solution wide.</param>
+        /// <param name="viewsProject">null if searching solution wide.</param>
+        /// <param name="pi"></param>
+        /// <param name="typeNamesInFile"></param>
+        /// <param name="viewSuffixes"></param>
+        /// <param name="viewModelSuffix"></param>
+        /// <returns></returns>
+        public List<ProjectItemAndType> GetRelatedDocuments(
+            Project viewModelsProject, 
+            Project viewsProject,
+            ProjectItem pi, 
+            IEnumerable<string> typeNamesInFile, 
+            string[] viewSuffixes, 
+            string viewModelSuffix)
         {
-            var candidateTypeNames = GetTypeCandidates(typeNamesInFile, viewSuffixes, viewModelSuffix);
+            List<string> viewModelCandidateTypeNames;
+            List<string> viewCandidateTypeNames;
+            GetTypeCandidates(typeNamesInFile, viewSuffixes, viewModelSuffix,
+                out viewCandidateTypeNames,
+                out viewModelCandidateTypeNames);
 
-            // Look for the candidate types in current project first, excluding the selected project item.
-            var documents = FindDocumentsContainingTypes(pi.ContainingProject, null, pi, candidateTypeNames);
+            List<ProjectItemAndType> rval;
 
-            // Then add candidates from the rest of the solution.
-            var solution = pi.DTE?.Solution;
-            if (solution != null)
+            if (viewModelsProject == null && viewsProject == null)
             {
-                foreach (Project project in solution.Projects)
+                // Search whole solution.
+                var allCandidateTypes = viewModelCandidateTypeNames.Union(viewCandidateTypeNames).Distinct().ToList();
+
+                // Look for the candidate types in current project first, excluding the selected project item.
+                rval = FindDocumentsContainingTypes(pi.ContainingProject, null, pi, allCandidateTypes);
+
+                // Then add candidates from the rest of the solution.
+                var solution = pi.DTE?.Solution;
+                if (solution != null)
                 {
-                    if (project == pi.ContainingProject)
-                        continue;
+                    foreach (Project project in solution.Projects)
+                    {
+                        if (project == pi.ContainingProject)
+                            continue;
 
-                    var docs = FindDocumentsContainingTypes(project, pi.ContainingProject, pi, candidateTypeNames);
-                    documents.AddRange(docs);
+                        var docs = FindDocumentsContainingTypes(project, pi.ContainingProject, pi, allCandidateTypes);
+                        rval.AddRange(docs);
+                    }
                 }
+                return rval;
             }
-
-            var rval = documents.Distinct(new ProjectItemAndTypeEqualityComparer()).ToList();
+            // Search views project first.
+            rval = FindDocumentsContainingTypes(viewsProject, null, pi, viewCandidateTypeNames);
+            // Then, search view models project, excluding any xaml files.
+            var vmDocs = FindDocumentsContainingTypes(viewModelsProject, null, pi, viewModelCandidateTypeNames);
+            rval.AddRange(vmDocs.Where(d => d.ProjectItem.Name.IndexOf(".xaml.", StringComparison.OrdinalIgnoreCase) == -1));
 
             return rval;
         }
-
-        public List<string> GetTypeCandidates(IEnumerable<string> typeNamesInFile, string[] viewSuffixes, string viewModelSuffix)
+        
+        public void GetTypeCandidates(IEnumerable<string> typeNamesInFile, string[] viewSuffixes, string viewModelSuffix, out List<string> viewModelsTypeCandidates, out List<string> viewsTypeCandidates)
         {
-            var candidates = new List<string>();
+            viewModelsTypeCandidates = new List<string>();
+            viewsTypeCandidates = new List<string>();
 
             // For each type name in the file, create a list of candidates.
             foreach (var typeName in typeNamesInFile)
@@ -172,14 +242,14 @@ namespace MvvmTools.Core.Services
                     foreach (var suffix in viewSuffixes)
                     {
                         var candidate = baseName + suffix;
-                        candidates.Add(candidate);
+                        viewModelsTypeCandidates.Add(candidate);
                     }
 
                     // Add base if it ends in one of the view suffixes.
                     foreach (var suffix in viewSuffixes)
                         if (baseName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
                         {
-                            candidates.Add(baseName);
+                            viewModelsTypeCandidates.Add(baseName);
                             break;
                         }
                 }
@@ -191,16 +261,14 @@ namespace MvvmTools.Core.Services
                         // Remove suffix and add ViewModel.
                         var baseName = typeName.Substring(0, typeName.Length - suffix.Length);
                         var candidate = baseName + viewModelSuffix;
-                        candidates.Add(candidate);
+                        viewsTypeCandidates.Add(candidate);
 
                         // Just add ViewModel
                         candidate = typeName + viewModelSuffix;
-                        candidates.Add(candidate);
+                        viewsTypeCandidates.Add(candidate);
                     }
                 }
             }
-
-            return candidates;
         }
 
         public List<ProjectItemAndType> FindDocumentsContainingTypes(Project project, Project excludeProject, ProjectItem excludeProjectItem, List<string> typesToFind)
@@ -215,32 +283,43 @@ namespace MvvmTools.Core.Services
         #endregion Public Methods
 
         #region Private Methods
-        // Call only from WaitForSolutionToLoad().
+        
         private static List<ProjectModel> GetProjectModelsRecursive(Project project)
         {
             var rval = new List<ProjectModel>();
+
+            if (project.ProjectItems == null)
+                return rval;
 
             // Sometimes unloaded or some project types projects throw on .FullName.
             string fullName = null;
             try
             {
                 fullName = project.FullName;
+                // Add the project.
             }
             catch
             {
-                // Ignore error.
+                // Ignored.
             }
 
-            // Add the project.
             var projectModel = new ProjectModel(
-                project.Name,
-                fullName,
-                project.UniqueName,
-                project.Kind == VsConstants.VsProjectItemKindSolutionFolder
-                    ? ProjectKind.SolutionFolder
-                    : ProjectKind.Project,
-                project.Kind);
-            rval.Add(projectModel);
+                    project.Name,
+                    fullName,
+                    project.UniqueName,
+                    project.Kind == VsConstants.VsProjectItemKindSolutionFolder
+                        ? ProjectKind.SolutionFolder
+                        : ProjectKind.Project,
+                    project.Kind);
+
+            switch (project.Kind)
+            {
+                case VsConstants.VsProjectKindMisc:
+                    break;
+                default:
+                    rval.Add(projectModel);
+                    break;
+            }
 
             // Look through all this project's items and recursively add any 
             // which are sub-projects and folders.
@@ -339,19 +418,50 @@ namespace MvvmTools.Core.Services
             results.AddRange(tmpResults);
         }
 
-        private class ProjectItemAndTypeEqualityComparer : IEqualityComparer<ProjectItemAndType>
+        //private class ProjectItemAndTypeEqualityComparer : IEqualityComparer<ProjectItemAndType>
+        //{
+        //    public bool Equals(ProjectItemAndType x, ProjectItemAndType y)
+        //    {
+        //        return String.Equals(x.ProjectItem.Name, y.ProjectItem.Name, StringComparison.OrdinalIgnoreCase) &&
+        //               String.Equals(x.Type.Class, y.Type.Class, StringComparison.OrdinalIgnoreCase) &&
+        //               String.Equals(x.Type.Namespace, y.Type.Namespace, StringComparison.OrdinalIgnoreCase);
+        //    }
+
+        //    public int GetHashCode(ProjectItemAndType obj)
+        //    {
+        //        return ($"{obj.ProjectItem.Name};{obj.Type.Namespace}.{obj.Type.Class}").GetHashCode();
+        //    }
+        //}
+
+        private void ReloadSolution()
         {
-            public bool Equals(ProjectItemAndType x, ProjectItemAndType y)
+            SolutionLoadState = SolutionLoadState.Loading;
+
+            // Load solution into _solution.
+            lock (_solutionLock)
             {
-                return String.Equals(x.ProjectItem.Name, y.ProjectItem.Name, StringComparison.OrdinalIgnoreCase) &&
-                       String.Equals(x.Type.Class, y.Type.Class, StringComparison.OrdinalIgnoreCase) &&
-                       String.Equals(x.Type.Namespace, y.Type.Namespace, StringComparison.OrdinalIgnoreCase);
+                var solution = _mvvmToolsPackage.Ide.Solution;
+
+                var solutionModel = new ProjectModel(
+                    Path.GetFileNameWithoutExtension(solution.FullName),
+                    solution.FullName,
+                    null,
+                    ProjectKind.Solution,
+                    null);
+
+                // Add each of the top level projects and children to the local solutionModel.
+                var topLevelProjects = solution.Projects.Cast<Project>().Where(p => p.Name != "Solution Items").ToArray();
+                foreach (var p in topLevelProjects)
+                {
+                    var projectModels = GetProjectModelsRecursive(p);
+                    solutionModel.Children.AddRange(projectModels);
+                }
+
+                // Set the backing field as to not create a deadlock on _solutionLock.
+                _solution = solutionModel;
             }
 
-            public int GetHashCode(ProjectItemAndType obj)
-            {
-                return ($"{obj.ProjectItem.Name};{obj.Type.Namespace}.{obj.Type.Class}").GetHashCode();
-            }
+            SolutionLoadState = SolutionLoadState.Loaded;
         }
 
         #endregion Private Methods
@@ -384,38 +494,14 @@ namespace MvvmTools.Core.Services
 
         public int OnAfterLoadProjectBatch(bool fIsBackgroundIdleBatch)
         {
+            ReloadSolution();
+
             return VsConstants.S_OK;
         }
 
         public int OnAfterBackgroundSolutionLoadComplete()
         {
-            SolutionLoadState = SolutionLoadState.Loading;
-
-            // Load solution in _solution.
-            lock (_solutionLock)
-            {
-                var solution = _mvvmToolsPackage.Ide.Solution;
-
-                var solutionModel = new ProjectModel(
-                    Path.GetFileNameWithoutExtension(solution.FullName),
-                    solution.FullName,
-                    null,
-                    ProjectKind.Solution,
-                    null);
-
-                // Add each of the top level projects and children to the local solutionModel.
-                var topLevelProjects = solution.Projects.Cast<Project>().Where(p => p.Name != "Solution Items").ToArray();
-                foreach (var p in topLevelProjects)
-                {
-                    var projectModels = GetProjectModelsRecursive(p);
-                    solutionModel.Children.AddRange(projectModels);
-                }
-
-                // Set the backing field as to not create a deadlock on _solutionLock.
-                _solution = solutionModel;
-            }
-
-            SolutionLoadState = SolutionLoadState.Loaded;
+            ReloadSolution();
 
             return VsConstants.S_OK;
         }
@@ -625,7 +711,7 @@ namespace MvvmTools.Core.Services
             return VsConstants.S_OK;
         }
 
-        public void OnBeforeOpenProject(ref Guid guidProjectID, ref Guid guidProjectType, string pszFileName)
+        public void OnBeforeOpenProject(ref Guid guidProjectId, ref Guid guidProjectType, string pszFileName)
         {
         }
 

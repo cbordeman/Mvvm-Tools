@@ -18,10 +18,14 @@
 
         public void ApplyInherited(LocationDescriptor inherited)
         {
-            PathOffProject = inherited.PathOffProject;
-            Namespace = inherited.Namespace;
-            ProjectIdentifier = inherited.ProjectIdentifier;
-            AppendViewType = inherited.AppendViewType;
+            if (PathOffProject == inherited.PathOffProject)
+                PathOffProject = inherited.PathOffProject;
+            if (Namespace == inherited.Namespace)
+                Namespace = inherited.Namespace;
+            if (ProjectIdentifier == inherited.ProjectIdentifier)
+                ProjectIdentifier = inherited.ProjectIdentifier;
+            if (AppendViewType == inherited.AppendViewType)
+                AppendViewType = inherited.AppendViewType;
         }
 
         public bool InheritsFully(LocationDescriptor inherited)

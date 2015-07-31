@@ -28,6 +28,7 @@ namespace MvvmTools.Core.ViewModels
         public IDialogService DialogService { get; set; }
 
         public ProjectModel ProjectModel { get; private set; }
+
         public bool IsProject { get; set; }
 
         #region ResetButtonText

@@ -208,8 +208,16 @@
                                                        HorizontalAlignment="Left"
                                                        VerticalAlignment="Center"
                                                        DockPanel.Dock="Left"
-                                                       FontWeight="SemiBold"
-                                                       Text="{Binding ProjectModel.Name}" />
+                                                       FontWeight="SemiBold">
+                                                <TextBlock.Text>
+                                                    <MultiBinding Converter="{StaticResource ProjectDisplayNameConverter}">
+                                                        <MultiBinding.Bindings>
+                                                            <Binding Path="ProjectModel.Name" />
+                                                            <Binding Path="IsProject" />
+                                                        </MultiBinding.Bindings>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
 
                                         </DockPanel>
                                     </DataTemplate>

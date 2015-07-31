@@ -204,7 +204,8 @@ namespace MvvmTools.Core.Services
 
                 SaveOrDeleteSettingsFile(settings.SolutionOptions, SolutionDefaultProjectOptions);
                 foreach (var p in settings.ProjectOptions)
-                    SaveOrDeleteSettingsFile(p, settings.SolutionOptions);
+                    if (!string.IsNullOrWhiteSpace(p?.ProjectModel?.SettingsFile))
+                        SaveOrDeleteSettingsFile(p, settings.SolutionOptions);
             }
         }
 

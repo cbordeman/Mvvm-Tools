@@ -6,8 +6,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
+using EnvDTE;
 using MvvmTools.Core.Models;
 using MvvmTools.Core.Services;
 using MvvmTools.Core.ViewModels;
@@ -39,9 +41,11 @@ namespace MvvmTools.Commands
         {
             base.OnExecute();
 
-            if (Package.ActiveDocument?.ProjectItem != null)
+            var pi = Package.ActiveDocument?.ProjectItem;
+
+            if (pi != null)
             {
-                var classesInFile = SolutionService.GetClassesInProjectItem(Package.ActiveDocument.ProjectItem);
+                var classesInFile = SolutionService.GetClassesInProjectItem(pi);
 
                 if (classesInFile.Count == 0)
                 {
@@ -50,9 +54,56 @@ namespace MvvmTools.Commands
                 }
 
                 var settings = await SettingsService.LoadSettings();
+                Debug.Assert(settings != null && settings.SolutionOptions != null, "settings were null or solution settings were null.");
 
-                var docs = SolutionService.GetRelatedDocuments(Package.ActiveDocument.ProjectItem,
-                    classesInFile.Select(c => c.Class), settings.ViewSuffixes, "ViewModel"); //settings.SolutionOptions.ViewModelSuffix);
+                List<ProjectItemAndType> docs;
+
+                if (!settings.GoToViewOrViewModelSearchSolution)
+                {
+                    Project viewModelsProject = null;
+                    Project viewsProject = null;
+
+                    // ProjectModel from which to derive initial settings.
+                    var settingsPm =
+                        settings.ProjectOptions.FirstOrDefault(
+                            p => p.ProjectModel.ProjectIdentifier == pi.ContainingProject.UniqueName);
+                    // This shouldn't be null unless the user adds a new project and then
+                    // quickly invokes this command, but better to check it.
+                    if (settingsPm == null)
+                        settingsPm = settings.SolutionOptions;
+                    
+                    viewModelsProject = pi.ContainingProject;
+                    viewsProject = pi.ContainingProject;
+
+                    if (settingsPm != null)
+                    {
+                        if (settingsPm.ViewModelLocation.ProjectIdentifier != null)
+                            viewModelsProject =
+                                SolutionService.GetProject(settingsPm.ViewModelLocation.ProjectIdentifier) ??
+                                pi.ContainingProject;
+                        if (settingsPm.ViewLocation.ProjectIdentifier != null)
+                            viewsProject = SolutionService.GetProject(settingsPm.ViewLocation.ProjectIdentifier) ??
+                                           pi.ContainingProject;
+                    }
+
+                    docs = SolutionService.GetRelatedDocuments(
+                        viewModelsProject,
+                        viewsProject,
+                        pi,
+                        classesInFile.Select(c => c.Class),
+                        settings.ViewSuffixes,
+                        settingsPm.ViewModelSuffix);
+                }
+                else
+                    // Passing the first two parameters as null tells GetRelatedDocuments() to
+                    // search the entire solution.
+                    docs = SolutionService.GetRelatedDocuments(
+                        null,
+                        null,
+                        pi,
+                        classesInFile.Select(c => c.Class),
+                        settings.ViewSuffixes,
+                        settings.SolutionOptions.ViewModelSuffix);
 
                 if (docs.Count == 0)
                 {
@@ -61,7 +112,7 @@ namespace MvvmTools.Commands
                         classes += c.Class + "\n        ";
 
                     MessageBox.Show(
-                        $"Couldn't find any matching view or view model classes.\n\nClasses found in this file ({Package.ActiveDocument.FullName}):\n{classes}", "MVVM Tools");
+                        $"Couldn't find any matching view or view model classes.\n\nClasses in this file:\n\n{classes}", "MVVM Tools");
 
                     return;
                 }

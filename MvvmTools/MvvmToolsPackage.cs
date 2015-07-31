@@ -46,7 +46,7 @@ namespace MvvmTools
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(Constants.GuidPackage)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
-    //[ProvideAutoLoad(UIContextGuids.SolutionExists)]
+    [ProvideAutoLoad(UIContextGuids.SolutionExists)]
     [Export(typeof(IMvvmToolsPackage))]
     public sealed class MvvmToolsPackage : Package, IMvvmToolsPackage
     {
