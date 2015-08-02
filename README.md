@@ -14,9 +14,10 @@ CURRENT FEATURES
 
 1.  Framework agnostic.  MVVM Tools is NOT an MVVM framework.  You can use any MVVM framework, such as Prism, Caliburn, MvvmCross, or others.
 2.  Automatically switch between a view and its viewmodel by pressing Ctrl+E, Ctrl+V (configurable). Think 'Ctrl+Editor+View/Viewmodel.
+3.  Options to specify, based on the selected project, the location of views and view models.  This may be separate projects and viewmodels.  View suffixes are configurable, and view model suffixes can be set based on the selected project.
+4.  Options are set on the solution and can be changed per-project.
 
 FUTURE FEATURES
 
-1.  I currently use an algorithm which scans all .cs and .vb files for matching types, but that won't always work. So I want to add a way for the developer to customize the process of locating views and viewmodels.
-2.  Ability to scaffold a view and view model using a set  of online templates that all can contribute to. 
-3.  The ability to extract a view model or view from the view or view model automatically.
+1.  Ability to scaffold a view and view model using a set  of online templates that all can contribute to. 
+2.  The ability to extract a view model or view from the view or view model automatically.
