@@ -4,8 +4,6 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
-// ReSharper disable HeapView.BoxingAllocation
-
 namespace MvvmTools.Commands
 {
     /// <summary>
@@ -25,6 +23,8 @@ namespace MvvmTools.Commands
         protected override void OnExecute()
         {
             base.OnExecute();
+            
+            //var projectModel = SolutionService.GetFullProjectModel(SolutionService.GetProject(viewModelLocationOptions.ProjectIdentifier));
 
         }
     }

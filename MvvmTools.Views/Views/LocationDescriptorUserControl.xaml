@@ -78,7 +78,7 @@
                        Grid.Column="0"
                        Margin="0,2,0,5"
                        FontSize="10"
-                       Text="Indicate a nested folder with backslashes, e.g.: SampleFolder\ViewModels. or SampleFolder\Views"
+                       Text="Indicate a nested folder with slashes, e.g.: SampleFolder/ViewModels. or SampleFolder/Views"
                        TextWrapping="WrapWithOverflow" />
 
             <TextBlock Grid.Row="5"

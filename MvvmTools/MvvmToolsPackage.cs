@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using MvvmTools.Commands;
 using MvvmTools.Core.Services;
 using MvvmTools.Core.Utilities;
+using MvvmTools.Core.ViewModels;
 using MvvmTools.Options;
 using Ninject;
 
@@ -41,6 +42,7 @@ namespace MvvmTools
     /// </remarks>
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [ProvideOptionPage(typeof(OptionsPageGeneral), "MVVM Tools", "General", 101, 107, true)]
+    [ProvideOptionPage(typeof(OptionsPageSolutionAndProjects), "MVVM Tools", "Solution and Projects", 101, 113, true)]
     //[InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
     [ProvideBindingPath]
     [ProvideMenuResource("Menus.ctmenu", 1)]
@@ -161,6 +163,9 @@ namespace MvvmTools
                 Kernel.Bind<ISettingsService>().To<SettingsService>().InSingletonScope();
                 Kernel.Bind<IViewFactory>().To<ViewFactory>().InSingletonScope();
                 Kernel.Bind<IDialogService>().To<DialogService>().InSingletonScope();
+
+                // Option view model, a shared singleton because it's easier.
+                Kernel.Bind<OptionsUserControlViewModel>().ToSelf().InSingletonScope();
 
                 // Commands, which are singletons.
                 Kernel.Bind<GoToViewOrViewModelCommand>().ToSelf().InSingletonScope();

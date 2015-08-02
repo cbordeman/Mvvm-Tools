@@ -22,10 +22,9 @@ namespace MvvmTools.Core.Models
         public LocationDescriptor ViewModelLocation { get; set; }
         public LocationDescriptor ViewLocation { get; set; }
 
-        public void ApplyInherited(ProjectOptions inherited)
+        internal void ApplyInherited(ProjectOptions inherited)
         {
-            if (ViewModelSuffix == inherited.ViewModelSuffix)
-                ViewModelSuffix = inherited.ViewModelSuffix;
+            ViewModelSuffix = inherited.ViewModelSuffix;
 
             ViewModelLocation.ApplyInherited(inherited.ViewModelLocation);
             ViewLocation.ApplyInherited(inherited.ViewLocation);

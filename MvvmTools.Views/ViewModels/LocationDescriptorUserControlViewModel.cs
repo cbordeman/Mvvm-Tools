@@ -197,7 +197,7 @@ namespace MvvmTools.Core.ViewModels
                 AddProjectsFlattenedRecursive(
                     projects,
                     p.Children, 
-                    prefix + p.Name + '\\');
+                    prefix + p.Name + '/');
             }
         }
 

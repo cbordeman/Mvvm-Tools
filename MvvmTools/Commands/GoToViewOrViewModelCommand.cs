@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
-using EnvDTE;
 using MvvmTools.Core.Models;
 using MvvmTools.Core.Services;
 using MvvmTools.Core.ViewModels;
@@ -60,9 +59,6 @@ namespace MvvmTools.Commands
 
                 if (!settings.GoToViewOrViewModelSearchSolution)
                 {
-                    Project viewModelsProject = null;
-                    Project viewsProject = null;
-
                     // ProjectModel from which to derive initial settings.
                     var settingsPm =
                         settings.ProjectOptions.FirstOrDefault(
@@ -71,24 +67,26 @@ namespace MvvmTools.Commands
                     // quickly invokes this command, but better to check it.
                     if (settingsPm == null)
                         settingsPm = settings.SolutionOptions;
-                    
-                    viewModelsProject = pi.ContainingProject;
-                    viewsProject = pi.ContainingProject;
 
-                    if (settingsPm != null)
+                    var viewModelLocationOptions = new LocationDescriptor()
                     {
-                        if (settingsPm.ViewModelLocation.ProjectIdentifier != null)
-                            viewModelsProject =
-                                SolutionService.GetProject(settingsPm.ViewModelLocation.ProjectIdentifier) ??
-                                pi.ContainingProject;
-                        if (settingsPm.ViewLocation.ProjectIdentifier != null)
-                            viewsProject = SolutionService.GetProject(settingsPm.ViewLocation.ProjectIdentifier) ??
-                                           pi.ContainingProject;
-                    }
+                        AppendViewType = settingsPm.ViewModelLocation.AppendViewType,
+                        Namespace = settingsPm.ViewModelLocation.Namespace,
+                        PathOffProject = settingsPm.ViewModelLocation.PathOffProject,
+                        ProjectIdentifier = settingsPm.ViewModelLocation.ProjectIdentifier ?? pi.ContainingProject.UniqueName
+                    };
 
+                    var viewLocationOptions = new LocationDescriptor()
+                    {
+                        AppendViewType = settingsPm.ViewLocation.AppendViewType,
+                        Namespace = settingsPm.ViewLocation.Namespace,
+                        PathOffProject = settingsPm.ViewLocation.PathOffProject,
+                        ProjectIdentifier = settingsPm.ViewLocation.ProjectIdentifier ?? pi.ContainingProject.UniqueName
+                    };
+                    
                     docs = SolutionService.GetRelatedDocuments(
-                        viewModelsProject,
-                        viewsProject,
+                        viewModelLocationOptions,
+                        viewLocationOptions,
                         pi,
                         classesInFile.Select(c => c.Class),
                         settings.ViewSuffixes,

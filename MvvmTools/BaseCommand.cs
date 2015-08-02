@@ -84,7 +84,7 @@ namespace MvvmTools
         /// </summary>
         protected virtual void OnExecute()
         {
-            Trace.WriteLine(string.Format("{0}.OnExecute() invoked", GetType().Name));
+            Trace.WriteLine($"{GetType().Name}.OnExecute() invoked");
         }
 
         #endregion Virtual Methods

@@ -1,0 +1,133 @@
+﻿<UserControl x:Class="MvvmTools.Core.Views.OptionsSolutionAndProjectsUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:MvvmTools.Core.ViewModels"
+             xmlns:views="clr-namespace:MvvmTools.Core.Views"
+             x:Name="MyUserControl"
+             d:DataContext="{d:DesignInstance viewModels:OptionsUserControlViewModel,
+                                              IsDesignTimeCreatable=False}"
+             d:DesignHeight="300"
+             d:DesignWidth="300"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/GroupBox.xaml" />
+                <ResourceDictionary Source="../Converters/Converters.xaml" />
+                <ResourceDictionary Source="../Styles/Validation.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid Margin="5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <!--  Header  -->
+            <views:HeaderUserControl />
+
+            <ScrollViewer Grid.Row="1"
+                          HorizontalScrollBarVisibility="Disabled"
+                          Padding="0,0,3,0"
+                          VerticalScrollBarVisibility="Auto">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+
+                    <!--  Row 0 contains the solution and projects location options.  -->
+                    <GroupBox Margin="0,15,0,0"
+                              Header="Solution and Project Options">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock VerticalAlignment="Center"
+                                       FontWeight="Bold"
+                                       Foreground="#FF3A3A"
+                                       Text="Please load a solution."
+                                       Visibility="{Binding SelectedProjectOption,
+                                                            Converter={StaticResource NullToVisibleConverter}}" />
+
+                            <ComboBox Grid.Row="0"
+                                      HorizontalContentAlignment="Stretch"
+                                      ItemsSource="{Binding ProjectsOptions,
+                                                            Mode=TwoWay}"
+                                      SelectedItem="{Binding SelectedProjectOption,
+                                                             Mode=TwoWay}"
+                                      Visibility="{Binding SelectedProjectOption,
+                                                           Converter={StaticResource NullToCollapsedConverter}}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <DockPanel>
+                                            <TextBlock Margin="4,3"
+                                                       HorizontalAlignment="Left"
+                                                       VerticalAlignment="Center"
+                                                       DockPanel.Dock="Right"
+                                                       Text="{Binding ProjectModel.TypeDescription}" />
+                                            <TextBlock Margin="4,3"
+                                                       HorizontalAlignment="Left"
+                                                       VerticalAlignment="Center"
+                                                       DockPanel.Dock="Left"
+                                                       FontWeight="SemiBold">
+                                                <TextBlock.Text>
+                                                    <MultiBinding Converter="{StaticResource ProjectDisplayNameConverter}">
+                                                        <MultiBinding.Bindings>
+                                                            <Binding Path="ProjectModel.Name" />
+                                                            <Binding Path="IsProject" />
+                                                        </MultiBinding.Bindings>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+
+                                        </DockPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+
+                            <Button Grid.Row="1"
+                                    Margin="0,2,0,0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding SelectedProjectOption.ResetToInheritedCommand}"
+                                    Content="{Binding SelectedProjectOption.ResetButtonText}"
+                                    Padding="4,1"
+                                    Visibility="{Binding SelectedProjectOption,
+                                                         Converter={StaticResource NullToCollapsedConverter}}" />
+
+                            <Button Grid.Row="1"
+                                    Margin="0,2,0,0"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ResetAllToInheritedCommand}"
+                                    Content="Reset all Projects to Solution Values"
+                                    Padding="4,1"
+                                    Visibility="{Binding ShowResetAll,
+                                                         Converter={StaticResource BoolToVisibilityConverter}}" />
+
+
+                            <ContentControl Grid.Row="2"
+                                            Margin="0,5,0,0"
+                                            Visibility="{Binding SelectedProjectOption,
+                                                                 Converter={StaticResource NullToCollapsedConverter}}">
+                                <views:ProjectOptionsUserControl DataContext="{Binding SelectedProjectOption}" />
+                            </ContentControl>
+                        </Grid>
+                    </GroupBox>
+
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+
+        <views:BusyUserControl />
+    </Grid>
+</UserControl>

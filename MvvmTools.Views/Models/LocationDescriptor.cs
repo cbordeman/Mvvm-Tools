@@ -16,16 +16,12 @@
         // PathOffProject.  If view type is "View" then ignored.
         public bool AppendViewType { get; set; }
 
-        public void ApplyInherited(LocationDescriptor inherited)
+        internal void ApplyInherited(LocationDescriptor inherited)
         {
-            if (PathOffProject == inherited.PathOffProject)
-                PathOffProject = inherited.PathOffProject;
-            if (Namespace == inherited.Namespace)
-                Namespace = inherited.Namespace;
-            if (ProjectIdentifier == inherited.ProjectIdentifier)
-                ProjectIdentifier = inherited.ProjectIdentifier;
-            if (AppendViewType == inherited.AppendViewType)
-                AppendViewType = inherited.AppendViewType;
+            PathOffProject = inherited.PathOffProject;
+            Namespace = inherited.Namespace;
+            ProjectIdentifier = inherited.ProjectIdentifier;
+            AppendViewType = inherited.AppendViewType;
         }
 
         public bool InheritsFully(LocationDescriptor inherited)

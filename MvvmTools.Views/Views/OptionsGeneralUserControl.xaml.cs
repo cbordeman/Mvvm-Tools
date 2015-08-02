@@ -9,7 +9,7 @@ namespace MvvmTools.Core.Views
     /// <summary>
     /// Interaction logic for OptionsUserControl.xaml
     /// </summary>
-    public partial class OptionsUserControl
+    public partial class OptionsGeneralUserControl
     {
         private const UInt32 DLGC_WANTARROWS = 0x0001;
         private const UInt32 DLGC_WANTTAB = 0x0002;
@@ -18,7 +18,7 @@ namespace MvvmTools.Core.Views
         private const UInt32 DLGC_WANTCHARS = 0x0080;
         private const UInt32 WM_GETDLGCODE = 0x0087;
 
-        public OptionsUserControl()
+        public OptionsGeneralUserControl()
         {
             InitializeComponent();
 

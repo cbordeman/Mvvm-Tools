@@ -93,10 +93,14 @@ namespace MvvmTools.Core.Services
 
         #region Public Methods
 
-        public ProjectOptions GetProjectOptionsFromSettingsFile(ProjectModel projectModel)
+        public ProjectOptions GetProjectOptionsFromSettingsFile(ProjectModel projectModel, ProjectOptions inheritedProjectOptions)
         {
-            if (!File.Exists(projectModel.SettingsFile))
-                return new ProjectOptions {ProjectModel = projectModel };
+             if (!File.Exists(projectModel.SettingsFile))
+            {
+                var po = new ProjectOptions {ProjectModel = projectModel};
+                po.ApplyInherited(inheritedProjectOptions);
+                return po;
+            }
 
             try
             {
@@ -119,7 +123,9 @@ namespace MvvmTools.Core.Services
             {
                 // Can't read or deserialize the file for any reason.
                 Trace.WriteLine($"Couldn't read file {projectModel.SettingsFile}.  Error: {ex.Message}");
-                return new ProjectOptions { ProjectModel = projectModel };
+                var po = new ProjectOptions { ProjectModel = projectModel };
+                po.ApplyInherited(inheritedProjectOptions);
+                return po;
             }
         }
 
@@ -141,14 +147,13 @@ namespace MvvmTools.Core.Services
             if (solution == null)
                 return rval;
 
-            // Get options for solution.
-            var solutionOptions = GetProjectOptionsFromSettingsFile(solution);
-            // Apply global defaults to solution file.
-            solutionOptions.ApplyInherited(SolutionDefaultProjectOptions);
+            // Get options for solution.  Apply global defaults to solution 
+            // file if it doesn't exist.
+            var solutionOptions = GetProjectOptionsFromSettingsFile(solution, SolutionDefaultProjectOptions);
             rval.SolutionOptions = solutionOptions;
 
-            // Get options for each project.  ApplyInherited(solutionOptions) is called 
-            // for each project.
+            // Get options for each project.  Inherited solution options are 
+            // applied for each project file if it doesn't exist.
             AddProjectOptionsFlattenedRecursive(solutionOptions, rval.ProjectOptions, solution.Children);
 
             return rval;
@@ -167,8 +172,7 @@ namespace MvvmTools.Core.Services
                             p.ProjectIdentifier, 
                             p.Kind,
                             p.KindId);
-                        var projectOptions = GetProjectOptionsFromSettingsFile(projectModel);
-                        projectOptions.ApplyInherited(inherited);
+                        var projectOptions = GetProjectOptionsFromSettingsFile(projectModel, inherited);
                         projectOptionsCollection.Add(projectOptions);
 
                         break;

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EnvDTE;
 using EnvDTE80;
+using JetBrains.Annotations;
 using Microsoft.VisualStudio.Shell.Interop;
 using MvvmTools.Core.Models;
 using MvvmTools.Core.Utilities;
@@ -23,11 +24,55 @@ namespace MvvmTools.Core.Services
 
     public interface ISolutionService : IVsSolutionLoadEvents, IVsSolutionEvents3, IVsSolutionEvents4, IVsSolutionEvents5
     {
+        /// <summary>
+        /// Given a source or XAML file, extracts all the public, non-abstract classes.
+        /// </summary>
+        /// <param name="pi">A ProjectItem containing the source or markup to be scanned.  If markup, the code behind will scanned instead.</param>
+        /// <returns>A list of public, non-abstract classes and their namespaces.</returns>
         List<NamespaceClass> GetClassesInProjectItem(ProjectItem pi);
-        List<ProjectItemAndType> GetRelatedDocuments(Project viewModelsProject, Project viewsProject, ProjectItem pi, IEnumerable<string> typeNamesInFile, string[] viewSuffixes, string viewModelSuffix);
-        List<ProjectItemAndType> FindDocumentsContainingTypes(Project project, Project excludeProject, ProjectItem excludeProjectItem, List<string> typesToFind);
+
+        /// <summary>
+        /// Locates types within the solution corresponding to a set of types, be they views or view models.
+        /// </summary>
+        /// <param name="viewModelsLocation">If null, searches whole solution for any corresponding view models.
+        /// If provided, only that one project will be searched.</param>
+        /// <param name="viewsLocation">If null, searches whole solution for any corresponding views.
+        /// If provided, only that one project will be searched.</param>
+        /// <param name="pi">The project item containing the types for which corresponding views or view models will be located.</param>
+        /// <param name="typeNamesInFile">The type names in the 'pi' parameter's source file.  A set of candidate types will be
+        /// compiled corresponding to views or viewmodels according to the 'viewSuffixes' and 'viewModelSuffix' parameters.</param>
+        /// <param name="viewSuffixes">A set of view suffixes to append to the types in the 'typeNamesInFile' parameters
+        /// to aid in locating potential corresponding view types.</param>
+        /// <param name="viewModelSuffix">The view model suffix such as 'ViewModel' or 'PresentationModel' to append to the 
+        /// types in the 'typeNamesInFile' parameters to aid in locating potential corresponding view model types.</param>
+        /// <returns>A list of potential types with their ProjectItem containers.</returns>
+        List<ProjectItemAndType> GetRelatedDocuments(
+            LocationDescriptor viewModelsLocation, 
+            LocationDescriptor viewsLocation, 
+            ProjectItem pi, 
+            IEnumerable<string> typeNamesInFile, 
+            string[] viewSuffixes, 
+            string viewModelSuffix);
+
+        /// <summary>
+        /// Gets the solution as a project model, and all the projects and solution folders.  Project contents are <b>not</b> included.
+        /// </summary>
+        /// <returns>A solution tree, with solution folders and projects, but <b>not</b> the contents of the projects.</returns>
         Task<ProjectModel> GetSolution();
+
+        /// <summary>
+        /// Scans solution for the Project matching the unique id.
+        /// </summary>
+        /// <param name="uniqueId"></param>
+        /// <returns></returns>
         Project GetProject(string uniqueId);
+
+        /// <summary>
+        /// Gets a project's model with Children filled in.
+        /// </summary>
+        /// <param name="project"></param>
+        /// <returns></returns>
+        ProjectModel GetFullProjectModel(Project project);
     }
 
     public class SolutionService : ISolutionService
@@ -84,10 +129,12 @@ namespace MvvmTools.Core.Services
                     case SolutionLoadState.Unloading:
                         return null;
                     case SolutionLoadState.Loaded:
-                        lock (_solutionLock)
-                            return _solution;
+                        return _solution;
                     case SolutionLoadState.Loading:
-                        await Task.Delay(1000);
+                        // We are receiving load events and updating our internal state in the 
+                        // background.  So we wait a bit longer for SolutionLoadState to
+                        // change.
+                        await Task.Delay(500);
                         break;
                 }
             }
@@ -107,6 +154,46 @@ namespace MvvmTools.Core.Services
 
         }
 
+        public ProjectModel GetFullProjectModel(Project project)
+        {
+            var rval = ConvertProjectToProjectModel(project);
+            foreach (ProjectItem pi in project.ProjectItems)
+            {
+                var child = GetProjectItemsModelsRecursive(pi);
+                rval.Children.Add(child);
+            }
+
+            return rval;
+        }
+
+        // Used by GetProjectModel().  Gets project items and folders.
+        private ProjectModel GetProjectItemsModelsRecursive(ProjectItem projectItem)
+        {
+            ProjectModel rval = new ProjectModel(projectItem.Name, projectItem.Name, null, 
+                projectItem.Kind == VsConstants.VsProjectItemKindPhysicalFolder ? ProjectKind.ProjectFolder : ProjectKind.Item, 
+                projectItem.Kind);
+
+            if (projectItem.ProjectItems == null)
+                return rval;
+
+            if (projectItem.SubProject != null)
+                ;
+
+            // Look through all this project's items.
+            foreach (ProjectItem pi in projectItem.ProjectItems)
+            {
+                // Recursive call
+                var child = GetProjectItemsModelsRecursive(pi);
+                rval.Children.Add(child);
+
+                if (pi.SubProject != null)
+                    ;
+            }
+
+            return rval;
+        }
+
+        // Used by GetProject() to recursively locate a project.
         private static Project FindProjectRecursive(Project project, string uniqueId)
         {
             if (project.UniqueName == uniqueId)
@@ -167,20 +254,10 @@ namespace MvvmTools.Core.Services
 
             return rval;
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="viewModelsProject">null if searching solution wide.</param>
-        /// <param name="viewsProject">null if searching solution wide.</param>
-        /// <param name="pi"></param>
-        /// <param name="typeNamesInFile"></param>
-        /// <param name="viewSuffixes"></param>
-        /// <param name="viewModelSuffix"></param>
-        /// <returns></returns>
+        
         public List<ProjectItemAndType> GetRelatedDocuments(
-            Project viewModelsProject, 
-            Project viewsProject,
+            LocationDescriptor viewModelsLocation,
+            LocationDescriptor viewsLocation,
             ProjectItem pi, 
             IEnumerable<string> typeNamesInFile, 
             string[] viewSuffixes, 
@@ -194,13 +271,13 @@ namespace MvvmTools.Core.Services
 
             List<ProjectItemAndType> rval;
 
-            if (viewModelsProject == null && viewsProject == null)
+            if (viewModelsLocation == null)
             {
                 // Search whole solution.
                 var allCandidateTypes = viewModelCandidateTypeNames.Union(viewCandidateTypeNames).Distinct().ToList();
 
                 // Look for the candidate types in current project first, excluding the selected project item.
-                rval = FindDocumentsContainingTypes(pi.ContainingProject, null, pi, allCandidateTypes);
+                rval = FindDocumentsContainingTypes(null, pi.ContainingProject, null, pi, allCandidateTypes);
 
                 // Then add candidates from the rest of the solution.
                 var solution = pi.DTE?.Solution;
@@ -211,16 +288,20 @@ namespace MvvmTools.Core.Services
                         if (project == pi.ContainingProject)
                             continue;
 
-                        var docs = FindDocumentsContainingTypes(project, pi.ContainingProject, pi, allCandidateTypes);
+                        var docs = FindDocumentsContainingTypes(null, project, pi.ContainingProject, pi, allCandidateTypes);
                         rval.AddRange(docs);
                     }
                 }
                 return rval;
             }
+
+            Project viewModelsProject = GetProject(viewModelsLocation.ProjectIdentifier);
+            Project viewsProject = GetProject(viewsLocation.ProjectIdentifier);
+            
             // Search views project first.
-            rval = FindDocumentsContainingTypes(viewsProject, null, pi, viewCandidateTypeNames);
+            rval = FindDocumentsContainingTypes(viewsLocation, viewsProject, null, pi, viewCandidateTypeNames);
             // Then, search view models project, excluding any xaml files.
-            var vmDocs = FindDocumentsContainingTypes(viewModelsProject, null, pi, viewModelCandidateTypeNames);
+            var vmDocs = FindDocumentsContainingTypes(viewModelsLocation, viewModelsProject, null, pi, viewModelCandidateTypeNames);
             rval.AddRange(vmDocs.Where(d => d.ProjectItem.Name.IndexOf(".xaml.", StringComparison.OrdinalIgnoreCase) == -1));
 
             return rval;
@@ -271,26 +352,72 @@ namespace MvvmTools.Core.Services
             }
         }
 
-        public List<ProjectItemAndType> FindDocumentsContainingTypes(Project project, Project excludeProject, ProjectItem excludeProjectItem, List<string> typesToFind)
+        private List<ProjectItemAndType> FindDocumentsContainingTypes(
+            LocationDescriptor options,
+            Project project, 
+            Project excludeProject, 
+            ProjectItem excludeProjectItem, 
+            List<string> typesToFind)
         {
             var results = new List<ProjectItemAndType>();
 
-            FindDocumentsContainingTypesRecursive(excludeProjectItem, excludeProject, project.ProjectItems, typesToFind, null, results);
+            if (typesToFind.Count == 0)
+                return results;
 
+            IEnumerable<ProjectItem> itemsToSearch;
+            if (options != null)
+                itemsToSearch = LocateProjectItemsWithinFolders(project, options.PathOffProject);
+            else
+                itemsToSearch = project.ProjectItems.Cast<ProjectItem>();
+            
+            FindDocumentsContainingTypesRecursive(excludeProjectItem, excludeProject, itemsToSearch, typesToFind, null, results);
+            
             return results;
+        }
+
+        // Used by FindDocumentsContainingTypes().
+        private IEnumerable<ProjectItem> LocateProjectItemsWithinFolders(Project project, string pathOffProject)
+        {
+            // Get the ProjectItems for the folder specified (usually 
+            // ViewModels, but could be several levels deep).
+            var folders = pathOffProject.Split('/').ToList();
+            var rval = LocateProjectItemsWithinFoldersRecursive(folders, project.ProjectItems.Cast<ProjectItem>());
+
+            return rval;
+        }
+
+        // Used by LocateProjectItemsAccordingToOptions().
+        private IEnumerable<ProjectItem> LocateProjectItemsWithinFoldersRecursive(List<string> folders, IEnumerable<ProjectItem> projectItems)
+        {
+            // return No more folder
+            if (folders.Count == 0)
+                return projectItems;
+
+            var folder1 = folders.First();
+            // pop the first folder.
+            folders.RemoveAt(0);
+
+            foreach (var pi in projectItems)
+            {
+                if (pi.Kind == VsConstants.VsProjectItemKindPhysicalFolder &&
+                    string.Equals(pi.Name, folder1, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Recursive call with one fewer folders.
+                    var subItems = LocateProjectItemsWithinFoldersRecursive(folders, pi.ProjectItems.Cast<ProjectItem>());
+                    return subItems;
+                }
+            }
+
+            return new List<ProjectItem>();
         }
 
         #endregion Public Methods
 
         #region Private Methods
-        
-        private static List<ProjectModel> GetProjectModelsRecursive(Project project)
+
+        // This just converts the main properties, it doesn't recurse through the children.
+        private static ProjectModel ConvertProjectToProjectModel(Project project)
         {
-            var rval = new List<ProjectModel>();
-
-            if (project.ProjectItems == null)
-                return rval;
-
             // Sometimes unloaded or some project types projects throw on .FullName.
             string fullName = null;
             try
@@ -312,14 +439,31 @@ namespace MvvmTools.Core.Services
                         : ProjectKind.Project,
                     project.Kind);
 
-            switch (project.Kind)
+            return projectModel;
+        }
+
+        private static bool IsSupportedProjectKind(string kind)
+        {
+            switch (kind)
             {
                 case VsConstants.VsProjectKindMisc:
-                    break;
+                    return false;
                 default:
-                    rval.Add(projectModel);
-                    break;
+                    return true;
             }
+        }
+
+        private static List<ProjectModel> GetProjectModelsRecursive(Project project)
+        {
+            var rval = new List<ProjectModel>();
+
+            if (project.ProjectItems == null)
+                return rval;
+
+            var projectModel = ConvertProjectToProjectModel(project);
+
+            if (IsSupportedProjectKind(project.Kind))
+                rval.Add(projectModel);
 
             // Look through all this project's items and recursively add any 
             // which are sub-projects and folders.
@@ -365,7 +509,12 @@ namespace MvvmTools.Core.Services
             }
         }
 
-        private void FindDocumentsContainingTypesRecursive(ProjectItem excludeProjectItem, Project excludeProject, ProjectItems projectItems, List<string> typesToFind, ProjectItem parentProjectItem, List<ProjectItemAndType> results)
+        private void FindDocumentsContainingTypesRecursive(
+            ProjectItem excludeProjectItem, 
+            Project excludeProject, 
+            IEnumerable<ProjectItem> projectItems, 
+            List<string> typesToFind, 
+            ProjectItem parentProjectItem, List<ProjectItemAndType> results)
         {
             if (typesToFind.Count == 0 || projectItems == null)
                 return;
@@ -385,17 +534,27 @@ namespace MvvmTools.Core.Services
 
                 // Recursive call
                 if (pi.Name.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
-                    FindDocumentsContainingTypesRecursive(excludeProjectItem, excludeProject, pi.ProjectItems, typesToFind,
-                        pi, tmpResults);
+                {
+                    if (pi.ProjectItems != null)
+                        FindDocumentsContainingTypesRecursive(excludeProjectItem, excludeProject,
+                            pi.ProjectItems.Cast<ProjectItem>(), typesToFind,
+                            pi, tmpResults);
+                }
                 else
-                    FindDocumentsContainingTypesRecursive(excludeProjectItem, excludeProject, pi.ProjectItems ?? pi.SubProject?.ProjectItems, typesToFind,
-                        null, tmpResults);
+                {
+                    var items = pi.ProjectItems ?? pi.SubProject?.ProjectItems;
+                    if (items != null)
+                        FindDocumentsContainingTypesRecursive(excludeProjectItem, excludeProject,
+                            items.Cast<ProjectItem>(), typesToFind,
+                            null, tmpResults);
+                }
 
                 // Only search source files.
                 if (!pi.Name.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) &&
                     !pi.Name.EndsWith(".vb", StringComparison.OrdinalIgnoreCase))
                     continue;
 
+                // Search the classes in the project item.
                 var classesInProjectItem = GetClassesInProjectItem(pi);
 
                 var xamlSaved = false;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="MvvmTools.Chris Bordeman.14a68ffd-3571-40a1-a56b-cf35813ba33c" Version="0.1.9.7" Language="en-US" Publisher="Chris Bordeman" />
+    <Identity Id="MvvmTools.Chris Bordeman.14a68ffd-3571-40a1-a56b-cf35813ba33c" Version="0.2.0.1" Language="en-US" Publisher="Chris Bordeman" />
     <DisplayName>Mvvm Tools</DisplayName>
     <Description xml:space="preserve">Switch between View and ViewModel with Ctrl+E, Ctrl+V, and other tools for MVVM XAML developers.  By Chris Bordeman.</Description>
     <MoreInfo>https://github.com/cbordeman/Mvvm-Tools</MoreInfo>

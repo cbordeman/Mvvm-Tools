@@ -211,6 +211,9 @@
     <Compile Include="Commands\ScaffoldViewAndViewModelCommand.cs" />
     <Compile Include="Commands\ExtractViewModelFromViewCommand.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="Options\OptionsPageSolutionAndProject.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Options\OptionsPageGeneral.cs">
       <SubType>Component</SubType>
     </Compile>

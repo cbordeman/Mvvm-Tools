@@ -18,9 +18,9 @@ namespace MvvmTools.Options
     // with support for the Visual Studio automation model, Windows Forms, and state 
     // persistence through the Visual Studio settings mechanism.
     /// </summary>
-	[Guid(Constants.GuidOptionsPageGeneral)]
+	[Guid(Constants.GuidOptionsPageSolutionAndProjects)]
     [ComVisible(true)]
-    internal class OptionsPageGeneral : DialogPage
+    internal class OptionsPageSolutionAndProjects : DialogPage
     {
         #region Fields
 
@@ -30,7 +30,7 @@ namespace MvvmTools.Options
 
         #region Ctor and Init
 
-        public OptionsPageGeneral()
+        public OptionsPageSolutionAndProjects()
         {
             _settingsService = MvvmToolsPackage.Kernel.Get<ISettingsService>();
         }
@@ -62,7 +62,7 @@ namespace MvvmTools.Options
 
                 // Create a WinForms container for our WPF General Options page.
                 var elementHost = new ElementHost();
-                var optionsControl = new OptionsGeneralUserControl();
+                var optionsControl = new OptionsSolutionAndProjectsUserControl();
 
                 // Create, initialize, and bind a view model to our user control.
                 // This is a singleton.

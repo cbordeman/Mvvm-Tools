@@ -235,11 +235,20 @@
     <Compile Include="ViewModels\StringViewModel.cs" />
     <Compile Include="ViewModels\TestPresentationModel.cs" />
     <Compile Include="ViewModels\ValueDescriptor.cs" />
+    <Compile Include="Views\BusyUserControl.xaml.cs">
+      <DependentUpon>BusyUserControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\CircularProgressBar.xaml.cs">
       <DependentUpon>CircularProgressBar.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\DialogWindow.xaml.cs">
       <DependentUpon>DialogWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\HeaderUserControl.xaml.cs">
+      <DependentUpon>HeaderUserControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OptionsSolutionAndProjectsUserControl.xaml.cs">
+      <DependentUpon>OptionsSolutionAndProjectsUserControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ProjectOptionsUserControl.xaml.cs">
       <DependentUpon>ProjectOptionsUserControl.xaml</DependentUpon>
@@ -247,8 +256,8 @@
     <Compile Include="Views\StringDialog.xaml.cs">
       <DependentUpon>StringDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\OptionsUserControl.xaml.cs">
-      <DependentUpon>OptionsUserControl.xaml</DependentUpon>
+    <Compile Include="Views\OptionsGeneralUserControl.xaml.cs">
+      <DependentUpon>OptionsGeneralUserControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -292,6 +301,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\BusyUserControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\CircularProgressBar.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -299,6 +312,14 @@
     <Page Include="Views\DialogWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\HeaderUserControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\OptionsSolutionAndProjectsUserControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\ProjectOptionsUserControl.xaml">
       <SubType>Designer</SubType>
@@ -308,7 +329,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\OptionsUserControl.xaml">
+    <Page Include="Views\OptionsGeneralUserControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

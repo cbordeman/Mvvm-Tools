@@ -73,13 +73,13 @@
           <ButtonText>Switch to View / ViewModel</ButtonText>
         </Strings>
       </Button>
-      <!--<Button guid="GuidMvvmToolsTopLevelMenuGroup" id="ScaffoldViewAndViewModelCommandId" priority="0x0200" type="Button">
+      <Button guid="GuidMvvmToolsTopLevelMenuGroup" id="ScaffoldViewAndViewModelCommandId" priority="0x0200" type="Button">
         <Parent guid="GuidMvvmToolsTopLevelMenuGroup" id="OpsSubMenu" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
           <ButtonText>Scaffold New View and ViewModel</ButtonText>
         </Strings>
-      </Button>-->
+      </Button>
       <!--<Button guid="GuidMvvmToolsTopLevelMenuGroup" id="ExtractViewModelFromViewCommandId" priority="0x0300" type="Button">
         <Parent guid="GuidMvvmToolsTopLevelMenuGroup" id="OpsSubMenu" />
         <Icon guid="guidImages" id="bmpPic1" />

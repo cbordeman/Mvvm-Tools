@@ -58,21 +58,21 @@ namespace MvvmTools.Core.Utilities
             if (pathOffProject.StartsWith("."))
                 return "Cannot start with '.'.";
 
-            if (pathOffProject.StartsWith("\\"))
-                return "Cannot start with '\\'.";
+            if (pathOffProject.StartsWith("/"))
+                return "Cannot start with '/'.";
 
-            if (pathOffProject.EndsWith("\\"))
-                return "Cannot end with '\\'.";
+            if (pathOffProject.EndsWith("/"))
+                return "Cannot end with '/'.";
 
-            if (pathOffProject.Contains("\\."))
-                return "Cannot contain '\\'.";
+            if (pathOffProject.Contains("/."))
+                return "Cannot contain '/.'.";
 
-            if (pathOffProject.Contains(".\\"))
-                return "Cannot contain '.\\'.";
+            if (pathOffProject.Contains("./"))
+                return "Cannot contain './'.";
 
-            if (pathOffProject.Contains("\\\\"))
-                return "Cannot contain '\\\\'.";
-
+            if (pathOffProject.Contains("\\"))
+                return "Use forward slashes ('/').";
+            
             var reservedNames = new[] {"CON", "AUX", "PRN", "COM1", "COM2", "LPT1", "LPT2"};
 
             foreach (var rn in reservedNames)
@@ -101,7 +101,7 @@ namespace MvvmTools.Core.Utilities
                 }
 
             if (containsInvalidChars)
-                return "Cannot contain *?\"/|<>:&#%";
+                return "Cannot contain *?\"|<>:&#%";
 
             return null;
         }

@@ -30,6 +30,11 @@ namespace MvvmTools.Core.Models
             TypeDescription = VsUtilities.GetProjectTypeDescription(projectKindId);
         }
 
+        public override string ToString()
+        {
+            return $"{Name} ({FullPath})";
+        }
+
         public string SettingsFile
         {
             get
@@ -53,6 +58,8 @@ namespace MvvmTools.Core.Models
         // A solution folder (which may contain other folders).
         SolutionFolder,
         // A folder within a project (which cannot contain anything but files).
-        ProjectFolder
+        ProjectFolder,
+        // A simple project item.
+        Item
     }
 }
