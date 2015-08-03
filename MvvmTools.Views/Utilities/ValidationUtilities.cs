@@ -9,6 +9,20 @@ namespace MvvmTools.Core.Utilities
     {
         private static readonly Regex NamespaceRegex = new Regex("^(?:(?:((?![0-9])[a-zA-Z0-9_]+)\\.?)+)(?<!\\.)$");
 
+        private static readonly Regex SuffixRegex = new Regex(@"^[_a-zA-Z0-9]*$");
+        private const string SuffixRegexErrorMessage = "Not a valid view suffix.";
+
+        public static string ValidateViewModelSuffix(string viewModelSuffix)
+        {
+            if (string.IsNullOrWhiteSpace(viewModelSuffix))
+                return "Empty.";
+
+            if (!SuffixRegex.IsMatch(viewModelSuffix))
+                return "Invalid.";
+
+            return null;
+        }
+
         public static string ValidateNamespace(string @namespace)
         {
             if (string.IsNullOrWhiteSpace(@namespace))
@@ -34,7 +48,7 @@ namespace MvvmTools.Core.Utilities
 
         public static string ValidatePathOffProject(string pathOffProject)
         {
-            if (string.IsNullOrWhiteSpace(pathOffProject))
+            if (String.IsNullOrWhiteSpace(pathOffProject))
                 return "Empty.";
 
             if (pathOffProject.StartsWith(" "))
@@ -76,7 +90,7 @@ namespace MvvmTools.Core.Utilities
             var reservedNames = new[] {"CON", "AUX", "PRN", "COM1", "COM2", "LPT1", "LPT2"};
 
             foreach (var rn in reservedNames)
-                if (string.Equals(pathOffProject, rn, StringComparison.OrdinalIgnoreCase))
+                if (String.Equals(pathOffProject, rn, StringComparison.OrdinalIgnoreCase))
                     return "System reserved name.";
 
             // Unicode surrogate characters are not allowed in solution folder names.
@@ -105,6 +119,5 @@ namespace MvvmTools.Core.Utilities
 
             return null;
         }
-
     }
 }

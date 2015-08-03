@@ -4,6 +4,11 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
+using MvvmTools.Core.Services;
+using MvvmTools.Core.ViewModels;
+using MvvmTools.Core.Views;
+using Ninject;
+
 namespace MvvmTools.Commands
 {
     /// <summary>
@@ -20,12 +25,19 @@ namespace MvvmTools.Commands
         {
         }
 
-        protected override void OnExecute()
+        [Inject]
+        public ISolutionService SolutionService { get; set; }
+
+        [Inject]
+        public DialogService DialogService { get; set; }
+
+        protected async override void OnExecute()
         {
             base.OnExecute();
-            
-            //var projectModel = SolutionService.GetFullProjectModel(SolutionService.GetProject(viewModelLocationOptions.ProjectIdentifier));
 
+            var vm = Kernel.Get<ScaffoldDialogViewModel>();
+            await vm.Init();
+            DialogService.ShowDialog(vm);
         }
     }
 }

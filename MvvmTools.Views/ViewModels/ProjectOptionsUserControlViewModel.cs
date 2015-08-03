@@ -125,20 +125,12 @@ namespace MvvmTools.Core.ViewModels
             get
             {
                 if (columnName == "ViewModelSuffix")
-                {
-                    if (string.IsNullOrWhiteSpace(ViewModelSuffix))
-                        return "Empty.";
-
-                    if (!SuffixRegex.IsMatch(ViewModelSuffix))
-                        return "Invalid.";
-
-                    return null;
-                }
+                    return ValidationUtilities.ValidateViewModelSuffix(ViewModelSuffix);
                 return null;
             }
         }
 
-        public string Error => this["ViewModelSuffix"];
+        public string Error => null;
 
         #endregion IDataErrorInfo
 

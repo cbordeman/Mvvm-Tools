@@ -1,0 +1,165 @@
+﻿<UserControl x:Class="MvvmTools.Core.Views.ScaffoldDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:MvvmTools.Core.ViewModels"
+             xmlns:views="clr-namespace:MvvmTools.Core.Views"
+             Width="450"
+             Height="300"
+             d:DataContext="{d:DesignInstance viewModels:ScaffoldDialogViewModel}"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/GroupBox.xaml" />
+                <ResourceDictionary Source="../Converters/Converters.xaml" />
+                <ResourceDictionary Source="../Styles/Validation.xaml" />
+                <ResourceDictionary Source="../Styles/Misc.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <TabControl Grid.Row="1"
+                    BorderThickness="0"
+                    TabStripPlacement="Bottom">
+            <TabItem Header="Basic Information">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+
+                    <!--  Row 0: Prefix  -->
+                    <TextBlock Grid.Row="0"
+                               Grid.Column="0"
+                               Margin="0,0,5,0"
+                               VerticalAlignment="Center"
+                               Text="Name (w/o suffix):" />
+                    <TextBox Grid.Row="2"
+                             Grid.Column="1"
+                             Margin="0,5,0,0"
+                             VerticalAlignment="Center"
+                             Text="{Binding ViewModelSuffix,
+                                            Mode=TwoWay,
+                                            UpdateSourceTrigger=PropertyChanged,
+                                            ValidatesOnDataErrors=True,
+                                            NotifyOnValidationError=True}" />
+
+                    <!--  Row 1: View Model Suffix  -->
+                    <TextBlock Grid.Row="1"
+                               Grid.Column="0"
+                               Margin="0,5,5,0"
+                               VerticalAlignment="Center"
+                               Text="View Model Suffix:" />
+                    <TextBox Grid.Row="1"
+                             Grid.Column="1"
+                             Margin="0,5,0,0"
+                             VerticalAlignment="Center"
+                             Text="{Binding ViewModelSuffix,
+                                            Mode=TwoWay,
+                                            UpdateSourceTrigger=PropertyChanged,
+                                            ValidatesOnDataErrors=True,
+                                            NotifyOnValidationError=True}" />
+
+                    <!--  Row 2: View Suffix  -->
+                    <TextBlock Grid.Row="2"
+                               Grid.Column="0"
+                               Margin="0,5,5,0"
+                               VerticalAlignment="Center"
+                               Text="View Type:" />
+                    <ComboBox Grid.Row="2"
+                              Grid.Column="1"
+                              Margin="0,5,0,0"
+                              VerticalAlignment="Center"
+                              ItemsSource="{Binding ViewSuffixes}"
+                              SelectedItem="{Binding SelectedViewSuffix}" />
+                </Grid>
+            </TabItem>
+            <TabItem Header="Settings Project">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Margin="0,0,4,0"
+                               VerticalAlignment="Center"
+                               Text="Use Settings for Project" />
+                    <ComboBox Grid.Row="1"
+                              Grid.Column="0"
+                              Grid.ColumnSpan="2"
+                              Margin="0,5,0,0"
+                              HorizontalContentAlignment="Stretch"
+                              ItemTemplate="{StaticResource ProjectModelComboBoxKey}"
+                              ItemsSource="{Binding Projects,
+                                                    Mode=TwoWay}"
+                              SelectedItem="{Binding SettingsProject,
+                                                     Mode=TwoWay}" />
+
+                    <!--  View Model  -->
+                    <GroupBox Grid.Row="2"
+                              Grid.Column="0"
+                              Margin="0,0,2,0"
+                              BorderBrush="{StaticResource GroupLvl2AccentBrush}"
+                              Header="View Model Location">
+                        <views:LocationDescriptorUserControl DataContext="{Binding LocationDescriptorForViewModel}" />
+                    </GroupBox>
+
+                    <!--  View  -->
+                    <GroupBox Grid.Row="3"
+                              Grid.Column="1"
+                              Margin="2,0,0,0"
+                              BorderBrush="{StaticResource GroupLvl2AccentBrush}"
+                              Header="View Location">
+                        <views:LocationDescriptorUserControl DataContext="{Binding LocationDescriptorForView}" />
+                    </GroupBox>
+                </Grid>
+
+            </TabItem>
+        </TabControl>
+
+        <!--  Back, Next, and Cancel  -->
+        <Rectangle Grid.Row="2"
+                   Height="1"
+                   Stroke="Black" />
+        <Rectangle Grid.Row="3"
+                   Height="2"
+                   Stroke="Silver" />
+        <StackPanel Grid.Row="4"
+                    VerticalAlignment="Bottom"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal">
+            <Button Content="Back" Padding="5,3" />
+            <Button Margin="5,0,0,0"
+                    Content="Next"
+                    Padding="5,3" />
+            <Button Margin="20,0,0,0"
+                    Command="{Binding CancelCommand}"
+                    Content="Cancel"
+                    Padding="5,3" />
+        </StackPanel>
+    </Grid>
+</UserControl>

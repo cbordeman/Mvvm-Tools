@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using EnvDTE;
 using EnvDTE80;
-using JetBrains.Annotations;
 using Microsoft.VisualStudio.Shell.Interop;
 using MvvmTools.Core.Models;
 using MvvmTools.Core.Utilities;
@@ -59,6 +60,12 @@ namespace MvvmTools.Core.Services
         /// </summary>
         /// <returns>A solution tree, with solution folders and projects, but <b>not</b> the contents of the projects.</returns>
         Task<ProjectModel> GetSolution();
+
+        /// <summary>
+        /// Gets the list of projects, flattened.
+        /// </summary>
+        /// <returns></returns>
+        Task<List<ProjectModel>> GetProjectsList();
 
         /// <summary>
         /// Scans solution for the Project matching the unique id.
@@ -140,6 +147,50 @@ namespace MvvmTools.Core.Services
             }
         }
 
+        public async Task<List<ProjectModel>> GetProjectsList()
+        {
+            var rval = new List<ProjectModel>();
+
+            try
+            {
+                var solution = await GetSolution();
+
+                AddProjectsFlattenedRecursive(rval, solution.Children);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(string.Format(CultureInfo.CurrentCulture, "Error in GetProjectsList() of: {0}: {1}", this, ex));
+                return rval;
+            }
+            return rval;
+        }
+
+        // Used from GetProjectsList().
+        private void AddProjectsFlattenedRecursive(List<ProjectModel> projects, IEnumerable<ProjectModel> solutionTree, string prefix = null)
+        {
+            foreach (var p in solutionTree)
+            {
+                switch (p.Kind)
+                {
+                    case ProjectKind.Project:
+                        projects.Add(new ProjectModel(
+                            prefix + p.Name,
+                            p.FullPath,
+                            p.ProjectIdentifier,
+                            p.Kind,
+                            p.KindId));
+                        break;
+                    case ProjectKind.ProjectFolder:
+                        return;
+                }
+
+                AddProjectsFlattenedRecursive(
+                    projects,
+                    p.Children,
+                    string.Concat(prefix, p.Name, "/"));
+            }
+        }
+    
         public Project GetProject(string uniqueId)
         {
             var solution = _mvvmToolsPackage.Ide.Solution;

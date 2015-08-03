@@ -17,7 +17,6 @@ namespace MvvmTools
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseCommand" /> class.
         /// </summary>
-        /// <param name="package">The hosting package.</param>
         /// <param name="id">The id for the command.</param>
         protected BaseCommand(CommandID id)
             : base(BaseCommand_Execute, id)
@@ -30,10 +29,13 @@ namespace MvvmTools
         #region Properties
 
         [Inject]
-        public IMvvmToolsPackage Package { protected get; set; }
+        public IMvvmToolsPackage Package { get; set; }
 
         [Inject]
-        public ISettingsService SettingsService { protected get; set; }
+        public ISettingsService SettingsService { get; set; }
+
+        [Inject]
+        public IKernel Kernel { get; set; }
 
         /// <summary>
         /// Gets the service provider from the owner package.

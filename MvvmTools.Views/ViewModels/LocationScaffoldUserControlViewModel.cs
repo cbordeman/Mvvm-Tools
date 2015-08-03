@@ -10,7 +10,7 @@ using Ninject;
 
 namespace MvvmTools.Core.ViewModels
 {
-    public class LocationDescriptorUserControlViewModel : BaseViewModel, IDataErrorInfo
+    public class LocationScaffoldUserControlViewModel : BaseViewModel, IDataErrorInfo
     {
         #region Data
 

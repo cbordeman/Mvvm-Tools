@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
+// ReSharper disable ExplicitCallerInfoArgument
+
 namespace MvvmTools.Core.ViewModels
 {
     /// <summary>

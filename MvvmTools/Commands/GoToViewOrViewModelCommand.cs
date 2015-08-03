@@ -53,7 +53,7 @@ namespace MvvmTools.Commands
                 }
 
                 var settings = await SettingsService.LoadSettings();
-                Debug.Assert(settings != null && settings.SolutionOptions != null, "settings were null or solution settings were null.");
+                Debug.Assert(settings?.SolutionOptions != null, "settings were null or solution settings were null.");
 
                 List<ProjectItemAndType> docs;
 
@@ -110,7 +110,7 @@ namespace MvvmTools.Commands
                         classes += c.Class + "\n        ";
 
                     MessageBox.Show(
-                        $"Couldn't find any matching view or view model classes.\n\nClasses in this file:\n\n{classes}", "MVVM Tools");
+                        $"Couldn't find any matching views or view models.\n\nClasses in this file:\n\n{classes}", "MVVM Tools");
 
                     return;
                 }

@@ -227,9 +227,11 @@
     <Compile Include="Utilities\PathUtilities.cs" />
     <Compile Include="ViewModels\BaseDialogViewModel.cs" />
     <Compile Include="ViewModels\BaseViewModel.cs" />
+    <Compile Include="ViewModels\LocationScaffoldUserControlViewModel.cs" />
     <Compile Include="ViewModels\OptionsUserControlViewModel.cs" />
     <Compile Include="ViewModels\LocationDescriptorUserControlViewModel.cs" />
     <Compile Include="ViewModels\ProjectOptionsUserControlViewModel.cs" />
+    <Compile Include="ViewModels\ScaffoldDialogViewModel.cs" />
     <Compile Include="ViewModels\SelectFileDialogViewModel.cs" />
     <Compile Include="ViewModels\StringDialogViewModel.cs" />
     <Compile Include="ViewModels\StringViewModel.cs" />
@@ -247,11 +249,17 @@
     <Compile Include="Views\HeaderUserControl.xaml.cs">
       <DependentUpon>HeaderUserControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\LocationScaffoldUserControl.xaml.cs">
+      <DependentUpon>LocationScaffoldUserControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\OptionsSolutionAndProjectsUserControl.xaml.cs">
       <DependentUpon>OptionsSolutionAndProjectsUserControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ProjectOptionsUserControl.xaml.cs">
       <DependentUpon>ProjectOptionsUserControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ScaffoldDialog.xaml.cs">
+      <DependentUpon>ScaffoldDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\StringDialog.xaml.cs">
       <DependentUpon>StringDialog.xaml</DependentUpon>
@@ -297,6 +305,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Styles\Misc.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Styles\Validation.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -317,11 +329,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\LocationScaffoldUserControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Views\OptionsSolutionAndProjectsUserControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\ProjectOptionsUserControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ScaffoldDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

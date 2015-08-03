@@ -42,8 +42,7 @@
                     </Grid.RowDefinitions>
 
                     <!--  Row 0 contains the solution and projects location options.  -->
-                    <GroupBox Margin="0,15,0,0"
-                              Header="Solution and Project Options">
+                    <GroupBox Margin="0,15,0,0" Header="Solution and Project Options">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
