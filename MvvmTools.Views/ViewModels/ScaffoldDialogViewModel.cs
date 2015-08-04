@@ -18,6 +18,7 @@ namespace MvvmTools.Core.ViewModels
         #region Data
 
         private MvvmToolsSettings _settings;
+        private IList<ProjectOptions> _projOptions;
 
         #endregion Data
 
@@ -29,18 +30,22 @@ namespace MvvmTools.Core.ViewModels
 
             IsBusy = true;
 
-            Projects = await SolutionService.GetProjectsList();
-            
             _settings = await SettingsService.LoadSettings();
 
+            Projects = _settings.ProjectOptions;
+
+            _projOptions = new List<ProjectOptions>(Projects);
+            _projOptions.Insert(0, new ProjectOptions { ProjectModel = new ProjectModel("(current project)", null, null, ProjectKind.Project, null) });
+
             var projId = Package.ActiveDocument?.ProjectItem?.ContainingProject?.UniqueName ??
-                         Projects.FirstOrDefault()?.ProjectIdentifier;
-            SettingsProject = Projects.FirstOrDefault(p => p.ProjectIdentifier == projId);
+                         Projects.FirstOrDefault()?.ProjectModel.ProjectIdentifier;
+            SettingsProject = Projects.FirstOrDefault(p => p.ProjectModel.ProjectIdentifier == projId);
 
-            Prefix = null;
+            Name = null;
 
-            ViewSuffixes = new ObservableCollection<string>(_settings.ViewSuffixes) {null};
-            SelectedViewSuffix = null;
+            ViewSuffixes = new ObservableCollection<string>(_settings.ViewSuffixes);
+            ViewSuffixes.Insert(0, string.Empty);
+            SelectedViewSuffix = ViewSuffixes[0];
 
             IsBusy = false;
         }
@@ -58,18 +63,27 @@ namespace MvvmTools.Core.ViewModels
         [Inject]
         public ISolutionService SolutionService { get; set; }
 
-        #region Prefix
-        private string _prefix;
-        public string Prefix
+        #region LocationForView
+        private LocationScaffoldUserControlViewModel _locationForView;
+        public LocationScaffoldUserControlViewModel LocationForView
         {
-            get { return _prefix; }
-            set { SetProperty(ref _prefix, value); }
+            get { return _locationForView; }
+            set { SetProperty(ref _locationForView, value); }
         }
-        #endregion Prefix
+        #endregion LocationForView
+
+        #region LocationForViewModel
+        private LocationScaffoldUserControlViewModel _locationForViewModel;
+        public LocationScaffoldUserControlViewModel LocationForViewModel
+        {
+            get { return _locationForViewModel; }
+            set { SetProperty(ref _locationForViewModel, value); }
+        }
+        #endregion LocationForViewModel
 
         #region Projects
-        private List<ProjectModel> _projects;
-        public List<ProjectModel> Projects
+        private IList<ProjectOptions> _projects;
+        public IList<ProjectOptions> Projects
         {
             get { return _projects; }
             set { SetProperty(ref _projects, value); }
@@ -77,19 +91,32 @@ namespace MvvmTools.Core.ViewModels
         #endregion ProjectModels
 
         #region SettingsProject
-        private ProjectModel _settingsProject;
-        public ProjectModel SettingsProject
+        private ProjectOptions _settingsProject;
+        public ProjectOptions SettingsProject
         {
             get { return _settingsProject; }
             set
             {
                 if (SetProperty(ref _settingsProject, value))
                 {
-                    
+                    ViewModelSuffix = value.ViewModelSuffix;
+                    LocationForView = new LocationScaffoldUserControlViewModel();
+                    LocationForView.Init(_projOptions, value.ViewLocation);
+                    LocationForViewModel = new LocationScaffoldUserControlViewModel();
+                    LocationForViewModel.Init(_projOptions, value.ViewModelLocation);
                 }
             }
         }
         #endregion SettingsProject
+
+        #region Name
+        private string _name;
+        public string Name
+        {
+            get { return _name; }
+            set { SetProperty(ref _name, value); }
+        }
+        #endregion Name
 
         #region ViewModelSuffix
         private string _viewModelSuffix;
@@ -120,7 +147,6 @@ namespace MvvmTools.Core.ViewModels
 
         #region SelectedViewSuffix
         private string _selectedViewSuffix;
-
         public string SelectedViewSuffix
         {
             get { return _selectedViewSuffix; }
@@ -136,26 +162,7 @@ namespace MvvmTools.Core.ViewModels
         #endregion Commands
 
         #region Private Methods
-
-        // Passed in inherited view model could be from SettingsService (for the solution),
-        // or from the solution (for the projects) (mutable). 
-        private async Task<ProjectOptionsUserControlViewModel> CreateProjectOptionsUserControlViewModel(ProjectOptions projectOptions, ProjectOptionsUserControlViewModel inherited,
-            bool isProject)
-        {
-            var rval = Kernel.Get<ProjectOptionsUserControlViewModel>();
-
-            await rval.Initialize(
-                projectOptions,
-                isProject,
-                inherited,
-                projectOptions.ViewModelSuffix,
-                Kernel.Get<LocationDescriptorUserControlViewModel>(),
-                Kernel.Get<LocationDescriptorUserControlViewModel>());
-
-            return rval;
-        }
-
-
+        
         #endregion Private Methods
 
         #region IDataErrorInfo
@@ -164,8 +171,15 @@ namespace MvvmTools.Core.ViewModels
         {
             get
             {
-                if (columnName == "ViewModelSuffix")
-                    return ValidationUtilities.ValidateViewModelSuffix(ViewModelSuffix);
+                switch (columnName)
+                {
+                    case "ViewModelSuffix":
+                        return ValidationUtilities.ValidateViewModelSuffix(ViewModelSuffix);
+                    case "Name":
+                        return ValidationUtilities.ValidateName(Name);
+                    case "SelectedViewSuffix":
+                        return string.IsNullOrWhiteSpace(SelectedViewSuffix) ? "Select the view suffix." : null;
+                }
                 return null;
             }
         }

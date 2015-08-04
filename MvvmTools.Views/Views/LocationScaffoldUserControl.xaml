@@ -40,33 +40,17 @@
             <TextBlock Margin="0,0,0,0"
                        VerticalAlignment="Bottom"
                        Text="Place in Project:" />
-            <Button Grid.Row="0"
-                    Margin="0,2,0,2"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Bottom"
-                    Command="{Binding ResetProjectIdentifierCommand}"
-                    Content="Default"
-                    IsTabStop="False"
-                    Padding="3,0" />
             <ComboBox Grid.Row="1"
                       Margin="0,0,0,5"
-                      DisplayMemberPath="Name"
+                      DisplayMemberPath="ProjectModel.Name"
                       ItemsSource="{Binding Projects}"
                       SelectedValue="{Binding ProjectIdentifier}"
-                      SelectedValuePath="ProjectIdentifier" />
+                      SelectedValuePath="ProjectModel.ProjectIdentifier" />
 
             <TextBlock Grid.Row="2"
                        Margin="0,0,0,0"
                        VerticalAlignment="Bottom"
                        Text="Subfolder within Project:" />
-            <Button Grid.Row="2"
-                    Margin="0,2,0,2"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Bottom"
-                    Command="{Binding ResetPathOffProjectCommand}"
-                    Content="Default"
-                    IsTabStop="False"
-                    Padding="3,0" />
             <TextBox Grid.Row="3"
                      Grid.Column="0"
                      Text="{Binding PathOffProject,
@@ -74,31 +58,11 @@
                                     UpdateSourceTrigger=PropertyChanged,
                                     ValidatesOnDataErrors=True,
                                     NotifyOnValidationError=True}" />
-            <TextBlock Grid.Row="4"
-                       Grid.Column="0"
-                       Margin="0,2,0,5"
-                       FontSize="10"
-                       Text="Indicate a nested folder with slashes, e.g.: SampleFolder/ViewModels. or SampleFolder/Views"
-                       TextWrapping="WrapWithOverflow" />
 
             <TextBlock Grid.Row="5"
                        VerticalAlignment="Bottom"
                        Text="Namespace:" />
-            <Button Grid.Row="5"
-                    Margin="0,2,0,2"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Bottom"
-                    Command="{Binding ResetNamespaceCommand}"
-                    Content="Default"
-                    IsTabStop="False"
-                    Padding="3,0" />
             <TextBox Grid.Row="6" Text="{Binding Namespace, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, NotifyOnValidationError=True}" />
-            <TextBlock Grid.Row="7"
-                       Grid.Column="0"
-                       Margin="0,2,0,5"
-                       FontSize="10"
-                       Text="If starts with a dot, will be relative to the project's default namespace, e.g.: .Sample.ViewModels. or .Sample.Views."
-                       TextWrapping="WrapWithOverflow" />
 
             <CheckBox Grid.Row="8"
                       Grid.Column="0"
@@ -107,21 +71,6 @@
                       VerticalAlignment="Center"
                       Content="Append View Suffix"
                       IsChecked="{Binding AppendViewType}" />
-            <Button Grid.Row="8"
-                    Margin="0,5,0,2"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Center"
-                    Command="{Binding ResetAppendViewTypeCommand}"
-                    Content="Default"
-                    IsTabStop="False"
-                    Padding="3,0" />
-            <TextBlock Grid.Row="9"
-                       Grid.Column="0"
-                       Margin="0,2,0,0"
-                       VerticalAlignment="Center"
-                       FontSize="10"
-                       Text="If checked, a subfolder will be created for the view suffix, e.g.: Module\Dialogs\SampleDialog."
-                       TextWrapping="WrapWithOverflow" />
         </Grid>
     </Grid>
 </UserControl>

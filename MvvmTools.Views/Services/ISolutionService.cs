@@ -704,7 +704,7 @@ namespace MvvmTools.Core.Services
 
         public int OnAfterLoadProjectBatch(bool fIsBackgroundIdleBatch)
         {
-            ReloadSolution();
+            //ReloadSolution();
 
             return VsConstants.S_OK;
         }

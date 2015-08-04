@@ -10,7 +10,8 @@ namespace MvvmTools.Core.Utilities
         private static readonly Regex NamespaceRegex = new Regex("^(?:(?:((?![0-9])[a-zA-Z0-9_]+)\\.?)+)(?<!\\.)$");
 
         private static readonly Regex SuffixRegex = new Regex(@"^[_a-zA-Z0-9]*$");
-        private const string SuffixRegexErrorMessage = "Not a valid view suffix.";
+
+        private static readonly Regex NameRegex = new Regex(@"^(?![0-9])[_a-zA-Z0-9]*$");
 
         public static string ValidateViewModelSuffix(string viewModelSuffix)
         {
@@ -49,7 +50,7 @@ namespace MvvmTools.Core.Utilities
         public static string ValidatePathOffProject(string pathOffProject)
         {
             if (String.IsNullOrWhiteSpace(pathOffProject))
-                return "Empty.";
+                return null;
 
             if (pathOffProject.StartsWith(" "))
                 return "Cannot start with a space.";
@@ -116,6 +117,17 @@ namespace MvvmTools.Core.Utilities
 
             if (containsInvalidChars)
                 return "Cannot contain *?\"|<>:&#%";
+
+            return null;
+        }
+
+        public static string ValidateName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return "Type the name of the new item, without suffix.";
+
+            if (!NameRegex.IsMatch(name))
+                return "Invalid.";
 
             return null;
         }

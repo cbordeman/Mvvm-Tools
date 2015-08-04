@@ -1,10 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
-using System.Threading.Tasks;
 using MvvmTools.Core.Models;
-using MvvmTools.Core.Services;
 using MvvmTools.Core.Utilities;
-using Ninject;
 
 // ReSharper disable ConvertIfStatementToReturnStatement
 
@@ -22,14 +19,9 @@ namespace MvvmTools.Core.ViewModels
 
         #region Properties
 
-        [Inject]
-        public ISolutionService SolutionService { get; set; }
-
-        public LocationDescriptorUserControlViewModel Inherited { get; set; }
-
         #region Projects
-        private List<ProjectModel> _projects;
-        public List<ProjectModel> Projects
+        private IList<ProjectOptions> _projects;
+        public IList<ProjectOptions> Projects
         {
             get { return _projects; }
             set { SetProperty(ref _projects, value); }
@@ -41,11 +33,7 @@ namespace MvvmTools.Core.ViewModels
         public string ProjectIdentifier
         {
             get { return _projectIdentifier; }
-            set
-            {
-                if (SetProperty(ref _projectIdentifier, value))
-                    ResetProjectIdentifierCommand.RaiseCanExecuteChanged();
-            }
+            set { SetProperty(ref _projectIdentifier, value); }
         }
         #endregion ProjectIdentifier
 
@@ -54,11 +42,7 @@ namespace MvvmTools.Core.ViewModels
         public string PathOffProject
         {
             get { return _pathOffProject; }
-            set
-            {
-                if (SetProperty(ref _pathOffProject, value))
-                    ResetPathOffProjectCommand.RaiseCanExecuteChanged();
-            }
+            set { SetProperty(ref _pathOffProject, value); }
         }
         #endregion PathOffProject
 
@@ -67,11 +51,7 @@ namespace MvvmTools.Core.ViewModels
         public string Namespace
         {
             get { return _namespace; }
-            set
-            {
-                if (SetProperty(ref _namespace, value))
-                    ResetNamespaceCommand.RaiseCanExecuteChanged();
-            }
+            set { SetProperty(ref _namespace, value); }
         }
         #endregion Namespace
 
@@ -80,11 +60,7 @@ namespace MvvmTools.Core.ViewModels
         public bool AppendViewType
         {
             get { return _appendViewType; }
-            set
-            {
-                if (SetProperty(ref _appendViewType, value))
-                    ResetAppendViewTypeCommand.RaiseCanExecuteChanged();
-            }
+            set { SetProperty(ref _appendViewType, value); }
         }
         #endregion AppendViewType
 
@@ -92,45 +68,6 @@ namespace MvvmTools.Core.ViewModels
 
         #region Commands
 
-        #region ResetPathOffProjectCommand
-        DelegateCommand _resetPathOffProjectCommand;
-        public DelegateCommand ResetPathOffProjectCommand => _resetPathOffProjectCommand ?? (_resetPathOffProjectCommand = new DelegateCommand(ExecuteResetPathOffProjectCommand, CanResetPathOffProjectCommand));
-        public bool CanResetPathOffProjectCommand() => PathOffProject != Inherited?.PathOffProject;
-        public void ExecuteResetPathOffProjectCommand()
-        {
-            PathOffProject = Inherited.PathOffProject;
-        }
-        #endregion
-
-        #region ResetNamespaceCommand
-        DelegateCommand _resetNamespaceCommand;
-        public DelegateCommand ResetNamespaceCommand => _resetNamespaceCommand ?? (_resetNamespaceCommand = new DelegateCommand(ExecuteResetNamespaceCommand, CanResetNamespaceCommand));
-        public bool CanResetNamespaceCommand() => Namespace != Inherited?.Namespace;
-        public void ExecuteResetNamespaceCommand()
-        {
-            Namespace = Inherited.Namespace;
-        }
-        #endregion
-        
-        #region ResetProjectIdentifierCommand
-        DelegateCommand _resetProjectIdentifierCommand;
-        public DelegateCommand ResetProjectIdentifierCommand => _resetProjectIdentifierCommand ?? (_resetProjectIdentifierCommand = new DelegateCommand(ExecuteResetProjectIdentifierCommand, CanResetProjectIdentifierCommand));
-        public bool CanResetProjectIdentifierCommand() => ProjectIdentifier != Inherited?.ProjectIdentifier;
-        public void ExecuteResetProjectIdentifierCommand()
-        {
-            ProjectIdentifier = Inherited.ProjectIdentifier;
-        }
-        #endregion
-
-        #region ResetAppendViewTypeCommand
-        DelegateCommand _resetAppendViewTypeCommand;
-        public DelegateCommand ResetAppendViewTypeCommand => _resetAppendViewTypeCommand ?? (_resetAppendViewTypeCommand = new DelegateCommand(ExecuteResetAppendViewTypeCommand, CanResetAppendViewTypeCommand));
-        public bool CanResetAppendViewTypeCommand() => AppendViewType != Inherited?.AppendViewType;
-        public void ExecuteResetAppendViewTypeCommand()
-        {
-            AppendViewType = Inherited.AppendViewType;
-        }
-        #endregion
         
         #endregion Commands
 
@@ -140,68 +77,16 @@ namespace MvvmTools.Core.ViewModels
 
         #region Public Methods
 
-        public void SetFromDescriptor(LocationDescriptor descriptor)
+        public void Init(IList<ProjectOptions> projects, LocationDescriptor descriptor)
         {
-            _projectIdentifier = descriptor.ProjectIdentifier;
-            _pathOffProject = descriptor.PathOffProject;
-            _namespace = descriptor.Namespace;
-            _appendViewType = descriptor.AppendViewType;
-        }
-
-        public LocationDescriptor GetDescriptor()
-        {
-            return new LocationDescriptor
-            {
-                ProjectIdentifier = ProjectIdentifier,
-                PathOffProject = PathOffProject,
-                Namespace = Namespace,
-                AppendViewType = AppendViewType
-            };
-        }
-
-        // Scans the solution and initializes.
-        public async Task InitializeFromSolution()
-        {
-            var projects = await SolutionService.GetProjectsList();
-            projects.Insert(0, new ProjectModel("(current project)", null, null, ProjectKind.Project, null));
+            Projects =  projects;
             
-            // Have to save and restore the project id because the XAML binding engine nulls it.
-            var save = ProjectIdentifier;
-            Projects = projects;
-            ProjectIdentifier = save;
+            ProjectIdentifier = descriptor.ProjectIdentifier;
+            PathOffProject = descriptor.PathOffProject;
+            Namespace = descriptor.Namespace;
+            AppendViewType = descriptor.AppendViewType;
         }
-
-        public bool IsInherited
-        {
-            get
-            {
-                if (Inherited == null)
-                    return false;
-
-                if (ProjectIdentifier != Inherited.ProjectIdentifier)
-                    return false;
-                if (PathOffProject != Inherited.PathOffProject)
-                    return false;
-                if (Namespace != Inherited.Namespace)
-                    return false;
-                if (ProjectIdentifier != Inherited.ProjectIdentifier)
-                    return false;
-                if (AppendViewType != Inherited.AppendViewType)
-                    return false;
-
-                return true;
-            }
-        }
-
-        public void ResetToInherited()
-        {
-            ProjectIdentifier = Inherited.ProjectIdentifier;
-            PathOffProject = Inherited.PathOffProject;
-            Namespace = Inherited.Namespace;
-            ProjectIdentifier = Inherited.ProjectIdentifier;
-            AppendViewType = Inherited.AppendViewType;
-        }
-
+        
         #endregion Public Methods
 
         #region Private Helpers and Event Handlers
