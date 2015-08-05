@@ -147,17 +147,6 @@
         </Grid>
 
         <!--  Back, Next, and Cancel  -->
-        <!--<Rectangle Grid.Row="7"
-                   Grid.Column="0"
-                   Grid.ColumnSpan="2"
-                   Height="1"
-                   Margin="0,5,0,0"
-                   Stroke="Black" />
-        <Rectangle Grid.Row="8"
-                   Grid.Column="0"
-                   Grid.ColumnSpan="2"
-                   Height="2"
-                   Stroke="Silver" />-->
         <StackPanel Grid.Row="9"
                     Grid.Column="0"
                     Grid.ColumnSpan="2"
@@ -165,14 +154,11 @@
                     HorizontalAlignment="Right"
                     VerticalAlignment="Bottom"
                     Orientation="Horizontal">
-            <Button Content="Back" Padding="5,3" />
-            <Button Margin="5,0,0,0"
-                    Content="Next"
-                    Padding="5,3" />
-            <Button Margin="20,0,0,0"
-                    Command="{Binding CancelCommand}"
-                    Content="Cancel"
-                    Padding="5,3" />
+            <Button Width="70"
+                    Margin="20,0,0,0"
+                    Command="{Binding OkCommand}"
+                    Content="_OK"
+                    Padding="0,3" />
         </StackPanel>
     </Grid>
 </UserControl>

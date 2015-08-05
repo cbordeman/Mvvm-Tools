@@ -77,11 +77,12 @@ namespace MvvmTools.Core.ViewModels
 
         #region Public Methods
 
-        public void Init(IList<ProjectOptions> projects, LocationDescriptor descriptor)
+        public void Init(IList<ProjectOptions> projects, LocationDescriptor descriptor, ProjectOptions settingsProject)
         {
             Projects =  projects;
             
-            ProjectIdentifier = descriptor.ProjectIdentifier;
+            // If descriptor's ProjectId is null, use settingsProject's.
+            ProjectIdentifier = descriptor.ProjectIdentifier ?? settingsProject.ProjectModel.ProjectIdentifier;
             PathOffProject = descriptor.PathOffProject;
             Namespace = descriptor.Namespace;
             AppendViewType = descriptor.AppendViewType;
@@ -110,8 +111,11 @@ namespace MvvmTools.Core.ViewModels
                 return null;
             }
         }
-        
-        public string Error => null;
+
+        public string Error => ValidationUtilities.ValidatePathOffProject(PathOffProject) != null ||
+                               ValidationUtilities.ValidateNamespace(Namespace) != null
+            ? "There are errors"
+            : null;
 
         #endregion IDataErrorInfo
     }

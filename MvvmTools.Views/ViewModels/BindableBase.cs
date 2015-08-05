@@ -13,7 +13,17 @@ namespace MvvmTools.Core.ViewModels
         /// <summary>
         /// Multicast event for property change notifications.
         /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler PropertyChanged
+        {
+            add
+            {
+                ReactiveUI.WeakEventManager<BindableBase, PropertyChangedEventHandler, PropertyChangedEventArgs>.AddHandler(this, value);
+            }
+            remove
+            {
+                ReactiveUI.WeakEventManager<BindableBase, PropertyChangedEventHandler, PropertyChangedEventArgs>.RemoveHandler(this, value);
+            }
+        }
 
         /// <summary>
         /// Checks if a property already matches a desired value.  Sets the property and
@@ -53,8 +63,7 @@ namespace MvvmTools.Core.ViewModels
         /// that support <see cref="CallerMemberNameAttribute"/>.</param>
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
-            var eventHandler = PropertyChanged;
-            eventHandler?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            ReactiveUI.WeakEventManager<BindableBase, PropertyChangedEventHandler, PropertyChangedEventArgs>.DeliverEvent(this, new PropertyChangedEventArgs(propertyName));
         }
 
         /// <summary>
@@ -65,10 +74,19 @@ namespace MvvmTools.Core.ViewModels
         /// that support <see cref="CallerMemberNameAttribute"/>.</param>
         protected void OnPropertyChanging([CallerMemberName] string propertyName = null)
         {
-            var eventHandler = PropertyChanging;
-            eventHandler?.Invoke(this, new PropertyChangingEventArgs(propertyName));
+            ReactiveUI.WeakEventManager<BindableBase, PropertyChangingEventHandler, PropertyChangingEventArgs>.DeliverEvent(this, new PropertyChangingEventArgs(propertyName));
         }
 
-        public event PropertyChangingEventHandler PropertyChanging;
+        public event PropertyChangingEventHandler PropertyChanging
+        {
+            add
+            {
+                ReactiveUI.WeakEventManager<BindableBase, PropertyChangingEventHandler, PropertyChangingEventArgs>.AddHandler(this, value);
+            }
+            remove
+            {
+                ReactiveUI.WeakEventManager<BindableBase, PropertyChangingEventHandler, PropertyChangingEventArgs>.RemoveHandler(this, value);
+            }
+        }
     }
 }
