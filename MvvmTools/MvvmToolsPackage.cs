@@ -43,8 +43,9 @@ namespace MvvmTools
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [ProvideOptionPage(typeof(OptionsPageGeneral), "MVVM Tools", "General", 101, 107, true)]
     [ProvideOptionPage(typeof(OptionsPageSolutionAndProjects), "MVVM Tools", "Solution and Projects", 101, 113, true)]
+    [ProvideOptionPage(typeof(OptionsPageSolutionAndProjects), "MVVM Tools", "Templates", 101, 114, true)]
     //[InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
-    [ProvideBindingPath]
+    [ProvideBindingPath] // This is the magic attribute required so VS can find any 3rd party dlls.
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(Constants.GuidPackage)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
@@ -148,9 +149,6 @@ namespace MvvmTools
         protected override void Initialize()
         {
             // Set up Ninject container
-
-            //Kernel.Bind<IOutputService>().To<OutputService>().InSingletonScope();
-            //var os = Kernel.Get<IOutputService>();
             
             try
             {
@@ -163,7 +161,7 @@ namespace MvvmTools
                 Kernel.Bind<ISettingsService>().To<SettingsService>().InSingletonScope();
                 Kernel.Bind<IViewFactory>().To<ViewFactory>().InSingletonScope();
                 Kernel.Bind<IDialogService>().To<DialogService>().InSingletonScope();
-
+                
                 // Option view model, a shared singleton because it's easier.
                 Kernel.Bind<OptionsUserControlViewModel>().ToSelf().InSingletonScope();
 

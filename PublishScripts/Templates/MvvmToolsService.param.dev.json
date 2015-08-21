@@ -1,0 +1,29 @@
+{
+  "siteName": {
+    "value": "MvvmToolsService"
+  },
+  "hostingPlanName": {
+    "value": "Default1"
+  },
+  "siteLocation": {
+    "value": "Central US"
+  },
+  "sku": {
+    "value": "Standard"
+  },
+  "workerSize": {
+    "value": "0"
+  },
+  "siteMode": {
+    "value": "Limited"
+  },
+  "computeMode": {
+    "value": "0"
+  },
+  "subscriptionId": {
+    "value": "4278d602-4c5b-4c4c-86bd-c111bfb73c02"
+  },
+  "resourceGroup": {
+    "value": "Default-Web-CentralUS"
+  }
+}

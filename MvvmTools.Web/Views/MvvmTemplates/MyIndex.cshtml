@@ -1,0 +1,103 @@
+﻿@model MvvmTools.Web.Models.TemplateIndexModel
+
+@{
+    ViewBag.Title = "My Templates";
+}
+
+<div class="pageheader">
+    <h1>@ViewBag.Title</h1>
+    <p>These are the templates you own and are shared by the community of MVVM Tools users.</p>
+    <div class="breadcrumb-wrapper hidden-xs">
+        <span class="label">You are here:</span>
+        <ol class="breadcrumb">
+            <li>
+                <a href="">Templates</a>
+            </li>
+            <li class="active">My Templates</li>
+        </ol>
+    </div>
+</div>
+<section id="main-content">
+    @*<p>@Html.ActionLink("Create New", "Create", null, new {@class = "btn btn-primary"})</p>*@
+    <div class="row">
+        <div class="col-md-12 col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-body ng-binding">
+                    @using (Html.BeginForm("Index", "MvvmTemplates", FormMethod.Post, new { @class = "form-inline" }))
+                    {
+                        <fieldset>
+                            <ul class="ul-no-list-style">
+                                <li class='panel'>
+                                    @Html.Label("author", "Author:")
+                                    @Html.DropDownList("author", @Model.Authors)
+                                </li>
+                                <li class='panel'>
+                                    @Html.Label("language", "Language:")
+                                    @Html.DropDownList("language", @Model.Languages)
+                                </li>
+                                <li class='panel'>
+                                    @Html.Label("category", "Category:")
+                                    @Html.DropDownList("category", @Model.Categories)
+                                </li>
+                                <li class='panel'>
+                                    @Html.TextBox("search", @Model.Search, new { placeholder = "Search...", type = "text", @class = "search", css = "width=100px" })
+                                </li>
+                                <li class='panel'>
+                                    <input type="submit" class="btn btn-default btn-sm" value="Apply">
+                                </li>
+                            </ul>
+
+                            @*<input type="text" class="search" placeholder="Search..."
+                                id="search">*@
+
+                        </fieldset>
+                    }
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.Templates.First().Author)
+                                </th>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.Templates.First().Name)
+                                </th>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.Templates.First().Language)
+                                </th>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.Templates.First().Category)
+                                </th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Templates)
+                            {
+                                <tr>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Author)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Name)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Language)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Category)
+                                    </td>
+                                    <td>
+                                        @Html.ActionLink("Details", "Details", null, new { id = item.Id, @class = "btn btn-default btn-xs" })
+                                        @*@Html.ActionLink("Edit", "Edit", null, new {id = item.Id}) |
+                                            @Html.ActionLink("Details", "Details", null, new {id = item.Id}) |
+                                            @Html.ActionLink("Delete", "Delete", null, new {id = item.Id})*@
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

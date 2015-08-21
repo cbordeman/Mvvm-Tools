@@ -1,0 +1,48 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuBoard | @ViewBag.Title</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+     @Scripts.Render("~/bundles/ie")
+     <![endif]-->
+
+</head>
+<body>
+    <!-- Page Wrapper-->
+    <section id="main-wrapper" class="theme-default">
+
+    <!-- Top Header -->
+    @Html.Partial("_Header")
+
+    <!-- Left Sidebar Navigation -->
+    @Html.Partial("_LeftSideBar")
+
+    <!-- Content wraper -->
+    <section class="main-content-wrapper">
+        <!-- Main view -->
+        @RenderBody()
+
+        <footer class="panel-footer">
+            <p class="muted credit">&copy; @DateTime.Now.Year Chris Bordeman</p>
+        </footer>
+    </section>
+    <!-- /Content wraper-->
+
+    </section><!-- /Page Wrapper-->
+
+    <!-- Right Sidebar -->
+    @Html.Partial("_RightSideBar")
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/plugins/navgoco")
+    @Scripts.Render("~/plugins/pace")
+    @Scripts.Render("~/bundles/app")
+    @RenderSection("scripts", required: false)
+</body>
+</html>
