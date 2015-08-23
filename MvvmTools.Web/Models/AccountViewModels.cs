@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Data;
+using System.Web.Mvc;
+using WebGrease;
 
 namespace MvvmTools.Web.Models
 {
@@ -65,11 +68,13 @@ namespace MvvmTools.Web.Models
     {
         [Required]
         [Display(Name = "User Name")]
+        [Remote("UserNameAvailable", "Account", ErrorMessage = "That User Name already exists in our system.")]
         public string UserName { get; set; }
 
         [Required]
         [EmailAddress]
         [Display(Name = "Email")]
+        [Remote("EmailAvailable", "Account", ErrorMessage = "That Email already exists in our system.")]
         public string Email { get; set; }
 
         [Required]
@@ -80,8 +85,13 @@ namespace MvvmTools.Web.Models
 
         [DataType(DataType.Password)]
         [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        [System.ComponentModel.DataAnnotations.Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
+
+        [Required]
+        [MaxLength(100)]
+        [Remote("AuthorAvailable", "Account", ErrorMessage = "That Author already exists in our system.")]
+        public string Author { get; set; }
     }
 
     public class ResetPasswordViewModel
@@ -99,7 +109,7 @@ namespace MvvmTools.Web.Models
 
         [DataType(DataType.Password)]
         [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        [System.ComponentModel.DataAnnotations.Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
 
         public string Code { get; set; }

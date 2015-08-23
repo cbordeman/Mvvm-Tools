@@ -1,27 +1,67 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
+using System.Configuration;
+using System.Diagnostics;
+using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using System.Web;
+using JetBrains.Annotations;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
+using MvvmTools.Shared;
 using MvvmTools.Web.Models;
+using SendGrid;
 
 namespace MvvmTools.Web
 {
     public class EmailService : IIdentityMessageService
     {
-        public Task SendAsync(IdentityMessage message)
+        public async Task SendAsync(IdentityMessage message)
         {
-            // Plug in your email service here to send an email.
-            return Task.FromResult(0);
+            await ConfigSendGridasync(message);
+        }
+
+        private async Task ConfigSendGridasync([NotNull] IdentityMessage message)
+        {
+            if (string.IsNullOrWhiteSpace(message.Destination))
+                throw new ArgumentOutOfRangeException(nameof(message.Destination), "Message's Destination was null, empty, or whitespace.");
+
+            var myMessage = new SendGridMessage();
+            myMessage.AddTo(message.Destination);
+            myMessage.From = new System.Net.Mail.MailAddress(Secrets.AdminEmail, $"{Secrets.AdminName} (MVVM Tools)");
+            myMessage.Subject = message.Subject;
+            myMessage.Text = message.Body;
+            myMessage.Html = message.Body;
+
+            var credentials = new NetworkCredential(Secrets.SendGridMailAccount, Secrets.SendGridMailPassword);
+
+            // Send the email using Microsoft's SendGrid service.
+            SendGrid.Web transportWeb;
+            try
+            {
+                transportWeb = new SendGrid.Web(credentials);
+                Debug.Assert(transportWeb != null, "transportWeb was null");
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError("Failed to create SendGrid Web transport with given credentials." + ex);
+                return;
+            }
+
+            try
+            {
+                await transportWeb.DeliverAsync(myMessage);
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError($"Failed to send the email message to {message.Destination}.  Error: {ex}");
+                await Task.FromResult(0);
+            }
         }
     }
+
 
     public class SmsService : IIdentityMessageService
     {

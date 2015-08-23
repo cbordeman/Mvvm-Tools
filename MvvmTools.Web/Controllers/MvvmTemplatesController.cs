@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using Microsoft.AspNet.Identity;
 using MvvmTools.Shared.Models;
 using MvvmTools.Web.Models;
 
@@ -14,20 +15,28 @@ namespace MvvmTools.Web.Controllers
         private readonly ApplicationDbContext db = new ApplicationDbContext();
 
         // GET: MvvmTemplates
-        public async Task<ActionResult> Index(string author, string language, int? categoryId, string search)
+        public async Task<ActionResult> Index(string selectedAuthor, string selectedLanguage, int? selectedCategoryId, string search)
         {
+
+            ApplicationUser user = null;
+            if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
+                user = db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name);
+
             search = search?.Trim();
 
             // base query
             var templates = from t in db.MvvmTemplates
-                            where t.Enabled
+                            where t.Enabled && t.ApplicationUser.ShowTemplates
                             select t;
+            // add author condition
+            if (!string.IsNullOrEmpty(selectedAuthor))
+                templates = templates.Where(t => t.ApplicationUser.Author == selectedAuthor);
             // add language condition
-            if (!string.IsNullOrEmpty(language))
-                templates = templates.Where(t => t.Language == language);
+            if (!string.IsNullOrEmpty(selectedLanguage))
+                templates = templates.Where(t => t.Language == selectedLanguage);
             // add category condition
-            if (categoryId != null)
-                templates = templates.Where(t => t.MvvmTemplateCategoryId == categoryId);
+            if (selectedCategoryId != null)
+                templates = templates.Where(t => t.MvvmTemplateCategoryId == selectedCategoryId);
             // add search text condition
             if (!string.IsNullOrWhiteSpace(search))
                 templates = templates.Where(
@@ -46,33 +55,61 @@ namespace MvvmTools.Web.Controllers
             });
             
             // Generate model.
-            var model = new TemplateIndexModel(
+            var model = new TemplateIndexViewModel(
+                user?.Author,
+                false,
                 await query.ToListAsync(),
                 await db.Users.Where(u => u.ShowTemplates && u.MvvmTemplates.Any(t => t.Enabled)).ToListAsync(),
-                author,
-                categoryId.GetValueOrDefault(),
+                selectedAuthor,
+                selectedCategoryId.GetValueOrDefault(),
                 await db.MvvmTemplateCategories.ToListAsync(),
-                string.IsNullOrWhiteSpace(language) ? null : language,
+                string.IsNullOrWhiteSpace(selectedLanguage) ? null : selectedLanguage,
                 string.IsNullOrWhiteSpace(search) ? null : search);
             
             return View(model);
         }
 
-        // GET: MvvmTemplates
+        // GET or POST: MvvmTemplates
         [Authorize]
-        public async Task<ActionResult> MyIndex(string author, string language, int? categoryId, string search)
+        [AcceptVerbs(HttpVerbs.Get | HttpVerbs.Post)]
+        public async Task<ActionResult> MyIndex(string author, bool? showTemplates, string selectedAuthor, string selectedLanguage, int? selectedCategoryId, string search)
         {
+            var user = db.Users.First(u => u.UserName == User.Identity.Name);
+
+            if (Request.HttpMethod == "POST")
+            {
+                // Update user.
+                if (user.Author != author || user.ShowTemplates != showTemplates)
+                {
+                    user.Author = author;
+                    user.ShowTemplates = showTemplates.GetValueOrDefault();
+                    await db.SaveChangesAsync();
+                }
+            }
+            else
+            {
+                // On GET, initialize selectedUser to the current user.  On POST, user 
+                // could have changed it.
+                selectedAuthor = user.Author;
+            }
+
+            // Then do search.
             search = search?.Trim();
 
             // base query
             var templates = from t in db.MvvmTemplates
+                            where t.ApplicationUserId == user.Id ||
+                                  (t.Enabled && t.ApplicationUser.ShowTemplates)
                             select t;
+            // add author condition
+            if (!string.IsNullOrEmpty(selectedAuthor))
+                templates = templates.Where(t => t.ApplicationUser.Author == selectedAuthor);
             // add language condition
-            if (!string.IsNullOrEmpty(language))
-                templates = templates.Where(t => t.Language == language);
+            if (!string.IsNullOrEmpty(selectedLanguage))
+                templates = templates.Where(t => t.Language == selectedLanguage);
             // add category condition
-            if (categoryId != null)
-                templates = templates.Where(t => t.MvvmTemplateCategoryId == categoryId);
+            if (selectedCategoryId != null)
+                templates = templates.Where(t => t.MvvmTemplateCategoryId == selectedCategoryId);
             // add search text condition
             if (!string.IsNullOrWhiteSpace(search))
                 templates = templates.Where(
@@ -91,13 +128,15 @@ namespace MvvmTools.Web.Controllers
             });
 
             // Generate model.
-            var model = new TemplateIndexModel(
+            var model = new TemplateIndexViewModel(
+                user.Author,
+                user.ShowTemplates,
                 await query.ToListAsync(),
                 await db.Users.Where(u => u.ShowTemplates && u.MvvmTemplates.Any(t => t.Enabled)).ToListAsync(),
                 author,
-                categoryId.GetValueOrDefault(),
+                selectedCategoryId.GetValueOrDefault(),
                 await db.MvvmTemplateCategories.ToListAsync(),
-                string.IsNullOrWhiteSpace(language) ? null : language,
+                string.IsNullOrWhiteSpace(selectedLanguage) ? null : selectedLanguage,
                 string.IsNullOrWhiteSpace(search) ? null : search);
 
             return View(model);
@@ -149,23 +188,55 @@ namespace MvvmTools.Web.Controllers
             var mvvmTemplate = await db.MvvmTemplates.FindAsync(id);
             if (mvvmTemplate == null)
                 return HttpNotFound();
-            return View(mvvmTemplate);
+
+            var model = new TemplateEditViewModel(mvvmTemplate, db.MvvmTemplateCategories, mvvmTemplate.MvvmTemplateCategoryId, mvvmTemplate.Language);
+
+            return View(model);
         }
 
         // POST: MvvmTemplates/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit([Bind(Include = "Id,Name,Language,Category,Tags,ViewModel,View")] MvvmTemplate mvvmTemplate)
+        public async Task<ActionResult> Edit(
+            int? id, 
+            [Bind(Prefix = "Template.Enabled")]bool? enabled,
+            [Bind(Prefix = "Template.Name")]string name, 
+            string selectedLanguage, int? selectedCategoryId,
+            [Bind(Prefix = "Template.Tags")]string tags,
+            [Bind(Prefix = "Template.ViewModel")]string viewmodel,
+            [Bind(Prefix = "Template.View")]string view)
         {
-            if (ModelState.IsValid)
+            if (id == null)
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            var id2 = id.Value;
+            var mvvmTemplate = db.MvvmTemplates.FirstOrDefault(t => t.Id == id2);
+            if (mvvmTemplate == null)
+                return new HttpNotFoundResult();
+            if (!string.Equals(User.Identity.GetUserId(), mvvmTemplate.ApplicationUserId))
+                return new HttpUnauthorizedResult();
+
+            mvvmTemplate.Enabled = enabled.GetValueOrDefault();
+            mvvmTemplate.Language = selectedLanguage;
+            mvvmTemplate.MvvmTemplateCategoryId = selectedCategoryId.GetValueOrDefault();
+            mvvmTemplate.Name = name;
+            mvvmTemplate.Tags = tags;
+            mvvmTemplate.View = view;
+            mvvmTemplate.ViewModel = viewmodel;
+
+            try
             {
                 db.Entry(mvvmTemplate).State = EntityState.Modified;
                 await db.SaveChangesAsync();
                 return RedirectToAction("Index");
             }
-            return View(mvvmTemplate);
+            catch (Exception)
+            {
+                var model = new TemplateEditViewModel(mvvmTemplate, db.MvvmTemplateCategories, mvvmTemplate.MvvmTemplateCategoryId, mvvmTemplate.Language);
+                return View(model);
+            }
         }
 
         // GET: MvvmTemplates/Delete/5

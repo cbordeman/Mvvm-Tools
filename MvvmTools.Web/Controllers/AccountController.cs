@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Globalization;
+using System.Data.Entity;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -71,6 +70,23 @@ namespace MvvmTools.Web.Controllers
             if (!ModelState.IsValid)
             {
                 return View(model);
+            }
+
+            // Require the user to have a confirmed email before they can log on.
+            var user = await UserManager.FindByNameAsync(model.UserName);
+            if (user != null)
+            {
+                if (!await UserManager.IsEmailConfirmedAsync(user.Id))
+                {
+                    string callbackUrl = await SendEmailConfirmationTokenAsync(user.Id, "Confirm your account-Resend");
+
+                    // Uncomment to debug locally  
+                    //ViewBag.Link = callbackUrl;
+
+                    ViewBag.errorMessage = "You must have a confirmed email to log on.  "
+                              + "The confirmation token has been resent to your email account.";
+                    return View("Error");
+                }
             }
 
             // This doesn't count login failures towards account lockout
@@ -151,19 +167,22 @@ namespace MvvmTools.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = model.UserName, Email = model.Email };
+                var user = new ApplicationUser { UserName = model.UserName, Email = model.Email, Author = model.Author };
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
-                    
-                    // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
-                    // Send an email with this link
-                    // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
-                    // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
-                    // await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
+                    //await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
 
-                    return RedirectToAction("Index", "Home");
+                    string callbackUrl = await SendEmailConfirmationTokenAsync(user.Id, "Confirm your account");
+                    
+                    // Uncomment to debug locally 
+                    //TempData["ViewBagLink"] = callbackUrl;
+
+                    ViewBag.Message = "Check your email and confirm your account, you must be confirmed "
+                                    + "before you can log in.";
+
+                    return View("Info");
+                    //return RedirectToAction("Index", "Home");
                 }
                 AddErrors(result);
             }
@@ -211,10 +230,10 @@ namespace MvvmTools.Web.Controllers
 
                 // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
                 // Send an email with this link
-                // string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-                // var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);		
-                // await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>");
-                // return RedirectToAction("ForgotPasswordConfirmation", "Account");
+                var code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
+                var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code }, protocol: Request.Url?.Scheme);
+                await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>");
+                return RedirectToAction("ForgotPasswordConfirmation", "Account");
             }
 
             // If we got this far, something failed, redisplay form
@@ -424,6 +443,22 @@ namespace MvvmTools.Web.Controllers
         }
 
         #region Helpers
+
+        private async Task<string> SendEmailConfirmationTokenAsync(string userID, string subject)
+        {
+            // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
+
+            // Send an email with this link
+
+            string code = await UserManager.GenerateEmailConfirmationTokenAsync(userID);
+            var callbackUrl = Url.Action("ConfirmEmail", "Account",
+               new { userId = userID, code = code }, protocol: Request.Url.Scheme);
+            await UserManager.SendEmailAsync(userID, subject,
+               "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
+
+            return callbackUrl;
+        }
+
         // Used for XSRF protection when adding external logins
         private const string XsrfKey = "XsrfId";
 
@@ -481,5 +516,33 @@ namespace MvvmTools.Web.Controllers
             }
         }
         #endregion
+
+        #region Remote Validators
+
+        public async Task<bool> UserNameAvailable(string username)
+        {
+            var um = this.UserManager;
+            var foundUser = await um.Users.FirstOrDefaultAsync(u => string.Equals(username, u.UserName, StringComparison.OrdinalIgnoreCase));
+
+            return foundUser != null;
+        }
+
+        public async Task<bool> EmailAvailable(string email)
+        {
+            var um = this.UserManager;
+            var foundUser = await um.Users.FirstOrDefaultAsync(u => string.Equals(email, u.Email, StringComparison.OrdinalIgnoreCase));
+
+            return foundUser != null;
+        }
+
+        public async Task<bool> AuthorAvailable(string author)
+        {
+            var um = this.UserManager;
+            var foundUser = await um.Users.FirstOrDefaultAsync(u => string.Equals(author, u.Author, StringComparison.OrdinalIgnoreCase));
+
+            return foundUser != null;
+        }
+
+        #endregion Remote Validators
     }
 }

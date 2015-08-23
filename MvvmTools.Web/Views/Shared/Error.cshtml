@@ -1,0 +1,19 @@
+﻿@model HandleErrorInfo
+
+@{
+    ViewBag.Title = "Error";
+}
+
+<div class="pageheader">
+    <h1 class="text-danger">@ViewBag.Title</h1>
+    @{
+        if (string.IsNullOrEmpty(ViewBag.errorMessage))
+        {
+            <h2 class="text-danger">An error occurred while processing your request.</h2>
+        }
+        else
+        {
+            <h2 class="text-danger">@ViewBag.errorMessage</h2>
+        }
+    }
+</div>

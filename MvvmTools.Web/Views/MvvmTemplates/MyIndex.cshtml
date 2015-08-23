@@ -1,4 +1,6 @@
-﻿@model MvvmTools.Web.Models.TemplateIndexModel
+﻿@using Microsoft.AspNet.Identity
+@using MvvmTools.Web.Extensions
+@model MvvmTools.Web.Models.TemplateIndexViewModel
 
 @{
     ViewBag.Title = "My Templates";
@@ -18,25 +20,47 @@
     </div>
 </div>
 <section id="main-content">
-    @*<p>@Html.ActionLink("Create New", "Create", null, new {@class = "btn btn-primary"})</p>*@
     <div class="row">
         <div class="col-md-12 col-lg-12">
             <div class="panel panel-default">
                 <div class="panel-body ng-binding">
-                    @using (Html.BeginForm("Index", "MvvmTemplates", FormMethod.Post, new { @class = "form-inline" }))
+                    <h2>Configuration</h2>
+                    <hr />
+                    @using (Html.BeginForm("MyIndex", "MvvmTemplates", FormMethod.Post, new { @class = "form-horizontal" }))
                     {
                         <fieldset>
                             <ul class="ul-no-list-style">
                                 <li class='panel'>
                                     @Html.Label("author", "Author:")
+                                    @Html.TextBox("author", @Model.Author, new { @class = "text" })
+                                </li>
+                                <li class='panel'>
+                                    @Html.CheckBoxAndLabelFor(m => m.ShowTemplates)
+                                </li>
+                                <li class='panel'>
+                                    <input type="submit" class="btn btn-default btn-sm" value="Save">
+                                </li>
+                            </ul>
+                        </fieldset>
+                    }
+                    <hr />
+                    <h2>Templates</h2>
+                    <hr />
+                    <p>@Html.ActionLink("Create New Template", "Create", null, new { @class = "btn btn-primary btn-sm" })</p>
+                    @using (Html.BeginForm("MyIndex", "MvvmTemplates", FormMethod.Post, new { @class = "form-inline" }))
+                    {
+                        <fieldset>
+                            <ul class="ul-no-list-style">
+                                <li class='panel'>
+                                    @Html.Label("selectedAuthor", "Author:")
                                     @Html.DropDownList("author", @Model.Authors)
                                 </li>
                                 <li class='panel'>
-                                    @Html.Label("language", "Language:")
+                                    @Html.Label("selectedLanguage", "Language:")
                                     @Html.DropDownList("language", @Model.Languages)
                                 </li>
                                 <li class='panel'>
-                                    @Html.Label("category", "Category:")
+                                    @Html.Label("selectedCategory", "Category:")
                                     @Html.DropDownList("category", @Model.Categories)
                                 </li>
                                 <li class='panel'>
@@ -46,10 +70,6 @@
                                     <input type="submit" class="btn btn-default btn-sm" value="Apply">
                                 </li>
                             </ul>
-
-                            @*<input type="text" class="search" placeholder="Search..."
-                                id="search">*@
-
                         </fieldset>
                     }
                     <table class="table table-striped table-hover">
@@ -87,10 +107,15 @@
                                         @Html.DisplayFor(modelItem => item.Category)
                                     </td>
                                     <td>
-                                        @Html.ActionLink("Details", "Details", null, new { id = item.Id, @class = "btn btn-default btn-xs" })
-                                        @*@Html.ActionLink("Edit", "Edit", null, new {id = item.Id}) |
-                                            @Html.ActionLink("Details", "Details", null, new {id = item.Id}) |
-                                            @Html.ActionLink("Delete", "Delete", null, new {id = item.Id})*@
+                                        @if (Model.Author == item.Author)
+                                        {
+                                            @Html.ActionLink("Edit", "Edit", new {id = item.Id}, new {@class = "btn btn-default btn-xs", style = "margin-right:5px;" })
+                                            @Html.ActionLink("Delete", "Delete", new {id = item.Id}, new {@class = "btn btn-default btn-xs" })
+                                        }
+                                        else
+                                        {
+                                            @Html.ActionLink("Details", "Details", new { id = item.Id }, new { @class = "btn btn-default btn-xs" })
+                                        }
                                     </td>
                                 </tr>
                             }

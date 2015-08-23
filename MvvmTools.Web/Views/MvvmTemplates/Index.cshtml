@@ -1,7 +1,7 @@
-﻿@model MvvmTools.Web.Models.TemplateIndexModel
+﻿@model MvvmTools.Web.Models.TemplateIndexViewModel
 
 @{
-    ViewBag.Title = "All Templates";    
+    ViewBag.Title = "All Templates";
 }
 
 <div class="pageheader">
@@ -28,15 +28,15 @@
                         <fieldset>
                             <ul class="ul-no-list-style">
                                 <li class='panel'>
-                                    @Html.Label("author", "Author:")
+                                    @Html.Label("selectedAuthor", "Author:")
                                     @Html.DropDownList("author", @Model.Authors)
                                 </li>
                                 <li class='panel'>
-                                    @Html.Label("language", "Language:")
+                                    @Html.Label("selectedLanguage", "Language:")
                                     @Html.DropDownList("language", @Model.Languages)
                                 </li>
                                 <li class='panel'>
-                                    @Html.Label("category", "Category:")
+                                    @Html.Label("selectedCategory", "Category:")
                                     @Html.DropDownList("category", @Model.Categories)
                                 </li>
                                 <li class='panel'>
@@ -87,10 +87,15 @@
                                     @Html.DisplayFor(modelItem => item.Category)
                                 </td>
                                 <td>
-                                    @Html.ActionLink("Details", "Details", null, new {id = item.Id, @class = "btn btn-default btn-xs" })
-                                    @*@Html.ActionLink("Edit", "Edit", null, new {id = item.Id}) |
-                                    @Html.ActionLink("Details", "Details", null, new {id = item.Id}) |
-                                    @Html.ActionLink("Delete", "Delete", null, new {id = item.Id})*@
+                                    @if (Model.Author == item.Author)
+                                    {
+                                        @Html.ActionLink("Edit", "Edit", new { id = item.Id }, new { @class = "btn btn-default btn-xs", style = "margin-right:5px;" })
+                                        @Html.ActionLink("Delete", "Delete", new { id = item.Id }, new { @class = "btn btn-default btn-xs" })
+                                    }
+                                    else
+                                    {
+                                        @Html.ActionLink("Details", "Details", new { id = item.Id }, new { @class = "btn btn-default btn-xs" })
+                                    }
                                 </td>
                             </tr>
                         }

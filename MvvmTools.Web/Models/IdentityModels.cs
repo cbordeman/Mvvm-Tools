@@ -31,6 +31,7 @@ namespace MvvmTools.Web.Models
         /// <summary>
         /// Set to false to disable all this user's templates.
         /// </summary>
+        [Display(Prompt = "Share Templates (uncheck to hide your templates from other users)")]
         public bool ShowTemplates { get; set; }
         
         /// <summary>

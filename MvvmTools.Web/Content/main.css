@@ -4158,3 +4158,6 @@ div.config h4 a:hover {
     padding-right: 5px;
 }
 
+.label {
+    white-space:nowrap;
+}
