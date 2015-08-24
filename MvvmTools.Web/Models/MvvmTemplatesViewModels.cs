@@ -1,11 +1,49 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Web.Mvc;
 using MvvmTools.Shared.Models;
 
 namespace MvvmTools.Web.Models
 {
+    // We derive from one of our code first models to make mapping easier.
+    // Because of that, code first and migrations see it as another entity 
+    // class, so we apply [NotMapped] so they will not try to add it to 
+    // the database.
+    [NotMapped]
+    public class TemplateCreateViewModel : MvvmTemplate
+    {
+        public List<SelectListItem> Categories { get; set; }
+        public List<SelectListItem> Languages { get; set; }
+
+        public TemplateCreateViewModel(IEnumerable<MvvmTemplateCategory> categories)
+        {
+            Enabled = true;
+            MvvmTemplateCategoryId = 0;
+            Language = "";
+
+            // Categories
+            Categories = new List<SelectListItem>
+            {
+                new SelectListItem {Text = "", Value = "", Selected = true }
+            };
+            var cquery =
+                from cg in categories
+                orderby cg.Name.ToUpper()
+                select new SelectListItem { Text = cg.Name, Value = cg.Id.ToString() };
+            Categories.AddRange(cquery);
+
+            // Languages
+            Languages = new List<SelectListItem>
+            {
+                new SelectListItem {Text = "", Value = "", Selected = true },
+                new SelectListItem {Text = "C#", Value = "C#"},
+                new SelectListItem {Text = "VB", Value = "VB"}
+            };
+        }
+    }
+
     public class TemplateEditViewModel
     {
         public MvvmTemplate Template { get; set; }

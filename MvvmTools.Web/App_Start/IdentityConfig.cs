@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Exceptions;
 using JetBrains.Annotations;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
@@ -53,6 +54,11 @@ namespace MvvmTools.Web
             try
             {
                 await transportWeb.DeliverAsync(myMessage);
+            }
+            catch (InvalidApiRequestException ex)
+            {
+                Trace.TraceError($"Failed to send the email message to {message.Destination}.  Error: {ex.Message}: {ex.Errors?[0]}");
+                await Task.FromResult(0);
             }
             catch (Exception ex)
             {

@@ -78,7 +78,7 @@ namespace MvvmTools.Web.Controllers
             {
                 if (!await UserManager.IsEmailConfirmedAsync(user.Id))
                 {
-                    string callbackUrl = await SendEmailConfirmationTokenAsync(user.Id, "Confirm your account-Resend");
+                    var callbackUrl = await SendEmailConfirmationTokenAsync(user.Id, "Confirm your account-Resend");
 
                     // Uncomment to debug locally  
                     //ViewBag.Link = callbackUrl;
@@ -173,7 +173,7 @@ namespace MvvmTools.Web.Controllers
                 {
                     //await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
 
-                    string callbackUrl = await SendEmailConfirmationTokenAsync(user.Id, "Confirm your account");
+                    var callbackUrl = await SendEmailConfirmationTokenAsync(user.Id, "Confirm your account");
                     
                     // Uncomment to debug locally 
                     //TempData["ViewBagLink"] = callbackUrl;
@@ -411,7 +411,7 @@ namespace MvvmTools.Web.Controllers
         public ActionResult LogOff()
         {
             AuthenticationManager.SignOut();
-            return RedirectToAction("Index", "Home");
+            return Json(true);
         }
 
         //
@@ -450,7 +450,7 @@ namespace MvvmTools.Web.Controllers
 
             // Send an email with this link
 
-            string code = await UserManager.GenerateEmailConfirmationTokenAsync(userID);
+            var code = await UserManager.GenerateEmailConfirmationTokenAsync(userID);
             var callbackUrl = Url.Action("ConfirmEmail", "Account",
                new { userId = userID, code = code }, protocol: Request.Url.Scheme);
             await UserManager.SendEmailAsync(userID, subject,

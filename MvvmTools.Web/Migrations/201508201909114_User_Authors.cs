@@ -1,8 +1,9 @@
+using System.Data.Entity.Migrations;
+
+// ReSharper disable InconsistentNaming
+
 namespace MvvmTools.Web.Migrations
 {
-    using System;
-    using System.Data.Entity.Migrations;
-    
     public partial class User_Authors : DbMigration
     {
         public override void Up()

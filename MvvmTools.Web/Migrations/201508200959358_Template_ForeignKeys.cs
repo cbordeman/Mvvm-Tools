@@ -1,8 +1,9 @@
+// ReSharper disable InconsistentNaming
+
+using System.Data.Entity.Migrations;
+
 namespace MvvmTools.Web.Migrations
 {
-    using System;
-    using System.Data.Entity.Migrations;
-    
     public partial class Template_ForeignKeys : DbMigration
     {
         public override void Up()

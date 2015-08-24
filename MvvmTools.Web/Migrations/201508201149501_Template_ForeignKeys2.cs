@@ -1,3 +1,5 @@
+// ReSharper disable InconsistentNaming
+
 namespace MvvmTools.Web.Migrations
 {
     using System;

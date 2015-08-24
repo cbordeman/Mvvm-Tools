@@ -11,11 +11,14 @@
                         <i class="fa fa-bars"></i>
                     </button>
                 </li>
-                <li class="toggle-profile hidden-xs">
-                    <button type="button" class="btn btn-default" id="toggle-profile">
-                        <i class="icon-user"></i>
-                    </button>
-                </li>
+                @if (@User.Identity.IsAuthenticated)
+                {
+                    <li class="toggle-profile hidden-xs">
+                        <button type="button" class="btn btn-default" id="toggle-profile">
+                            <i class="icon-user"></i>
+                        </button>
+                    </li>
+                }
             </ul>
             @*<ul class="nav navbar-nav navbar-right">
                 <li class="toggle-navigation toggle-right">

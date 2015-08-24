@@ -41,18 +41,21 @@ namespace MvvmTools.Web.Models
         [Required]
         [StringLength(15)]
         [Index("UK_ApplicationUserId_Name_Language", 2, IsUnique = true)]
+        [Display(Name = "Language")]
         public string Language { get; set; }
 
         /// <summary>
         /// A single value.
         /// </summary>
         [Required]
+        [Display(Name = "Category")]
         public int MvvmTemplateCategoryId { get; set; }
         public virtual MvvmTemplateCategory MvvmTemplateCategory { get; set; }
 
         /// <summary>
         /// A comma separated list for searching.
         /// </summary>
+        [Required(AllowEmptyStrings = false)]
         public string Tags { get; set; }
 
         /// <summary>

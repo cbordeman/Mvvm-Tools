@@ -207,6 +207,14 @@
     <Compile Include="Migrations\201508201909114_User_Authors.Designer.cs">
       <DependentUpon>201508201909114_User_Authors.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201508232122472_Something_Changed.cs" />
+    <Compile Include="Migrations\201508232122472_Something_Changed.Designer.cs">
+      <DependentUpon>201508232122472_Something_Changed.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201508241911249_Confirm_Admin_Email.cs" />
+    <Compile Include="Migrations\201508241911249_Confirm_Admin_Email.Designer.cs">
+      <DependentUpon>201508241911249_Confirm_Admin_Email.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\IdentityModels.cs" />
@@ -299,7 +307,6 @@
     <Content Include="Views\MvvmTemplates\Details.cshtml" />
     <Content Include="Views\MvvmTemplates\Edit.cshtml" />
     <Content Include="Views\MvvmTemplates\Index.cshtml" />
-    <Content Include="Views\MvvmTemplates\MyIndex.cshtml" />
     <Content Include="Views\Account\Info.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
   </ItemGroup>
@@ -337,6 +344,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201508201909114_User_Authors.resx">
       <DependentUpon>201508201909114_User_Authors.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201508232122472_Something_Changed.resx">
+      <DependentUpon>201508232122472_Something_Changed.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201508241911249_Confirm_Admin_Email.resx">
+      <DependentUpon>201508241911249_Confirm_Admin_Email.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

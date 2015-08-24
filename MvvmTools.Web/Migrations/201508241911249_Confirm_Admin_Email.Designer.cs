@@ -2,17 +2,18 @@
 namespace MvvmTools.Web.Migrations
 {
     using System.CodeDom.Compiler;
+    using System.Data.Entity.Migrations;
     using System.Data.Entity.Migrations.Infrastructure;
     using System.Resources;
-
+    
     [GeneratedCode("EntityFramework.Migrations", "6.1.3-40302")]
-    public sealed partial class User_Authors : IMigrationMetadata
+    public sealed partial class Confirm_Admin_Email : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(User_Authors));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(Confirm_Admin_Email));
         
         string IMigrationMetadata.Id
         {
-            get { return "201508201909114_User_Authors"; }
+            get { return "201508241911249_Confirm_Admin_Email"; }
         }
         
         string IMigrationMetadata.Source
