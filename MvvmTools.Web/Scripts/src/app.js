@@ -4,7 +4,7 @@ var app = function() {
         navToggleRight();
         navToggleLeft();
         navToggleSub();
-        profileToggle();
+        //profileToggle();
 
 
     });
@@ -36,12 +36,13 @@ var app = function() {
 
     };
 
-    var profileToggle = function() {
-        $('#toggle-profile').click(function() {
-            $('.sidebar-profile').slideToggle();
-        });
-    };
+    //var profileToggle = function() {
+    //    $('#toggle-profile').click(function() {
+    //        $('.sidebar-profile').slideToggle();
+    //    });
+    //};
 
+    
 
     //return functions
     return {

@@ -19,6 +19,7 @@ namespace MvvmTools.Web.Models
 
         public TemplateCreateViewModel(IEnumerable<MvvmTemplateCategory> categories)
         {
+            // Initial values.
             Enabled = true;
             MvvmTemplateCategoryId = 0;
             Language = "";
@@ -44,33 +45,35 @@ namespace MvvmTools.Web.Models
         }
     }
 
-    public class TemplateEditViewModel
+    [NotMapped]
+    public class TemplateEditViewModel : MvvmTemplate
     {
-        public MvvmTemplate Template { get; set; }
-        public int SelectedCategoryId { get; set; }
-        public string SelectedLanguage { get; set; }
         public List<SelectListItem> Categories { get; set; }
         public List<SelectListItem> Languages { get; set; }
 
-        public TemplateEditViewModel(MvvmTemplate template, IEnumerable<MvvmTemplateCategory> categories, int selectedCategoryId, string selectedLanguage)
+        public TemplateEditViewModel(MvvmTemplate template, IEnumerable<MvvmTemplateCategory> categories)
         {
-            Template = template;
-            SelectedCategoryId = selectedCategoryId;
-            SelectedLanguage = selectedLanguage;
-
+            Name = template.Name;
+            Enabled = template.Enabled;
+            Tags = template.Tags;
+            ViewModel = template.ViewModel;
+            View = template.View;
+            MvvmTemplateCategoryId = template.MvvmTemplateCategoryId;
+            Language = template.Language;
+            
             // Categories
             Categories = new List<SelectListItem>();
             var cquery =
                 from cg in categories
                 orderby cg.Name.ToUpper()
-                select new SelectListItem { Text = cg.Name, Value = cg.Id.ToString(), Selected = SelectedCategoryId == cg.Id };
+                select new SelectListItem { Text = cg.Name, Value = cg.Id.ToString(), Selected = MvvmTemplateCategoryId == cg.Id };
             Categories.AddRange(cquery);
 
             // Languages
             Languages = new List<SelectListItem>
             {
-                new SelectListItem {Text = "C#", Value = "C#", Selected = SelectedLanguage == "C#"},
-                new SelectListItem {Text = "VB", Value = "VB", Selected = SelectedLanguage == "VB"}
+                new SelectListItem {Text = "C#", Value = "C#", Selected = Language == "C#"},
+                new SelectListItem {Text = "VB", Value = "VB", Selected = Language == "VB"}
             };
         }
     }

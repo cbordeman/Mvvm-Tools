@@ -3,7 +3,7 @@
 @model MvvmTools.Web.Models.TemplateIndexViewModel
 
 @{
-    ViewBag.Title = "My Templates";
+    ViewBag.Title = "Templates";
 }
 
 <div class="pageheader">
@@ -14,7 +14,7 @@
     }
     else
     {
-        <p>These are the templates shared by the community. To add yours, @Html.ActionLink("log in", "LogIn", "Account").</p>
+        <p>These are the templates shared by the community. To add yours, please @Html.ActionLink("log in", "LogIn", "Account").</p>
     }
     <div class="breadcrumb-wrapper hidden-xs">
         <span class="label">You are here:</span>
@@ -119,12 +119,12 @@
                                 <td>
                                     @if (@User.Identity.IsAuthenticated && Model.Author == item.Author)
                                     {
-                                        @Html.ActionLink("Edit", "Edit", new {id = item.Id, returnUrl = @Request.Url.PathAndQuery}, new {@class = "btn btn-default btn-xs", style = "margin-right:5px;"})
-                                        @Html.ActionLink("Delete", "Delete", new {id = item.Id, returnUrl = @Request.Url.PathAndQuery}, new {@class = "btn btn-default btn-xs"})
+                                        @Html.ActionLink("Edit", "Edit", new {id = item.Id }, new {@class = "btn btn-default btn-xs", style = "margin-right:5px;"})
+                                        @Html.ActionLink("Delete", "Delete", new {id = item.Id }, new {@class = "btn btn-default btn-xs"})
                                     }
                                     else
                                     {
-                                        @Html.ActionLink("Details", "Details", new {id = item.Id, returnUrl = @Request.Url.PathAndQuery}, new {@class = "btn btn-default btn-xs"})
+                                        @Html.ActionLink("Details", "Details", new {id = item.Id }, new {@class = "btn btn-default btn-xs"})
                                     }
                                 </td>
                             </tr>

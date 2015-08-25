@@ -1,0 +1,37 @@
+﻿@model MvvmTools.Web.Models.MvvmTemplateCategory
+
+@{
+    ViewBag.Title = "Edit";
+}
+
+<div class="pageheader">
+    <h1>@ViewBag.Title</h1>
+</div>
+
+<section id="main-content">
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    
+    <div class="form-horizontal">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(model => model.Id)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Save" class="btn btn-default" style="margin-right: 5px;"/>
+                <button class="btn" onclick="window.history.back();">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+</section>
+

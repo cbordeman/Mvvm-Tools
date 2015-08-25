@@ -14,67 +14,8 @@ namespace MvvmTools.Web.Controllers
     public class MvvmTemplatesController : Controller
     {
         private readonly ApplicationDbContext db = new ApplicationDbContext();
-
-        //// GET: MvvmTemplates
-        //[HandleError]
-        //public async Task<ActionResult> Index(string selectedAuthor, string selectedLanguage, int? selectedCategoryId, string search)
-        //{
-        //    ApplicationUser user = null;
-        //    if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
-        //        user = db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name);
-
-        //    search = search?.Trim();
-
-        //    // base query
-        //    var templates = from t in db.MvvmTemplates
-        //                    where (t.Enabled && t.ApplicationUser.ShowTemplates)
-        //                    select t;
-        //    if (AdminUserIsLoggedIn)
-        //        templates = from t in db.MvvmTemplates
-        //                    select t;
-        //    // add author condition
-        //    if (!string.IsNullOrEmpty(selectedAuthor))
-        //        templates = templates.Where(t => t.ApplicationUser.Author == selectedAuthor);
-        //    // add language condition
-        //    if (!string.IsNullOrEmpty(selectedLanguage))
-        //        templates = templates.Where(t => t.Language == selectedLanguage);
-        //    // add category condition
-        //    if (selectedCategoryId != null)
-        //        templates = templates.Where(t => t.MvvmTemplateCategoryId == selectedCategoryId);
-        //    // add search text condition
-        //    if (!string.IsNullOrWhiteSpace(search))
-        //        templates = templates.Where(
-        //                t => t.Name.ToLower().Contains(search) ||
-        //                     t.Tags.ToLower().Contains(search) ||
-        //                     t.View.ToLower().Contains(search) ||
-        //                     t.ViewModel.ToLower().Contains(search));
-        //    // Leave off view and view model text fields since they won't be needed on the client.
-        //    var query = templates.Select(t => new MvvmTemplateDTO
-        //    {
-        //        Author = t.ApplicationUser.Author,
-        //        Name = t.Name,
-        //        Id = t.Id,
-        //        Category = db.MvvmTemplateCategories.FirstOrDefault(c => t.MvvmTemplateCategoryId == c.Id).Name,
-        //        Language = t.Language,
-        //    });
-            
-        //    // Generate model.
-        //    var model = new TemplateIndexViewModel(
-        //        user?.Author,
-        //        false,
-        //        await query.ToListAsync(),
-        //        await db.Users.Where(u => u.ShowTemplates && u.MvvmTemplates.Any(t => t.Enabled)).ToListAsync(),
-        //        selectedAuthor,
-        //        selectedCategoryId.GetValueOrDefault(),
-        //        await db.MvvmTemplateCategories.ToListAsync(),
-        //        string.IsNullOrWhiteSpace(selectedLanguage) ? null : selectedLanguage,
-        //        string.IsNullOrWhiteSpace(search) ? null : search);
-            
-        //    return View(model);
-        //}
-
+        
         // GET or POST: MvvmTemplates
-        [Authorize]
         [AcceptVerbs(HttpVerbs.Get | HttpVerbs.Post)]
         public async Task<ActionResult> Index(string author, bool? showTemplates, string selectedAuthor, string selectedLanguage, int? selectedCategoryId, string search)
         {
@@ -106,19 +47,20 @@ namespace MvvmTools.Web.Controllers
             search = search?.Trim();
 
             // base query
-            var templates = from t in db.MvvmTemplates
-                            select t;
+            IQueryable<MvvmTemplate> templates;
             if (user == null)
             {
-                templates = from t in templates
-                            where t.ApplicationUserId == user.Id ||
-                                  (t.Enabled && t.ApplicationUser.ShowTemplates)
+                templates = from t in db.MvvmTemplates
+                            where t.Enabled && t.ApplicationUser.ShowTemplates
                             select t;
             }
             else
             {
-                templates = from t in templates
-                            where t.Enabled && t.ApplicationUser.ShowTemplates
+                // If logged in, also show all templates for the current user no matter 
+                // the user's ShowTemplates flag or Enabled flags on the templates.
+                templates = from t in db.MvvmTemplates
+                            where t.ApplicationUserId == user.Id ||
+                                  (t.Enabled && t.ApplicationUser.ShowTemplates)
                             select t;
             }
             // add author condition
@@ -149,8 +91,8 @@ namespace MvvmTools.Web.Controllers
 
             // Generate model.
             var model = new TemplateIndexViewModel(
-                user.Author,
-                user.ShowTemplates,
+                user?.Author,
+                user != null && user.ShowTemplates,
                 await query.ToListAsync(),
                 await db.Users.Where(u => u.ShowTemplates && u.MvvmTemplates.Any(t => t.Enabled)).ToListAsync(),
                 author,
@@ -223,7 +165,7 @@ namespace MvvmTools.Web.Controllers
             if (mvvmTemplate == null)
                 return HttpNotFound();
 
-            var model = new TemplateEditViewModel(mvvmTemplate, db.MvvmTemplateCategories, mvvmTemplate.MvvmTemplateCategoryId, mvvmTemplate.Language);
+            var model = new TemplateEditViewModel(mvvmTemplate, db.MvvmTemplateCategories);
 
             return View(model);
         }
@@ -241,45 +183,27 @@ namespace MvvmTools.Web.Controllers
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(
-            int? id, 
-            [Bind(Prefix = "Template.Enabled")]bool? enabled,
-            [Bind(Prefix = "Template.Name")]string name, 
-            string selectedLanguage, int? selectedCategoryId,
-            [Bind(Prefix = "Template.Tags")]string tags,
-            [Bind(Prefix = "Template.ViewModel")]string viewmodel,
-            [Bind(Prefix = "Template.View")]string view)
+        public async Task<ActionResult> Edit([Bind(Include = "Id,Enabled,Name,MvvmTemplateCategoryId,Language,Tags,ViewModel,View")] MvvmTemplate mvvmTemplate)
         {
-            if (id == null)
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            var id2 = id.Value;
-            var mvvmTemplate = db.MvvmTemplates.FirstOrDefault(t => t.Id == id2);
-            if (mvvmTemplate == null)
-                return new HttpNotFoundResult();
-            if (!AuthorizeTemplateAccess(mvvmTemplate))
+            // Have to retrieve and reassign the ApplicationUserId since it wasn't given
+            // to the client (a security risk).  Be sure to use AsNoTracking() so EF doesn't
+            // think we're attaching a dupe on SaveChanges().
+            var t = db.MvvmTemplates.AsNoTracking().First(template => template.Id == mvvmTemplate.Id);
+            mvvmTemplate.ApplicationUserId = t.ApplicationUserId;
+
+            if (!AuthorizeTemplateAccess(t))
                 return new HttpUnauthorizedResult();
-
-            mvvmTemplate.Enabled = enabled.GetValueOrDefault();
-            mvvmTemplate.Language = selectedLanguage;
-            mvvmTemplate.MvvmTemplateCategoryId = selectedCategoryId.GetValueOrDefault();
-            mvvmTemplate.Name = name;
-            mvvmTemplate.Tags = tags;
-            mvvmTemplate.View = view;
-            mvvmTemplate.ViewModel = viewmodel;
-
-            try
+            
+            if (ModelState.IsValid)
             {
                 db.Entry(mvvmTemplate).State = EntityState.Modified;
                 await db.SaveChangesAsync();
-                return new RedirectResult(HttpContext.Request.Params["returnUrl"]);
+                return RedirectToAction("Index");
             }
-            catch (Exception)
-            {
-                var model = new TemplateEditViewModel(mvvmTemplate, db.MvvmTemplateCategories, mvvmTemplate.MvvmTemplateCategoryId, mvvmTemplate.Language);
-                return View(model);
-            }
+            var model = new TemplateEditViewModel(mvvmTemplate, db.MvvmTemplateCategories);
+            return View(model);
         }
-
+        
         // GET: MvvmTemplates/Delete/5
         [Authorize]
         public async Task<ActionResult> Delete(int? id)
@@ -305,7 +229,8 @@ namespace MvvmTools.Web.Controllers
                 return new HttpUnauthorizedResult();
             db.MvvmTemplates.Remove(mvvmTemplate);
             await db.SaveChangesAsync();
-            return new RedirectResult(HttpContext.Request.Params["returnUrl"]);
+            //return new RedirectResult(HttpContext.Request.Params["returnUrl"]);
+            return RedirectToAction("Index");
         }
 
         protected override void Dispose(bool disposing)

@@ -16,7 +16,12 @@
     <!-- Page Wrapper-->
     <section id="main-wrapper" class="theme-default">
 
-    <!-- Top Header -->
+    @using (Html.BeginForm(null, null, FormMethod.Post, new {id = "__AjaxAntiForgeryForm"}))
+    {
+        @Html.AntiForgeryToken()
+    }
+
+        <!-- Top Header -->
     @Html.Partial("_Header")
 
     <!-- Left Sidebar Navigation -->
@@ -37,6 +42,27 @@
 
     <!-- Right Sidebar -->
     @Html.Partial("_RightSideBar")
+
+    @* This function works with the form above containing Html.AntiForgeryToken().  
+       It allows a POST without a form.  posttourl() can be used anywhere. *@
+    <script language="javascript">
+                function posttourl(url, gotourl) {
+                    var form = $('#__AjaxAntiForgeryForm');
+                    var token = $('input[name="__RequestVerificationToken"]', form).val();
+                    $.ajax({
+                        url: url,
+                        type: 'POST',
+                        data: {
+                            __RequestVerificationToken: token,
+                        },
+                        success: function (result) {
+                            if (result === true)
+                                location.href = gotourl;
+                        }
+                    });
+                    return false;
+                };
+    </script>
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
