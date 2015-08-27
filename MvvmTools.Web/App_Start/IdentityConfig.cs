@@ -36,7 +36,7 @@ namespace MvvmTools.Web
             myMessage.Text = message.Body;
             myMessage.Html = message.Body;
 
-            var credentials = new NetworkCredential(Secrets.SendGridMailAccount, Secrets.SendGridMailPassword);
+            var credentials = new NetworkCredential(Secrets.SendGridAccount, Secrets.SendGridPassword);
 
             // Send the email using Microsoft's SendGrid service.
             SendGrid.Web transportWeb;
@@ -48,7 +48,7 @@ namespace MvvmTools.Web
             catch (Exception ex)
             {
                 Trace.TraceError("Failed to create SendGrid Web transport with given credentials." + ex);
-                return;
+                throw;
             }
 
             try
@@ -58,12 +58,12 @@ namespace MvvmTools.Web
             catch (InvalidApiRequestException ex)
             {
                 Trace.TraceError($"Failed to send the email message to {message.Destination}.  Error: {ex.Message}: {ex.Errors?[0]}");
-                await Task.FromResult(0);
+                throw;
             }
             catch (Exception ex)
             {
                 Trace.TraceError($"Failed to send the email message to {message.Destination}.  Error: {ex}");
-                await Task.FromResult(0);
+                throw;
             }
         }
     }

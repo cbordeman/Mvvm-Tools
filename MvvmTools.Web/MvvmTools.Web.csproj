@@ -179,42 +179,15 @@
     <Compile Include="Controllers\ManageController.cs" />
     <Compile Include="Controllers\MvvmTemplateCategoriesController.cs" />
     <Compile Include="Controllers\MvvmTemplatesController.cs" />
+    <Compile Include="Controllers\ValidationController.cs" />
     <Compile Include="Extensions\HtmlHelperExtensions.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\HTMLHelper.cs" />
-    <Compile Include="Migrations\201508192042495_Author.cs" />
-    <Compile Include="Migrations\201508192042495_Author.Designer.cs">
-      <DependentUpon>201508192042495_Author.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201508192259207_Categories.cs" />
-    <Compile Include="Migrations\201508192259207_Categories.Designer.cs">
-      <DependentUpon>201508192259207_Categories.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201508192329036_MvvmTemplate_Enabled.cs" />
-    <Compile Include="Migrations\201508192329036_MvvmTemplate_Enabled.Designer.cs">
-      <DependentUpon>201508192329036_MvvmTemplate_Enabled.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201508200959358_Template_ForeignKeys.cs" />
-    <Compile Include="Migrations\201508200959358_Template_ForeignKeys.Designer.cs">
-      <DependentUpon>201508200959358_Template_ForeignKeys.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201508201149501_Template_ForeignKeys2.cs" />
-    <Compile Include="Migrations\201508201149501_Template_ForeignKeys2.Designer.cs">
-      <DependentUpon>201508201149501_Template_ForeignKeys2.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201508201909114_User_Authors.cs" />
-    <Compile Include="Migrations\201508201909114_User_Authors.Designer.cs">
-      <DependentUpon>201508201909114_User_Authors.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201508232122472_Something_Changed.cs" />
-    <Compile Include="Migrations\201508232122472_Something_Changed.Designer.cs">
-      <DependentUpon>201508232122472_Something_Changed.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201508241911249_Confirm_Admin_Email.cs" />
-    <Compile Include="Migrations\201508241911249_Confirm_Admin_Email.Designer.cs">
-      <DependentUpon>201508241911249_Confirm_Admin_Email.cs</DependentUpon>
+    <Compile Include="Migrations\201508271657194_Initial.cs" />
+    <Compile Include="Migrations\201508271657194_Initial.Designer.cs">
+      <DependentUpon>201508271657194_Initial.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
@@ -231,6 +204,7 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\font-awesome.min.css" />
     <Content Include="Content\main.css" />
+    <Content Include="Content\pace.css" />
     <Content Include="Content\simple-line-icons.css" />
     <Content Include="Content\Site.css" />
     <Content Include="favicon.ico" />
@@ -288,6 +262,7 @@
     <Content Include="CodeTemplates\MvcViewWithoutModel\Imports.include.t4" />
     <Content Include="CodeTemplates\ODataControllerWithActions\Controller.cs.t4" />
     <Content Include="CodeTemplates\ODataControllerWithContext\Controller.cs.t4" />
+    <None Include="Properties\PublishProfiles\MvvmTools.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\html5shiv.min.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
@@ -355,6 +330,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Views\Validation\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
@@ -370,29 +346,11 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201508192042495_Author.resx">
-      <DependentUpon>201508192042495_Author.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201508192259207_Categories.resx">
-      <DependentUpon>201508192259207_Categories.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201508192329036_MvvmTemplate_Enabled.resx">
-      <DependentUpon>201508192329036_MvvmTemplate_Enabled.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201508200959358_Template_ForeignKeys.resx">
-      <DependentUpon>201508200959358_Template_ForeignKeys.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201508201149501_Template_ForeignKeys2.resx">
-      <DependentUpon>201508201149501_Template_ForeignKeys2.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201508201909114_User_Authors.resx">
-      <DependentUpon>201508201909114_User_Authors.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201508232122472_Something_Changed.resx">
-      <DependentUpon>201508232122472_Something_Changed.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201508241911249_Confirm_Admin_Email.resx">
-      <DependentUpon>201508241911249_Confirm_Admin_Email.cs</DependentUpon>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\201508271657194_Initial.resx">
+      <DependentUpon>201508271657194_Initial.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

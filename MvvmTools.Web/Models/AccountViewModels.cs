@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Data;
 using System.Web.Mvc;
-using WebGrease;
 
 namespace MvvmTools.Web.Models
 {
@@ -21,7 +19,7 @@ namespace MvvmTools.Web.Models
     public class SendCodeViewModel
     {
         public string SelectedProvider { get; set; }
-        public ICollection<System.Web.Mvc.SelectListItem> Providers { get; set; }
+        public ICollection<SelectListItem> Providers { get; set; }
         public string ReturnUrl { get; set; }
         public bool RememberMe { get; set; }
     }
@@ -68,13 +66,13 @@ namespace MvvmTools.Web.Models
     {
         [Required]
         [Display(Name = "User Name")]
-        [Remote("UserNameAvailable", "Account", ErrorMessage = "That User Name already exists in our system.")]
+        [Remote("UserNameAvailable", "Validation", ErrorMessage = "That User Name already exists in our system.")]
         public string UserName { get; set; }
 
         [Required]
         [EmailAddress]
         [Display(Name = "Email")]
-        [Remote("EmailAvailable", "Account", ErrorMessage = "That Email already exists in our system.")]
+        [Remote("EmailAvailable", "Validation", ErrorMessage = "That Email already exists in our system.")]
         public string Email { get; set; }
 
         [Required]
@@ -89,8 +87,9 @@ namespace MvvmTools.Web.Models
         public string ConfirmPassword { get; set; }
 
         [Required]
-        [MaxLength(100)]
-        [Remote("AuthorAvailable", "Account", ErrorMessage = "That Author already exists in our system.")]
+        [DataType(DataType.Text)]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
+        [Remote("AuthorAvailable", "Validation", ErrorMessage = "That Author already exists in our system.")]
         public string Author { get; set; }
     }
 

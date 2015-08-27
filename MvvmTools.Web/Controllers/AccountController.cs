@@ -84,7 +84,7 @@ namespace MvvmTools.Web.Controllers
                     //ViewBag.Link = callbackUrl;
 
                     ViewBag.errorMessage = "You must have a confirmed email to log on.  "
-                              + "The confirmation token has been resent to your email account.";
+                              + "The confirmation link has been resent to your email account.";
                     return View("Error");
                 }
             }
@@ -178,8 +178,7 @@ namespace MvvmTools.Web.Controllers
                     // Uncomment to debug locally 
                     //TempData["ViewBagLink"] = callbackUrl;
 
-                    ViewBag.Message = "Check your email and confirm your account, you must be confirmed "
-                                    + "before you can log in.";
+                    ViewBag.Message = "Check your email and confirm your account.  You must be confirmed before you can log in.";
 
                     return View("Info");
                     //return RedirectToAction("Index", "Home");
@@ -516,33 +515,5 @@ namespace MvvmTools.Web.Controllers
             }
         }
         #endregion
-
-        #region Remote Validators
-
-        public async Task<bool> UserNameAvailable(string username)
-        {
-            var um = this.UserManager;
-            var foundUser = await um.Users.FirstOrDefaultAsync(u => string.Equals(username, u.UserName, StringComparison.OrdinalIgnoreCase));
-
-            return foundUser != null;
-        }
-
-        public async Task<bool> EmailAvailable(string email)
-        {
-            var um = this.UserManager;
-            var foundUser = await um.Users.FirstOrDefaultAsync(u => string.Equals(email, u.Email, StringComparison.OrdinalIgnoreCase));
-
-            return foundUser != null;
-        }
-
-        public async Task<bool> AuthorAvailable(string author)
-        {
-            var um = this.UserManager;
-            var foundUser = await um.Users.FirstOrDefaultAsync(u => string.Equals(author, u.Author, StringComparison.OrdinalIgnoreCase));
-
-            return foundUser != null;
-        }
-
-        #endregion Remote Validators
     }
 }

@@ -1,5 +1,5 @@
-﻿@using Microsoft.AspNet.Identity
-@using MvvmTools.Web.Extensions
+﻿@using MvvmTools.Web.Extensions
+
 @model MvvmTools.Web.Models.TemplateIndexViewModel
 
 @{
@@ -67,11 +67,11 @@
                                 </li>
                                 <li class='panel'>
                                     @Html.Label("selectedLanguage", "Language:")
-                                    @Html.DropDownList("language", @Model.Languages)
+                                    @Html.DropDownList("selectedLanguage", @Model.Languages)
                                 </li>
                                 <li class='panel'>
                                     @Html.Label("selectedCategory", "Category:")
-                                    @Html.DropDownList("category", @Model.Categories)
+                                    @Html.DropDownList("selectedCategoryId", @Model.Categories)
                                 </li>
                                 <li class='panel'>
                                     @Html.TextBox("search", @Model.Search, new {placeholder = "Search...", type = "text", @class = "search", css = "width=100px"})

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Data.Entity;
+﻿using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -115,9 +114,9 @@ namespace MvvmTools.Web.Controllers
             if (mvvmTemplate == null)
                 return HttpNotFound();
 
-            // Disable access to non-owners if the template is disabled or all the user's 
-            // templates are not shared.
-            if ((mvvmTemplate.ApplicationUser.ShowTemplates && mvvmTemplate.Enabled) ||
+            // Disable access to non-owners if the user's templates aren't shared or the template is disabled.
+            if (!mvvmTemplate.ApplicationUser.ShowTemplates || 
+                !mvvmTemplate.Enabled ||
                 !AuthorizeTemplateAccess(mvvmTemplate))
                 return new HttpUnauthorizedResult();
 

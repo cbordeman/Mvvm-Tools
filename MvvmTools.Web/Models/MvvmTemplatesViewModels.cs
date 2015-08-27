@@ -20,7 +20,9 @@ namespace MvvmTools.Web.Models
         public TemplateCreateViewModel(IEnumerable<MvvmTemplateCategory> categories)
         {
             // Initial values.
-            Enabled = true;
+
+            // User must turn on manually, that way unfinished templates aren't seen by the public.
+            Enabled = false;
             MvvmTemplateCategoryId = 0;
             Language = "";
 

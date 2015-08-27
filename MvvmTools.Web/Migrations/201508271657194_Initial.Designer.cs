@@ -7,13 +7,13 @@ namespace MvvmTools.Web.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.1.3-40302")]
-    public sealed partial class Something_Changed : IMigrationMetadata
+    public sealed partial class Initial : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(Something_Changed));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(Initial));
         
         string IMigrationMetadata.Id
         {
-            get { return "201508232122472_Something_Changed"; }
+            get { return "201508271657194_Initial"; }
         }
         
         string IMigrationMetadata.Source
