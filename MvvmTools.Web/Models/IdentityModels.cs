@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 
@@ -26,6 +27,7 @@ namespace MvvmTools.Web.Models
         [Required]
         [StringLength(100)]
         [Index(IsUnique = true)]
+        [Remote("AuthorAvailable", "Validation", ErrorMessage = "That {0} already exists.")]
         public string Author { get; set; }
 
         /// <summary>

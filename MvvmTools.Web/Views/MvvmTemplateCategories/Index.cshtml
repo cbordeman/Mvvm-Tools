@@ -1,11 +1,11 @@
 ﻿@model IEnumerable<MvvmTools.Web.Models.MvvmTemplateCategory>
 
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Categories";
 }
 
 <div class="pageheader">
-    <h1>Categories</h1>
+    <h1>@ViewBag.Title</h1>
 </div>
 <section id="main-content">
     <p>@Html.ActionLink("Create New Category", "Create", null, new {@class = "btn btn-primary btn-sm"})</p>

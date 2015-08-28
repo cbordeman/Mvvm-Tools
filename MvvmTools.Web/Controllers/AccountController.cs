@@ -167,18 +167,18 @@ namespace MvvmTools.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = model.UserName, Email = model.Email, Author = model.Author };
+                var user = new ApplicationUser { UserName = model.UserName, Email = model.Email, Author = model.Author, ShowTemplates = true };
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
                     //await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
 
-                    var callbackUrl = await SendEmailConfirmationTokenAsync(user.Id, "Confirm your account");
+                    var callbackUrl = await SendEmailConfirmationTokenAsync(user.Id, "Confirm your MVVM Tools account");
                     
                     // Uncomment to debug locally 
                     //TempData["ViewBagLink"] = callbackUrl;
 
-                    ViewBag.Message = "Check your email and confirm your account.  You must be confirmed before you can log in.";
+                    ViewBag.Message = "Please check your email and confirm your account.  You must be confirmed before you can log in.";
 
                     return View("Info");
                     //return RedirectToAction("Index", "Home");
@@ -407,9 +407,10 @@ namespace MvvmTools.Web.Controllers
         // POST: /Account/LogOff
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult LogOff()
+        public async Task<ActionResult> LogOff()
         {
             AuthenticationManager.SignOut();
+            await Task.Delay(3000);
             return Json(true);
         }
 
@@ -453,7 +454,7 @@ namespace MvvmTools.Web.Controllers
             var callbackUrl = Url.Action("ConfirmEmail", "Account",
                new { userId = userID, code = code }, protocol: Request.Url.Scheme);
             await UserManager.SendEmailAsync(userID, subject,
-               "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
+               "Please confirm your www.MVVMTools.net account by clicking <a href=\"" + callbackUrl + "\">here.</a>");
 
             return callbackUrl;
         }

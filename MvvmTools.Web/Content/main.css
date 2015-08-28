@@ -2,8 +2,7 @@
 @import url("http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800");
 /*
  *
- *   NEUBOARD - Responsive Admin Theme
- *   Copyright 2014 Authentic Goods Co. http://authenticgoods.co
+ *   Copyright 2015 Chris Bordeman
  *
 */
 html {
@@ -139,7 +138,7 @@ canvas {
 #header button.sidebar-toggle,
 #header button#toggle-profile,
 #header button.options {
-  width: 60px;
+  /*width: 60px;*/
   height: 60px;
   font-size: 1.125em;
   padding: 20px;

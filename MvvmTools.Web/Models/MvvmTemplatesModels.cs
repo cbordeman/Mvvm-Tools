@@ -34,7 +34,7 @@ namespace MvvmTools.Web.Models
         [Required]
         [StringLength(100)]
         [Index("UK_ApplicationUserId_Name_Language", 1, IsUnique = true)]
-        [Remote("NameAvailable", "MvvmTemplates", HttpMethod = "Get", ErrorMessage = "A template with that name/language combination already exists in your list.",
+        [Remote("NameAvailable", "Validation", ErrorMessage = "A template with that name/language combination already exists in your list.",
             AdditionalFields = "Language,Id")]
         public string Name { get; set; }
 

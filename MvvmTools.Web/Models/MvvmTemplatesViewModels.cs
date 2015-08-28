@@ -138,9 +138,10 @@ namespace MvvmTools.Web.Models
         public string Search { get; set; }
 
         [Required]
+        [Remote("AuthorAvailable", "Validation", ErrorMessage = "That {0} already exists.")]
         public string Author { get; set; }
 
-        [Display(Name = "Show Templates")]
+        [Display(Name = "Show My Templates")]
         public bool ShowTemplates { get; set; }
     }
 }

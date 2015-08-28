@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web.Helpers;
 using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using MvvmTools.Shared;
@@ -26,9 +27,13 @@ namespace MvvmTools.Web.Controllers
                 
                 if (Request.HttpMethod == "POST")
                 {
+                    AntiForgery.Validate();
+
                     // Update user.
-                    if (user.Author != author || user.ShowTemplates != showTemplates)
+                    if (!string.IsNullOrEmpty(author) && showTemplates != null && 
+                        (user.Author != author || user.ShowTemplates != showTemplates))
                     {
+                        // Update db.
                         user.Author = author;
                         user.ShowTemplates = showTemplates.GetValueOrDefault();
                         await db.SaveChangesAsync();
@@ -74,8 +79,8 @@ namespace MvvmTools.Web.Controllers
             // add search text condition
             if (!string.IsNullOrWhiteSpace(search))
                 templates = templates.Where(
-                        t => t.Name.ToLower().Contains(search) ||
-                             t.View.ToLower().Contains(search) ||
+                        t => t.Name.ToLower().Contains(search.ToLower()) ||
+                             t.View.ToLower().Contains(search.ToLower()) ||
                              t.ViewModel.ToLower().Contains(search));
             // Leave off view and view model text fields since they won't be needed on the client.
             var query = templates.Select(t => new MvvmTemplateDTO
@@ -88,13 +93,21 @@ namespace MvvmTools.Web.Controllers
                 Enabled = t.Enabled
             });
 
+            string curUserName = user?.UserName;
+            var authorsQuery= from u in db.Users
+                              where (u.ShowTemplates && u.MvvmTemplates.Any(t => t.Enabled)) ||
+                                    (curUserName != null && u.UserName == curUserName) ||
+                                    (string.IsNullOrEmpty(selectedAuthor) && u.Author == selectedAuthor)
+                              select u;
+            var authorsList = await authorsQuery.ToListAsync();
+
             // Generate model.
             var model = new TemplateIndexViewModel(
                 user?.Author,
                 user != null && user.ShowTemplates,
                 await query.ToListAsync(),
-                await db.Users.Where(u => u.ShowTemplates && u.MvvmTemplates.Any(t => t.Enabled)).ToListAsync(),
-                author,
+                authorsList,
+                selectedAuthor,
                 selectedCategoryId.GetValueOrDefault(),
                 await db.MvvmTemplateCategories.ToListAsync(),
                 string.IsNullOrWhiteSpace(selectedLanguage) ? null : selectedLanguage,
@@ -115,8 +128,8 @@ namespace MvvmTools.Web.Controllers
                 return HttpNotFound();
 
             // Disable access to non-owners if the user's templates aren't shared or the template is disabled.
-            if (!mvvmTemplate.ApplicationUser.ShowTemplates || 
-                !mvvmTemplate.Enabled ||
+            if ((!mvvmTemplate.ApplicationUser.ShowTemplates || 
+                !mvvmTemplate.Enabled) &&
                 !AuthorizeTemplateAccess(mvvmTemplate))
                 return new HttpUnauthorizedResult();
 
