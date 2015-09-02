@@ -1,9 +1,12 @@
-﻿using System.Linq;
+﻿using System.Data.Entity;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.UI;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
+using MvvmTools.Shared;
 using MvvmTools.Web.Models;
 
 namespace MvvmTools.Web.Controllers
@@ -67,6 +70,7 @@ namespace MvvmTools.Web.Controllers
             return Json(foundUser == null, JsonRequestBehavior.AllowGet);
         }
 
+        [AcceptVerbs(HttpVerbs.Get | HttpVerbs.Post)]
         public JsonResult AuthorAvailable(string author)
         {
             var um = this.UserManager;
@@ -76,20 +80,35 @@ namespace MvvmTools.Web.Controllers
         }
 
         //[Authorize]
-        public JsonResult NameAvailable(string name, string language, int? id)
+        public async Task<JsonResult> NameAvailable(string name, string language, int? id)
         {
-            if (name == null || language == null || id == null)
-                return Json(false);
+            if (name == null || language == null)
+                return Json(false, JsonRequestBehavior.AllowGet);
 
+            // Assume for now the logged in user is the one editing the record.
             var applicationUserId = User.Identity.GetUserId();
-            var templateId = id.Value;
+
+            if (User.Identity.IsAuthenticated && User.Identity.GetUserName() == Secrets.AdminUserName)
+            {
+                if (!id.HasValue)
+                    return Json(true, JsonRequestBehavior.AllowGet);
+
+                // Admin is editing the record, which may belong to another user, so
+                // do the additional work of getting the edited record's owner.
+                var template = await db.MvvmTemplates.FindAsync(id.Value);
+                if (template == null)
+                    return Json(false, JsonRequestBehavior.AllowGet);
+                applicationUserId = template.ApplicationUserId;
+            }
+
+            var templateId = id.GetValueOrDefault();
 
             // Now look for templates with the same name+language+applicationuserid combo, excluding current template.
-            var match = db.MvvmTemplates.FirstOrDefault(t => t.ApplicationUserId == applicationUserId &&
-                                                             t.Id != templateId &&
-                                                             t.Name.ToUpper() == name.ToUpper() &&
-                                                             t.Language.ToUpper() == language.ToUpper());
-            return Json(match == null);
+            var match = await db.MvvmTemplates.FirstOrDefaultAsync(t => t.ApplicationUserId == applicationUserId &&
+                                                                   t.Id != templateId &&
+                                                                   t.Name.ToUpper() == name.ToUpper() &&
+                                                                   t.Language.ToUpper() == language.ToUpper());
+            return Json(match == null, JsonRequestBehavior.AllowGet);
         }
 
     }

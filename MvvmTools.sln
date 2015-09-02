@@ -34,6 +34,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvvmTools.Shared", "MvvmToo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvvmTools.Web", "MvvmTools.Web\MvvmTools.Web.csproj", "{C5BD2EF4-EF3D-41D2-BB61-942D3082AA0F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5E1CC4AE-677D-4957-AAF8-9D9A565F22DE}"
+	ProjectSection(SolutionItems) = preProject
+		License.txt = License.txt
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

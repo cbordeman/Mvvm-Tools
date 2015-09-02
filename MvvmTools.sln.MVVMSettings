@@ -14,7 +14,7 @@
 # Enjoy!
 
 {
-  "ViewModelSuffix": "PresentationModel",
+  "ViewModelSuffix": "ViewModel",
   "ViewModelLocation": {
     "ProjectIdentifier": null,
     "PathOffProject": "ViewModels",

@@ -82,7 +82,7 @@ namespace MvvmTools.Web.Models
 
     public class TemplateIndexViewModel
     {
-        public TemplateIndexViewModel(string author, bool showTemplates, IEnumerable<MvvmTemplateDTO> templates, IEnumerable<ApplicationUser> authors, string selectedAuthor, int selectedCategoryId, IEnumerable<MvvmTemplateCategory> categories, string selectedLanguage, string search)
+        public TemplateIndexViewModel(string author, bool showTemplates, IEnumerable<Template> templates, IEnumerable<ApplicationUser> authors, string selectedAuthor, int selectedCategoryId, IEnumerable<MvvmTemplateCategory> categories, string selectedLanguage, string search)
         {
             Author = author;
             ShowTemplates = showTemplates;
@@ -125,23 +125,28 @@ namespace MvvmTools.Web.Models
             Authors.AddRange(aquery);
         }
 
-        public IEnumerable<MvvmTemplateDTO> Templates { get; set; }
+        public IEnumerable<Template> Templates { get; set; }
 
         public string Name { get; set; }
 
         public List<SelectListItem> Categories { get; set; }
+
+        [Display(Name = "Category:")]
         public int SelectedCategoryId { get; set; }
         public List<SelectListItem> Languages { get; set; }
+        [Display(Name = "Language:")]
         public string SelectedLanguage { get; set; }
         public List<SelectListItem> Authors { get; set; }
+        [Display(Name = "Author:")]
         public string SelectedAuthor { get; set; }
         public string Search { get; set; }
 
+        [Display(Name = "Author:")]
         [Required]
         [Remote("AuthorAvailable", "Validation", ErrorMessage = "That {0} already exists.")]
         public string Author { get; set; }
 
-        [Display(Name = "Show My Templates")]
+        [Display(Name = "Share My Templates")]
         public bool ShowTemplates { get; set; }
     }
 }

@@ -14,12 +14,15 @@ namespace MvvmTools.Web.Controllers
     public class MvvmTemplatesController : Controller
     {
         private readonly ApplicationDbContext db = new ApplicationDbContext();
-        
+
         // GET or POST: MvvmTemplates
+        [RequireHttps]
         [AcceptVerbs(HttpVerbs.Get | HttpVerbs.Post)]
         public async Task<ActionResult> Index(string author, bool? showTemplates, string selectedAuthor, string selectedLanguage, int? selectedCategoryId, string search)
         {
             ApplicationUser user = null;
+
+            string selectedAuthor2 = selectedAuthor;
 
             if (User.Identity.IsAuthenticated)
             {
@@ -33,6 +36,10 @@ namespace MvvmTools.Web.Controllers
                     if (!string.IsNullOrEmpty(author) && showTemplates != null && 
                         (user.Author != author || user.ShowTemplates != showTemplates))
                     {
+                        // Fix selectedAuthor if same as author which is being modified.
+                        if (selectedAuthor2 == user.Author)
+                            selectedAuthor2 = author;
+
                         // Update db.
                         user.Author = author;
                         user.ShowTemplates = showTemplates.GetValueOrDefault();
@@ -43,7 +50,7 @@ namespace MvvmTools.Web.Controllers
                 {
                     // On GET, initialize selectedUser to the current user.  On POST, user 
                     // could have changed it.
-                    selectedAuthor = user.Author;
+                    selectedAuthor2 = user.Author;
                 }
             }
 
@@ -64,12 +71,13 @@ namespace MvvmTools.Web.Controllers
                 // the user's ShowTemplates flag or Enabled flags on the templates.
                 templates = from t in db.MvvmTemplates
                             where t.ApplicationUserId == user.Id ||
+                                  user.UserName == Secrets.AdminUserName ||
                                   (t.Enabled && t.ApplicationUser.ShowTemplates)
                             select t;
             }
             // add author condition
-            if (!string.IsNullOrEmpty(selectedAuthor))
-                templates = templates.Where(t => t.ApplicationUser.Author == selectedAuthor);
+            if (!string.IsNullOrEmpty(selectedAuthor2))
+                templates = templates.Where(t => t.ApplicationUser.Author == selectedAuthor2);
             // add language condition
             if (!string.IsNullOrEmpty(selectedLanguage))
                 templates = templates.Where(t => t.Language == selectedLanguage);
@@ -83,7 +91,7 @@ namespace MvvmTools.Web.Controllers
                              t.View.ToLower().Contains(search.ToLower()) ||
                              t.ViewModel.ToLower().Contains(search));
             // Leave off view and view model text fields since they won't be needed on the client.
-            var query = templates.Select(t => new MvvmTemplateDTO
+            var query = templates.Select(t => new Template
             {
                 Author = t.ApplicationUser.Author,
                 Name = t.Name,
@@ -97,7 +105,7 @@ namespace MvvmTools.Web.Controllers
             var authorsQuery= from u in db.Users
                               where (u.ShowTemplates && u.MvvmTemplates.Any(t => t.Enabled)) ||
                                     (curUserName != null && u.UserName == curUserName) ||
-                                    (string.IsNullOrEmpty(selectedAuthor) && u.Author == selectedAuthor)
+                                    (string.IsNullOrEmpty(selectedAuthor2) && u.Author == selectedAuthor2)
                               select u;
             var authorsList = await authorsQuery.ToListAsync();
 
@@ -107,7 +115,7 @@ namespace MvvmTools.Web.Controllers
                 user != null && user.ShowTemplates,
                 await query.ToListAsync(),
                 authorsList,
-                selectedAuthor,
+                selectedAuthor2,
                 selectedCategoryId.GetValueOrDefault(),
                 await db.MvvmTemplateCategories.ToListAsync(),
                 string.IsNullOrWhiteSpace(selectedLanguage) ? null : selectedLanguage,
@@ -150,7 +158,7 @@ namespace MvvmTools.Web.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<ActionResult> Create([Bind(Include = "Enabled,Name,Language,MvvmTemplateCategoryId,Tags,ViewModel,View")] MvvmTemplate mvvmTemplate)
+        public async Task<ActionResult> Create([Bind(Include = "Name,Language,MvvmTemplateCategoryId,Tags,ViewModel,View")] MvvmTemplate mvvmTemplate)
         {
             mvvmTemplate.ApplicationUserId = User.Identity.GetUserId();
 

@@ -3,10 +3,9 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Cookies;
-using Microsoft.Owin.Security.Google;
 using MvvmTools.Shared;
-using Owin;
 using MvvmTools.Web.Models;
+using Owin;
 
 namespace MvvmTools.Web
 {
@@ -47,9 +46,9 @@ namespace MvvmTools.Web
             app.UseTwoFactorRememberBrowserCookie(DefaultAuthenticationTypes.TwoFactorRememberBrowserCookie);
 
             // Uncomment the following lines to enable logging in with third party login providers
-            app.UseMicrosoftAccountAuthentication(
-                clientId: Secrets.LiveClientId,
-                clientSecret: Secrets.LiveClientSecret);
+            //app.UseMicrosoftAccountAuthentication(
+            //    clientId: Secrets.LiveClientId,
+            //    clientSecret: Secrets.LiveClientSecret);
 
             //app.UseTwitterAuthentication(
             //   consumerKey: "",

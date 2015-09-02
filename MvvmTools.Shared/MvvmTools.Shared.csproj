@@ -90,7 +90,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Models\MvvmTemplateDTO.cs" />
+    <Compile Include="Models\Template.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Secrets.cs" />
   </ItemGroup>

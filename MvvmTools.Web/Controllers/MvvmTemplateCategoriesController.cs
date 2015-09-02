@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Entity;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Data.Entity;
 using System.Net;
-using System.Web;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using MvvmTools.Shared;
@@ -13,6 +8,8 @@ using MvvmTools.Web.Models;
 
 namespace MvvmTools.Web.Controllers
 {
+    [RequireHttps]
+    [Authorize]
     public class MvvmTemplateCategoriesController : Controller
     {
         private ApplicationDbContext db = new ApplicationDbContext();
@@ -20,7 +17,6 @@ namespace MvvmTools.Web.Controllers
 		private bool AdminUserIsLoggedIn => User != null && User.Identity != null && User.Identity.GetUserName() == Secrets.AdminUserName;
 
 		// GET: MvvmTemplateCategories
-        [Authorize]
         public async Task<ActionResult> Index()
         {
             if (!AdminUserIsLoggedIn)
@@ -48,7 +44,6 @@ namespace MvvmTools.Web.Controllers
         }
 
         // GET: MvvmTemplateCategories/Create
-        [Authorize]
         public ActionResult Create()
         {
             if (!AdminUserIsLoggedIn)
@@ -62,7 +57,6 @@ namespace MvvmTools.Web.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize]
         public async Task<ActionResult> Create([Bind(Include = "Id,Name")] MvvmTemplateCategory mvvmTemplateCategory)
         {
             if (!AdminUserIsLoggedIn)
@@ -79,7 +73,6 @@ namespace MvvmTools.Web.Controllers
         }
 
         // GET: MvvmTemplateCategories/Edit/5
-        [Authorize]
         public async Task<ActionResult> Edit(int? id)
         {
             if (!AdminUserIsLoggedIn)
@@ -102,7 +95,6 @@ namespace MvvmTools.Web.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize]
         public async Task<ActionResult> Edit([Bind(Include = "Id,Name")] MvvmTemplateCategory mvvmTemplateCategory)
         {
             if (!AdminUserIsLoggedIn)
@@ -118,7 +110,6 @@ namespace MvvmTools.Web.Controllers
         }
 
         // GET: MvvmTemplateCategories/Delete/5
-        [Authorize]
         public async Task<ActionResult> Delete(int? id)
         {
             if (!AdminUserIsLoggedIn)
@@ -139,7 +130,6 @@ namespace MvvmTools.Web.Controllers
         // POST: MvvmTemplateCategories/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize]
         public async Task<ActionResult> DeleteConfirmed(int id)
         {
             if (!AdminUserIsLoggedIn)

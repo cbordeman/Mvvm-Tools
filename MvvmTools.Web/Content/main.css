@@ -300,6 +300,11 @@ canvas {
     width: 155px;
   }
 }
+/*@media (max-width: 789px) {
+  #templatesearch .search {
+    width: 155px;
+  }
+}*/
 @media (max-width: 767px) {
   #header .brand {
     width: 100%;
@@ -4132,4 +4137,48 @@ div.config h4 a:hover {
 
 .label {
     white-space:nowrap;
+}
+
+#templatesearch .search {
+  -webkit-appearance: none !important;
+  color: #282323;
+  outline: 0;
+  height: 30px;
+  width: 240px;
+  padding: 0px 34px 0px 16px;
+  font-size: 0.9em;
+  font-weight: normal;
+  background-color: #EDF1F2;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+  -webkit-border-radius: 30px;
+  -moz-border-radius: 30px;
+  -ms-border-radius: 30px;
+  -o-border-radius: 30px;
+  border-radius: 30px;
+  border: none;
+  transition: background 0.2s linear 0s, box-shadow 0.2s linear 0s;
+  margin: 0px 0px 0px 8px;
+  position: relative;
+  top: -3px;
+}
+#templatesearch .btn-search {
+  position: relative;
+  top: -4px;
+  right: 32px;
+  margin: 0;
+  /*border:5px solid cyan;*/
+  /*left: 80%;*/
+  /*float:right;*/
+  padding: 4px 4px;
+  background: none;
+  /*transform: translate(-47px, 2px)*/
+}
+#templatesearch .fa-search {
+  font-size: 1.063em;
+  color: #212121;
+}
+#templatesearch .btn i {
+  padding: 0;
 }

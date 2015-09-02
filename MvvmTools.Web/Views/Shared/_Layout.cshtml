@@ -58,14 +58,13 @@
                 success: function (result) {
                     if (result === true)
                         location.href = gotourl;
-                }
+                },
+                async: false
             });
             return false;
         };
     </script>
-
-@*<script data-pace-options='{ "startOnPageLoad": false }' src="~/Scripts/plugins/pace/pace.min.js"></script>*@
-
+    
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     @Scripts.Render("~/plugins/navgoco")

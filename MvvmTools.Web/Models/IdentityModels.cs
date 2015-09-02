@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Data.Entity;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -33,38 +32,12 @@ namespace MvvmTools.Web.Models
         /// <summary>
         /// Set to false to disable all this user's templates.
         /// </summary>
-        [Display(Prompt = "Share Templates (uncheck to hide your templates from other users)")]
+        [Display(Prompt = "Share My Templates")]
         public bool ShowTemplates { get; set; }
         
         /// <summary>
         /// The set of templates belonging to this user.
         /// </summary>
         public virtual ICollection<MvvmTemplate> MvvmTemplates { get; set; }
-    }
-
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
-    {
-        public ApplicationDbContext()
-            : base("DefaultConnection", throwIfV1Schema: false)
-        {
-        }
-
-        public static ApplicationDbContext Create()
-        {
-            return new ApplicationDbContext();
-        }
-
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-
-            //modelBuilder.Entity<ApplicationUser>().Property(u => u.MvvmTemplates)..Has(b => b.ListComments)
-            //    .WithRequired(c => c.Post)
-            //    .HasForeignKey(c => c.PostId)
-            //    .WillCascadeOnDelete(true);
-        }
-
-        public DbSet<MvvmTemplate> MvvmTemplates { get; set; }
-        public DbSet<MvvmTemplateCategory> MvvmTemplateCategories { get; set; }
     }
 }

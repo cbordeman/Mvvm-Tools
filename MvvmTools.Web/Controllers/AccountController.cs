@@ -1,6 +1,4 @@
-﻿using System;
-using System.Data.Entity;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -11,6 +9,7 @@ using MvvmTools.Web.Models;
 
 namespace MvvmTools.Web.Controllers
 {
+    [RequireHttps]
     [Authorize]
     public class AccountController : Controller
     {
@@ -407,10 +406,9 @@ namespace MvvmTools.Web.Controllers
         // POST: /Account/LogOff
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> LogOff()
+        public ActionResult LogOff()
         {
             AuthenticationManager.SignOut();
-            await Task.Delay(3000);
             return Json(true);
         }
 

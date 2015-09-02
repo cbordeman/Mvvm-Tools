@@ -51,6 +51,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CacheCow.Client, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\CacheCow.Client.1.0.0\lib\net40\CacheCow.Client.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="CacheCow.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\CacheCow.Common.1.0.0\lib\net40\CacheCow.Common.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="DynamicDataDisplay, Version=0.4.0.0, Culture=neutral, PublicKeyToken=5b7d744a7263923f, processorArchitecture=MSIL">
       <HintPath>..\packages\DynamicDataDisplayWpf.0.4.0\lib\DynamicDataDisplay.dll</HintPath>
       <Private>True</Private>
@@ -251,6 +259,10 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.Formatting, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.4.0.30506.0\lib\net40\System.Net.Http.Formatting.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Net.Http.WebRequest" />
     <Reference Include="System.Reactive.Core">
       <HintPath>..\lib\System.Reactive.Core.dll</HintPath>

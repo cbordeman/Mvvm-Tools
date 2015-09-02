@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Chris Bordeman")]
 [assembly: AssemblyProduct("MvvmTools")]
-[assembly: AssemblyCopyright("Copyright 2015 Chris Bordeman (LGPL)")]
+[assembly: AssemblyCopyright("Copyright 2015 Chris Bordeman (Apache License)")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

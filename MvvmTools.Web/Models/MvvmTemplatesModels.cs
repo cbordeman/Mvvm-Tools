@@ -45,6 +45,8 @@ namespace MvvmTools.Web.Models
         [StringLength(15)]
         [Index("UK_ApplicationUserId_Name_Language", 2, IsUnique = true)]
         [Display(Name = "Language")]
+        [Remote("NameAvailable", "Validation", ErrorMessage = "A template with that name/language combination already exists in your list.",
+            AdditionalFields = "Name,Id")]
         public string Language { get; set; }
 
         /// <summary>
@@ -59,6 +61,7 @@ namespace MvvmTools.Web.Models
         /// A comma separated list for searching.
         /// </summary>
         [Required(AllowEmptyStrings = false)]
+        [Display(Name = "Tags (comma separated)")]
         public string Tags { get; set; }
 
         /// <summary>
