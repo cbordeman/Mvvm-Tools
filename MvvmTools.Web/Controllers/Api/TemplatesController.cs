@@ -4,14 +4,13 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
-using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
+using MvvmTools.Shared;
 using MvvmTools.Shared.Models;
 using MvvmTools.Web.Models;
 
 namespace MvvmTools.Web.Controllers.Api
 {
-    [RequireHttps]
     [System.Web.Mvc.Authorize]
     public class TemplatesController : ApiController
     {
@@ -21,8 +20,11 @@ namespace MvvmTools.Web.Controllers.Api
         public IQueryable<Template> GetTemplates()
         {
             var currentUserId = User.Identity.GetUserId();
+            var userIsAdmin = User.Identity.GetUserName() == Secrets.AdminUserName;
             return from t in db.MvvmTemplates
-                where currentUserId == t.ApplicationUserId
+                where userIsAdmin ||  // admin sees all
+                      currentUserId == t.ApplicationUserId ||  // user can see all his own templates
+                      (t.Enabled && t.ApplicationUser.ShowTemplates)
                 select new Template
                 {
                     Id = t.Id,

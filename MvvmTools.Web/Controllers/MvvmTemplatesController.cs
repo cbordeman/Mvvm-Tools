@@ -16,7 +16,6 @@ namespace MvvmTools.Web.Controllers
         private readonly ApplicationDbContext db = new ApplicationDbContext();
 
         // GET or POST: MvvmTemplates
-        [RequireHttps]
         [AcceptVerbs(HttpVerbs.Get | HttpVerbs.Post)]
         public async Task<ActionResult> Index(string author, bool? showTemplates, string selectedAuthor, string selectedLanguage, int? selectedCategoryId, string search)
         {

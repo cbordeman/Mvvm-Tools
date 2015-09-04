@@ -46,9 +46,9 @@ namespace MvvmTools.Web
             app.UseTwoFactorRememberBrowserCookie(DefaultAuthenticationTypes.TwoFactorRememberBrowserCookie);
 
             // Uncomment the following lines to enable logging in with third party login providers
-            //app.UseMicrosoftAccountAuthentication(
-            //    clientId: Secrets.LiveClientId,
-            //    clientSecret: Secrets.LiveClientSecret);
+            app.UseMicrosoftAccountAuthentication(
+                clientId: Secrets.LiveClientId,
+                clientSecret: Secrets.LiveClientSecret);
 
             //app.UseTwitterAuthentication(
             //   consumerKey: "",

@@ -1,4 +1,6 @@
-﻿@model HandleErrorInfo
+﻿@using MvvmTools.Shared
+
+@model HandleErrorInfo
 
 @{
     ViewBag.Title = "Error";
@@ -7,13 +9,22 @@
 <div class="pageheader">
     <h1 class="text-danger">@ViewBag.Title</h1>
     @{
-        if (string.IsNullOrEmpty(ViewBag.errorMessage))
-        {
-            <h2 class="text-danger">An error occurred while processing your request.</h2>
-        }
-        else
-        {
-            <h2 class="text-danger">@ViewBag.errorMessage</h2>
-        }
+        <h3 class="text-danger">An error occurred.  If the problem persists, please contact the <a href="mailto:@Secrets.AdminEmail">administrator</a>.</h3>
     }
 </div>
+
+@if (Model != null && HttpContext.Current.IsDebuggingEnabled)
+{
+<div class="text-info">
+    <p>
+        <b>Exception:</b> @Model.Exception.Message<br />
+        <b>Controller:</b> @Model.ControllerName<br />
+        <b>Action:</b> @Model.ActionName
+    </p>
+    <div style="overflow:scroll">
+        <pre>
+@Model.Exception.StackTrace
+        </pre>
+    </div>
+</div>
+}

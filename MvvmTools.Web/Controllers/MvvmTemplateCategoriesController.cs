@@ -8,7 +8,6 @@ using MvvmTools.Web.Models;
 
 namespace MvvmTools.Web.Controllers
 {
-    [RequireHttps]
     [Authorize]
     public class MvvmTemplateCategoriesController : Controller
     {

@@ -9,7 +9,7 @@ namespace MvvmTools.Web
         {
             // TODO: Add any additional configuration code.
             config.SuppressHostPrincipal();
-
+            
             // Web API routes
             config.MapHttpAttributeRoutes();
 
@@ -19,16 +19,14 @@ namespace MvvmTools.Web
                 defaults: new { id = RouteParameter.Optional }
             );
 
-            // Use basic authentication for all web api controllers.  Only activated if 
-            // the controller has the [Authorize] attribute.
-            config.Filters.Add(new IdentityBasicAuthenticationAttribute());
-            
-            // WebAPI when dealing with JSON & JavaScript!
-            // Setup json serialization to serialize classes to camel (std. Json format)
+            // WebAPI when dealing with JSON & JavaScript.  Setup JSON serialization 
+            // to serialize classes to camel (std. Json format).
             var formatter = GlobalConfiguration.Configuration.Formatters.JsonFormatter;
             formatter.SerializerSettings.ContractResolver =
                 new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
 
+            // http://tech.trailmax.info/2014/02/implemnting-https-everywhere-in-asp-net-mvc-application/
+            config.MessageHandlers.Add(new EnforceHttpsHandler());
         }
     }
 }
