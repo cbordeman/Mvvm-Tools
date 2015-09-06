@@ -1,14 +1,18 @@
-﻿using System.Linq;
+﻿using System.Data.Entity;
+using System.Data.Entity.Utilities;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
+using MvvmTools.Web.Attributes;
 using MvvmTools.Web.Models;
 
 namespace MvvmTools.Web.Controllers
 {
+    [EnforceHttps]
     [Authorize]
     public class AccountController : Controller
     {
@@ -49,7 +53,6 @@ namespace MvvmTools.Web.Controllers
             }
         }
 
-        //
         // GET: /Account/Login
         [AllowAnonymous]
         public ActionResult Login(string returnUrl)
@@ -58,7 +61,6 @@ namespace MvvmTools.Web.Controllers
             return View();
         }
 
-        //
         // POST: /Account/Login
         [HttpPost]
         [AllowAnonymous]
@@ -76,14 +78,10 @@ namespace MvvmTools.Web.Controllers
             {
                 if (!await UserManager.IsEmailConfirmedAsync(user.Id))
                 {
-                    var callbackUrl = await SendEmailConfirmationTokenAsync(user.Id, "Confirm your account-Resend");
+                    await SendEmailConfirmationTokenAsync(user.Id, "Confirm your account-Resend");
 
-                    // Uncomment to debug locally  
-                    //ViewBag.Link = callbackUrl;
-
-                    ViewBag.errorMessage = "You must have a confirmed email to log on.  "
-                              + "The confirmation link has been resent to your email account.";
-                    return View("Error");
+                    ViewBag.Message = $"You must have a confirmed email to log on.  The confirmation link has been resent to {(string.IsNullOrWhiteSpace(user.Email) ? "(no email address on file)" : user.Email)}.";
+                    return View("Info");
                 }
             }
 
@@ -98,7 +96,7 @@ namespace MvvmTools.Web.Controllers
                     return View("Lockout");
                 case SignInStatus.RequiresVerification:
                     return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
-                case SignInStatus.Failure:
+                //case SignInStatus.Failure:
                 default:
                     ModelState.AddModelError("", "Invalid login attempt.");
                     return View(model);
@@ -141,7 +139,7 @@ namespace MvvmTools.Web.Controllers
                     return RedirectToLocal(model.ReturnUrl);
                 case SignInStatus.LockedOut:
                     return View("Lockout");
-                case SignInStatus.Failure:
+                //case SignInStatus.Failure:
                 default:
                     ModelState.AddModelError("", "Invalid code.");
                     return View(model);
@@ -169,17 +167,11 @@ namespace MvvmTools.Web.Controllers
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    //await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
-
-                    var callbackUrl = await SendEmailConfirmationTokenAsync(user.Id, "Confirm your MVVM Tools account");
+                    await SendEmailConfirmationTokenAsync(user.Id, "Confirm your MVVM Tools account");
                     
-                    // Uncomment to debug locally 
-                    //TempData["ViewBagLink"] = callbackUrl;
-
                     ViewBag.Message = "Please check your email and confirm your account.  You must be confirmed before you can log in.";
 
                     return View("Info");
-                    //return RedirectToAction("Index", "Home");
                 }
                 AddErrors(result);
             }
@@ -264,7 +256,7 @@ namespace MvvmTools.Web.Controllers
             {
                 return View(model);
             }
-            var user = await UserManager.FindByNameAsync(model.Email);
+            var user = await UserManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
                 // Don't reveal that the user does not exist
@@ -305,9 +297,7 @@ namespace MvvmTools.Web.Controllers
         {
             var userId = await SignInManager.GetVerifiedUserIdAsync();
             if (userId == null)
-            {
                 return View("Error");
-            }
             var userFactors = await UserManager.GetValidTwoFactorProvidersAsync(userId);
             var factorOptions = userFactors.Select(purpose => new SelectListItem { Text = purpose, Value = purpose }).ToList();
             return View(new SendCodeViewModel { Providers = factorOptions, ReturnUrl = returnUrl, RememberMe = rememberMe });
@@ -321,9 +311,7 @@ namespace MvvmTools.Web.Controllers
         public async Task<ActionResult> SendCode(SendCodeViewModel model)
         {
             if (!ModelState.IsValid)
-            {
                 return View();
-            }
 
             // Generate the token and send it
             if (!await SignInManager.SendTwoFactorCodeAsync(model.SelectedProvider))
@@ -340,9 +328,7 @@ namespace MvvmTools.Web.Controllers
         {
             var loginInfo = await AuthenticationManager.GetExternalLoginInfoAsync();
             if (loginInfo == null)
-            {
                 return RedirectToAction("Login");
-            }
 
             // Sign in the user with this external login provider if the user already has a login
             var result = await SignInManager.ExternalSignInAsync(loginInfo, isPersistent: false);
@@ -354,54 +340,107 @@ namespace MvvmTools.Web.Controllers
                     return View("Lockout");
                 case SignInStatus.RequiresVerification:
                     return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = false });
-                case SignInStatus.Failure:
+                //case SignInStatus.Failure:
                 default:
-                    // If the user does not have an account, then prompt the user to create an account
-                    ViewBag.ReturnUrl = returnUrl;
-                    ViewBag.LoginProvider = loginInfo.Login.LoginProvider;
-                    return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = loginInfo.Email });
+                    // If the user does not have an account, then create the account only if
+                    // the username and email are not already in the database.
+                    if (await CreateExternalUser(loginInfo))
+                    {
+                        var result2 = await SignInManager.ExternalSignInAsync(loginInfo, isPersistent: false);
+                        switch (result2)
+                        {
+                            case SignInStatus.Success:
+                                return RedirectToLocal(returnUrl);
+                            case SignInStatus.LockedOut:
+                                return View("Lockout");
+                            case SignInStatus.RequiresVerification:
+                                return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = false });
+                            //case SignInStatus.Failure:
+                            default:
+                                ViewBag.ErrorMessage = "Couldn't sign you in, unknown reason.";
+                                return View("Error");
+                        }
+                    }
+                    
+                    // Note that CreateExternalUser sets ViewBag.ErrorMessage for us.
+                    return View("Error");
             }
         }
 
-        //
-        // POST: /Account/ExternalLoginConfirmation
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> ExternalLoginConfirmation(ExternalLoginConfirmationViewModel model, string returnUrl)
+        private async Task<bool> CreateExternalUser(ExternalLoginInfo loginInfo)
         {
-            if (User.Identity.IsAuthenticated)
+            var um = this.UserManager;
+
+            // Check email.  Note that on external users, we use the email as the user name.
+            if (string.IsNullOrWhiteSpace(loginInfo.Email))
             {
-                return RedirectToAction("Index", "Manage");
+                ViewBag.ErrorMessage = $"There is no email address on your {loginInfo.Login.LoginProvider} account.";
+                return false;
+            }
+            var atIndex = loginInfo.Email.IndexOf("@");
+            if (atIndex == -1)
+            {
+                ViewBag.ErrorMessage = $"The email address on your {loginInfo.Login.LoginProvider} account ({loginInfo.Email}) is not valid.";
+                return false;
+            }
+            if (um.Users.FirstOrDefault(u => loginInfo.Email.ToUpper() == u.Email.ToUpper()) != null ||
+                um.Users.FirstOrDefault(u => loginInfo.Email.ToUpper() == u.UserName.ToUpper()) != null)
+            {
+                ViewBag.ErrorMessage = $"The email address on your {loginInfo.Login.LoginProvider} account ({loginInfo.Email}) is already in our system.";
+                return false;
+            }
+            
+            // Check Author using ExternalIdentity.Name.  Generate a unique one if we must.
+            string author;
+            if (string.IsNullOrEmpty(loginInfo.ExternalIdentity.Name))
+                // Strip it from first part of the email address.
+                author = loginInfo.Email.Substring(0, atIndex);
+            else
+                author = loginInfo.ExternalIdentity.Name;
+
+            if (um.Users.FirstOrDefault(u => author.ToUpper() == u.Author.ToUpper()) == null)
+            {
+                // Good, let's try to create the user.
+                var success = await TryCreateExternalUser(loginInfo.Email, author, loginInfo.Login.LoginProvider, loginInfo.Login);
+                return success;
             }
 
-            if (ModelState.IsValid)
+            // Start adding "#i" until we get a unique author.
+            for (int i = 0; i < 50000; i++)
             {
-                // Get the information about the user from the external login provider
-                var info = await AuthenticationManager.GetExternalLoginInfoAsync();
-                if (info == null)
+                var newAuthor = author + " #" + i;
+                if ((await um.Users.FirstOrDefaultAsync(u => newAuthor.ToUpper() == u.Author.ToUpper())) == null)
                 {
-                    return View("ExternalLoginFailure");
+                    // Found a unique value, let's try to create the user.
+                    bool success = await TryCreateExternalUser(loginInfo.Email, newAuthor, loginInfo.Login.LoginProvider, loginInfo.Login);
+                    return success;
                 }
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
-                var result = await UserManager.CreateAsync(user);
+            }
+
+            ViewBag.ErrorMessage = $"Couldn't find an iteration of author \"{author} that wasn't already in our system.";
+            return false;
+        }
+
+        private async Task<bool> TryCreateExternalUser(string email, string author, string provider, UserLoginInfo info)
+        {
+            var user = new ApplicationUser { UserName = email, Email = email, Author = author, ShowTemplates = true };
+            var result = await UserManager.CreateAsync(user);
+            if (result.Succeeded)
+            {
+                result = await UserManager.AddLoginAsync(user.Id, info);
                 if (result.Succeeded)
                 {
-                    result = await UserManager.AddLoginAsync(user.Id, info.Login);
-                    if (result.Succeeded)
-                    {
-                        await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
-                        return RedirectToLocal(returnUrl);
-                    }
+                    await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
+                    return true;
                 }
-                AddErrors(result);
-            }
 
-            ViewBag.ReturnUrl = returnUrl;
-            return View(model);
+                return true;
+            }
+            var errors = string.Join("<br/>", result.Errors);
+            ViewBag.ErrorMessage = $"The following error(s) occurred while registering your {provider} account:<br/>{errors}";
+            return false;
         }
 
-        //
         // POST: /Account/LogOff
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -411,7 +450,6 @@ namespace MvvmTools.Web.Controllers
             return Json(true);
         }
 
-        //
         // GET: /Account/ExternalLoginFailure
         [AllowAnonymous]
         public ActionResult ExternalLoginFailure()
@@ -449,9 +487,9 @@ namespace MvvmTools.Web.Controllers
 
             var code = await UserManager.GenerateEmailConfirmationTokenAsync(userID);
             var callbackUrl = Url.Action("ConfirmEmail", "Account",
-               new { userId = userID, code = code }, protocol: Request.Url.Scheme);
+                new { userId = userID, code = code }, protocol: Request.Url.Scheme);
             await UserManager.SendEmailAsync(userID, subject,
-               "Please confirm your www.MVVMTools.net account by clicking <a href=\"" + callbackUrl + "\">here.</a>");
+                "Please confirm your mvvmtools.net account by clicking <a href=\"" + callbackUrl + "\">here.</a>");
 
             return callbackUrl;
         }

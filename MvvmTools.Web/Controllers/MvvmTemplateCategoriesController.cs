@@ -4,10 +4,12 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using MvvmTools.Shared;
+using MvvmTools.Web.Attributes;
 using MvvmTools.Web.Models;
 
 namespace MvvmTools.Web.Controllers
 {
+    [EnforceHttps]
     [Authorize]
     public class MvvmTemplateCategoriesController : Controller
     {

@@ -2,8 +2,11 @@
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Http;
 using System.Web.Http.Description;
+using CacheCow.Server.CacheControlPolicy;
+using CacheCow.Server.CacheRefreshPolicy;
 using Microsoft.AspNet.Identity;
 using MvvmTools.Shared;
 using MvvmTools.Shared.Models;
@@ -17,6 +20,7 @@ namespace MvvmTools.Web.Controllers.Api
         private ApplicationDbContext db = new ApplicationDbContext();
 
         // GET: api/Templates
+        [AllowAnonymous]
         public IQueryable<Template> GetTemplates()
         {
             var currentUserId = User.Identity.GetUserId();
@@ -45,6 +49,7 @@ namespace MvvmTools.Web.Controllers.Api
         }
 
         // GET: api/Templates/5
+        [AllowAnonymous]
         [ResponseType(typeof(Template))]
         public async Task<IHttpActionResult> GetTemplate(int id)
         {
@@ -52,7 +57,17 @@ namespace MvvmTools.Web.Controllers.Api
             if (mvvmTemplate == null)
                 return NotFound();
 
-            return Ok(CreateTemplateFromMvvmTemplate(mvvmTemplate));
+            // If template is enabled and use is publishing their templates, return it.
+            if (mvvmTemplate.Enabled && mvvmTemplate.ApplicationUser.ShowTemplates)
+                return Ok(CreateTemplateFromMvvmTemplate(mvvmTemplate));
+            
+            // If admin or belongs to current user, return it anyway.
+            if (User.Identity.Name == Secrets.AdminUserName ||
+                User.Identity.GetUserId() == mvvmTemplate.ApplicationUserId)
+                return Ok(CreateTemplateFromMvvmTemplate(mvvmTemplate));
+            
+            // Otherwise, block user from seeing it.
+            return NotFound();
         }
 
         // PUT: api/Templates/5

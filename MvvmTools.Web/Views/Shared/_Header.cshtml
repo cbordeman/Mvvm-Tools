@@ -1,7 +1,8 @@
+@using MvvmTools.Web.Extensions
         <header id="header">
             <!--logo start-->
             <div class="brand">
-                <a href="@Url.Action("Index", "Home")" class="logo">
+                <a href="@Url.Action("Index", "Home", null, "http")" class="logo">
                     <span>MVVM</span>TOOLS</a>
             </div>
             <!--logo end-->
@@ -60,7 +61,7 @@
                                 </li>*@
                                 @*<li class="divider"></li>*@
                                 <li>
-                                    <a href="" onclick="posttourl('@Url.Action("LogOff", "Account")', '@Url.Action("Index", "Home")');">
+                                    <a href="" onclick="posttourl('@Url.ActionSecureOnRelease("LogOff", "Account")', '@Url.ActionSecureOnRelease("Index", "Home")');">
                                         <span class="icon">
                                         <i class="fa fa-sign-out"></i>
                                     </span>Logout
@@ -70,7 +71,7 @@
                             else
                             {
                                 <li>
-                                    <a href='@Url.Action("Login", "Account")'>
+                                    <a href='@Url.ActionSecureOnRelease("Login", "Account")'>
                                         <span class="icon">
                                             <i class="fa fa-sign-in"></i>
                                         </span>Login
@@ -78,7 +79,7 @@
                                 </li>
                                 <li class="divider"></li>
                                 <li>
-                                    <a href='@Url.Action("Register", "Account")'>
+                                    <a href='@Url.ActionSecureOnRelease("Register", "Account")'>
                                         <span class="icon">
                                             <i class="fa fa-file-text"></i>
                                         </span>Register

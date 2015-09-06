@@ -2,6 +2,7 @@
 
 namespace MvvmTools.Web.Controllers
 {
+    [AllowAnonymous]
     public class ErrorController : Controller
     {
         public ViewResult Index()

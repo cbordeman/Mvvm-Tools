@@ -40,9 +40,15 @@ namespace MvvmTools.Web.Migrations
                 userManager.Create(userToInsert, Secrets.AdminPassword);
             }
 
+            // Fix AspNetUsers fields.  Some of these can't be set initially, rest just need to be
+            // set again here in case they were updated in Secrets.cs at a point after the db
+            // was created.
             var adminUser = context.Users.First(u => u.UserName == Secrets.AdminUserName);
             adminUser.ShowTemplates = true;
-            adminUser.LockoutEnabled = false;
+            adminUser.Email = Secrets.AdminEmail;
+            adminUser.UserName = Secrets.AdminUserName;
+            adminUser.PhoneNumber = Secrets.AdminPhone;
+            adminUser.Author = "Factory";
 
             SaveChanges(context);
 

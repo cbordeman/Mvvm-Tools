@@ -7,10 +7,12 @@ using System.Web.UI;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using MvvmTools.Shared;
+using MvvmTools.Web.Attributes;
 using MvvmTools.Web.Models;
 
 namespace MvvmTools.Web.Controllers
 {
+    [EnforceHttps]
     [OutputCache(Location = OutputCacheLocation.None, NoStore = true)]
     public class ValidationController : Controller
     {

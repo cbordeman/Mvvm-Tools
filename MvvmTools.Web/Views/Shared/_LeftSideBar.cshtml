@@ -1,46 +1,31 @@
 @using Microsoft.AspNet.Identity
 @using MvvmTools.Shared
+@using MvvmTools.Web.Extensions
+
         <!--sidebar left start-->
 <aside class="sidebar sidebar-left">
     <nav>
         <h5 class="sidebar-header">Navigation</h5>
         <ul class="nav nav-pills nav-stacked">
             <li class="@Html.IsSelected(controller: "Home")">
-                <a href="@Url.Action("Index", "Home")">
+                <a href="@Url.Action("Index", "Home", null, "http")">
                     <i class="fa fa-fw fa-home"></i> Home
                 </a>
             </li>
             <li class="@Html.IsSelected(controller: "MvvmTemplates")">
-                <a href="@Url.Action("Index", "MvvmTemplates")">
+                <a href="@Url.ActionSecureOnRelease("Index", "MvvmTemplates")">
                     <i class="fa fa-fw fa-list"></i> Templates
                 </a>
             </li>
             @if (User.Identity.IsAuthenticated && User.Identity.GetUserName() == Secrets.AdminUserName)
             {
                 <li class="@Html.IsSelected(controller: "MvvmTemplateCategories")">
-                    <a href="@Url.Action("Index", "MvvmTemplateCategories")">
+                    <a href="@Url.ActionSecureOnRelease("Index", "MvvmTemplateCategories")">
                         <i class="fa fa-fw fa-folder"></i> Categories
                     </a>
                 </li>
             }
-
-            @*<li class="nav-dropdown @Html.IsSelected(controller: "MvvmTemplates")">
-                        <a href="#">
-                            <i class="fa fa-fw fa-file-text"></i> Templates
-                        </a>
-                        <ul class="nav-sub">
-                            <li class="@Html.IsSelected(action: "Index")">
-                                <a href="@Url.Action("Index", "MvvmTemplates")">
-                                    All Templates
-                                </a>
-                            </li>
-                            <li class="@Html.IsSelected(action: "MyIndex")">
-                                <a href="@Url.Action("MyIndex", "MvvmTemplates")">
-                                    My Templates
-                                </a>
-                            </li>
-                        </ul>
-                    </li>*@
+            
         </ul>
     </nav>
 </aside>

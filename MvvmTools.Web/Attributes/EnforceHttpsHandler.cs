@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace MvvmTools.Web.Attributes
 {
@@ -11,18 +10,6 @@ namespace MvvmTools.Web.Attributes
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            // if request is local, just serve it without https
-            object httpContextBaseObject;
-            if (request.Properties.TryGetValue("MS_HttpContext", out httpContextBaseObject))
-            {
-                var httpContextBase = httpContextBaseObject as HttpContextBase;
-
-                if (httpContextBase != null && httpContextBase.Request.IsLocal)
-                {
-                    return base.SendAsync(request, cancellationToken);
-                }
-            }
-
             // if request is remote, enforce https
             if (request.RequestUri.Scheme != Uri.UriSchemeHttps)
             {

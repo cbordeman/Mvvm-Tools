@@ -7,8 +7,21 @@ namespace MvvmTools.Web.Models
     public class ExternalLoginConfirmationViewModel
     {
         [Required]
+        [Display(Name = "User Name")]
+        [Remote("UserNameAvailable", "Validation", ErrorMessage = "That User Name already exists in our system.")]
+        public string UserName { get; set; }
+
+        [Required]
         [Display(Name = "Email")]
+        [EmailAddress]
+        [Remote("EmailAvailable", "Validation", ErrorMessage = "That Email already exists in our system.")]
         public string Email { get; set; }
+
+        [Required]
+        [DataType(DataType.Text)]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
+        [Remote("AuthorAvailable", "Validation", ErrorMessage = "That Author already exists in our system.")]
+        public string Author { get; set; }
     }
 
     public class ExternalLoginListViewModel

@@ -7,7 +7,6 @@ namespace MvvmTools.Web
     {
         public static void Register(HttpConfiguration config)
         {
-            // TODO: Add any additional configuration code.
             config.SuppressHostPrincipal();
             
             // Web API routes
@@ -25,8 +24,10 @@ namespace MvvmTools.Web
             formatter.SerializerSettings.ContractResolver =
                 new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
 
-            // http://tech.trailmax.info/2014/02/implemnting-https-everywhere-in-asp-net-mvc-application/
+            // Web Api should always be https.
+#if !DEBUG
             config.MessageHandlers.Add(new EnforceHttpsHandler());
+#endif
         }
     }
 }

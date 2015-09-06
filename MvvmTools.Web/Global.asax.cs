@@ -41,10 +41,10 @@ namespace MvvmTools.Web
         /// <summary> Handles the BeginRequest event of the Application control. </summary>
         protected void Application_BeginRequest(object sender, EventArgs e)
         {
-            if (Request.IsSecureConnection)
-            {
-                Response.AddHeader("Strict-Transport-Security", "max-age=31536000");
-            }
+            //if (Request.IsSecureConnection)
+            //{
+            //    Response.AddHeader("Strict-Transport-Security", "max-age=31536000");
+            //}
         }
     }
 }

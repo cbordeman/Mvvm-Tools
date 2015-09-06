@@ -7,10 +7,12 @@ using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using MvvmTools.Shared;
 using MvvmTools.Shared.Models;
+using MvvmTools.Web.Attributes;
 using MvvmTools.Web.Models;
 
 namespace MvvmTools.Web.Controllers
 {
+    [EnforceHttps]
     public class MvvmTemplatesController : Controller
     {
         private readonly ApplicationDbContext db = new ApplicationDbContext();
