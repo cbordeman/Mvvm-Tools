@@ -5,34 +5,7 @@ VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvvmTools", "MvvmTools\MvvmTools.csproj", "{05D0E37F-9B09-4DD6-9F67-80CF3CE69E8A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extension", "Extension", "{DFCFD1DA-21AC-4FA6-A16E-555C2F7A2150}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvvmTools.Core", "MvvmTools.Core\MvvmTools.Core.csproj", "{E71FA6C6-539E-46E7-847E-F8C4FDE5EE12}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{CC2AB3A8-9D60-4037-8808-DE079D4F6FE6}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PublishScripts", "PublishScripts", "{B209D9F4-5702-4B4B-8EE0-299A3A220C38}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{6ED39D92-DD2A-4D2F-A302-8DEB27195DEC}"
-	ProjectSection(SolutionItems) = preProject
-		PublishScripts\Scripts\Deploy-AzureResourceGroup-2.ps1 = PublishScripts\Scripts\Deploy-AzureResourceGroup-2.ps1
-		PublishScripts\Scripts\Deploy-AzureResourceGroup-3.ps1 = PublishScripts\Scripts\Deploy-AzureResourceGroup-3.ps1
-		PublishScripts\Scripts\Deploy-AzureResourceGroup.ps1 = PublishScripts\Scripts\Deploy-AzureResourceGroup.ps1
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Templates", "Templates", "{6455F4BB-4146-4F44-86BA-96CBD3746E90}"
-	ProjectSection(SolutionItems) = preProject
-		PublishScripts\Templates\MvvmToolsService.json = PublishScripts\Templates\MvvmToolsService.json
-		PublishScripts\Templates\MvvmToolsService.param.dev.json = PublishScripts\Templates\MvvmToolsService.param.dev.json
-		PublishScripts\Templates\MvvmToolsWeb-2.json = PublishScripts\Templates\MvvmToolsWeb-2.json
-		PublishScripts\Templates\MvvmToolsWeb.json = PublishScripts\Templates\MvvmToolsWeb.json
-		PublishScripts\Templates\MvvmToolsWeb.param.dev-2.json = PublishScripts\Templates\MvvmToolsWeb.param.dev-2.json
-		PublishScripts\Templates\MvvmToolsWeb.param.dev.json = PublishScripts\Templates\MvvmToolsWeb.param.dev.json
-	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvvmTools.Shared", "MvvmTools.Shared\MvvmTools.Shared.csproj", "{51EF8471-4E69-4368-98AE-67E487860625}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvvmTools.Web", "MvvmTools.Web\MvvmTools.Web.csproj", "{C5BD2EF4-EF3D-41D2-BB61-942D3082AA0F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5E1CC4AE-677D-4957-AAF8-9D9A565F22DE}"
 	ProjectSection(SolutionItems) = preProject
@@ -53,23 +26,8 @@ Global
 		{E71FA6C6-539E-46E7-847E-F8C4FDE5EE12}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E71FA6C6-539E-46E7-847E-F8C4FDE5EE12}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E71FA6C6-539E-46E7-847E-F8C4FDE5EE12}.Release|Any CPU.Build.0 = Release|Any CPU
-		{51EF8471-4E69-4368-98AE-67E487860625}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{51EF8471-4E69-4368-98AE-67E487860625}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{51EF8471-4E69-4368-98AE-67E487860625}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{51EF8471-4E69-4368-98AE-67E487860625}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C5BD2EF4-EF3D-41D2-BB61-942D3082AA0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C5BD2EF4-EF3D-41D2-BB61-942D3082AA0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C5BD2EF4-EF3D-41D2-BB61-942D3082AA0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C5BD2EF4-EF3D-41D2-BB61-942D3082AA0F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{05D0E37F-9B09-4DD6-9F67-80CF3CE69E8A} = {DFCFD1DA-21AC-4FA6-A16E-555C2F7A2150}
-		{E71FA6C6-539E-46E7-847E-F8C4FDE5EE12} = {DFCFD1DA-21AC-4FA6-A16E-555C2F7A2150}
-		{6ED39D92-DD2A-4D2F-A302-8DEB27195DEC} = {B209D9F4-5702-4B4B-8EE0-299A3A220C38}
-		{6455F4BB-4146-4F44-86BA-96CBD3746E90} = {B209D9F4-5702-4B4B-8EE0-299A3A220C38}
-		{C5BD2EF4-EF3D-41D2-BB61-942D3082AA0F} = {CC2AB3A8-9D60-4037-8808-DE079D4F6FE6}
 	EndGlobalSection
 EndGlobal

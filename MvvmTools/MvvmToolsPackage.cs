@@ -14,6 +14,7 @@ using Microsoft.Practices.ServiceLocation;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextTemplating.VSHost;
 using MvvmTools.Commands;
 using MvvmTools.Core.Services;
 using MvvmTools.Core.Utilities;
@@ -156,6 +157,9 @@ namespace MvvmTools
                 Kernel.Bind<IMvvmToolsPackage>().ToConstant(this);
                 Kernel.Bind<IComponentModel>().ToConstant(GetGlobalService(typeof(SComponentModel)) as IComponentModel);
                 Kernel.Bind<IMenuCommandService>().ToConstant(GetService(typeof(IMenuCommandService)) as OleMenuCommandService);
+                var tt = GetService(typeof(STextTemplating)) as ITextTemplating;
+                Kernel.Bind<ITextTemplating>().ToConstant(tt);
+
 
                 // Our own singleton services.
                 Kernel.Bind<ISettingsService>().To<SettingsService>().InSingletonScope();
@@ -176,7 +180,7 @@ namespace MvvmTools
                 Kernel.Bind<DTE2>().ToConstant(Ide);
                 Kernel.Bind<ISolutionService>().To<SolutionService>().InSingletonScope();
                 var ss = Kernel.Get<ISolutionService>();
-                _solution = base.GetService(typeof(SVsSolution)) as IVsSolution;
+                _solution = GetService(typeof(SVsSolution)) as IVsSolution;
                 _solution?.AdviseSolutionEvents(ss, out _solutionEventsCookie);
                 Kernel.Bind<IVsSolution>().ToConstant(_solution);
 

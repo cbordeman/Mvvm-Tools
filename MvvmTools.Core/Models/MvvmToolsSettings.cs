@@ -25,9 +25,13 @@ namespace MvvmTools.Core.Models
         // Configuration settings for the solutions.
         public ProjectOptions SolutionOptions { get; set; }
 
+        // Where the user's local templates are stored.
+        public string LocalTemplateFolder { get; set; }
+
         // Contains the list of configuration settings for the projects.
         public IList<ProjectOptions> ProjectOptions { get; set; }
         
-        //public IList<MvvmTemplate> Templates { get; set; }
+        public IList<Template> FactoryTemplates { get; set; }
+        public IList<Template> LocalTemplates { get; set; }
     }
 }
