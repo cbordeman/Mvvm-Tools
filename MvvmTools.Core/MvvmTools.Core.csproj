@@ -318,6 +318,8 @@
     <Compile Include="Converters\ProjectDisplayNameConverter.cs" />
     <Compile Include="Models\Template.cs" />
     <Compile Include="Services\IOutputService.cs" />
+    <Compile Include="Services\ParseError.cs" />
+    <Compile Include="Services\TemplateParseService.cs" />
     <Compile Include="Utilities\NinjectServiceLocator.cs" />
     <Compile Include="Utilities\ProjectExtensions.cs" />
     <Compile Include="Utilities\SourceControlUtilities.cs" />
@@ -412,7 +414,8 @@
       <SubType>Designer</SubType>
     </None>
     <AppDesigner Include="Properties\" />
-    <EmbeddedResource Include="FactoryTemplates.tpl" />
+    <EmbeddedResource Include="Templates\FactoryTemplates.tpl" />
+    <EmbeddedResource Include="Templates\SampleTemplate.tpl" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="Converters\Converters.xaml">

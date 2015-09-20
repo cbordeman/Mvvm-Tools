@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using MvvmTools.Core.Services;
 
 namespace MvvmTools.Core.Models
 {

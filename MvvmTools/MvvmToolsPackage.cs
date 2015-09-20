@@ -183,6 +183,7 @@ namespace MvvmTools
                 _solution = GetService(typeof(SVsSolution)) as IVsSolution;
                 _solution?.AdviseSolutionEvents(ss, out _solutionEventsCookie);
                 Kernel.Bind<IVsSolution>().ToConstant(_solution);
+                Kernel.Bind<ITemplateParseService>().To<TemplateParseService>().InSingletonScope();
 
                 base.Initialize();
 
