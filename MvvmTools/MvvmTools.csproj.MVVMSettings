@@ -22,7 +22,7 @@
     "AppendViewType": false
   },
   "ViewLocation": {
-    "ProjectIdentifier": null,
+    "ProjectIdentifier": "MvvmTools\\MvvmTools.csproj",
     "PathOffProject": "Views",
     "Namespace": ".Views",
     "AppendViewType": true

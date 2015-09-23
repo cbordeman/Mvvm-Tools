@@ -202,15 +202,15 @@ namespace MvvmTools.Core.Services
             try
             {
                 // Factory templates.
-                var factoryTemplatesText = GetFromResources("MvvmTools.Core.Templates.FactoryTemplates.tpl");
+                var factoryTemplatesText = GetFromResources("MvvmTools.Core.Templates.Factory.tpl");
                 List<ParseError> errors;
-                var tmp1 = _templateParseService.ParseTemplates(factoryTemplatesText, out errors);
+                var tmp1 = _templateParseService.ParseTemplates(true, "Factory", factoryTemplatesText, out errors);
                 if (errors.Count == 0)
                     rval.AddRange(tmp1);
 
                 // Local folder.
                 var localTemplateFolder = GetString(LocalTemplateFolderPropName, _defaultLocalTemplateFolder);
-                if (File.Exists(localTemplateFolder))
+                if (Directory.Exists(localTemplateFolder))
                 {
                     var tmp2 = AddTemplatesFolder(localTemplateFolder);
                     rval.AddRange(tmp2);
@@ -229,40 +229,28 @@ namespace MvvmTools.Core.Services
             var files = Directory.EnumerateFiles(folder, "*.tpl", SearchOption.AllDirectories);
             foreach (var f in files)
             {
+                string fn = null;
                 string contents = null;
-                var fn = Path.Combine(sourceDirectory, f);
                 try
                 {
+                    fn = Path.Combine(sourceDirectory, f);
                     contents = File.ReadAllText(fn, Encoding.UTF8);
                 }
                 catch (Exception ex1)
                 {
-                    Trace.WriteLine($"Can't read MVVM template file {fn}: {ex1.Message}");
-
-                    // Fall back on cached version.
-                    fn = Path.Combine(TempFolder, f);
-                    try
-                    {
-                        contents = File.ReadAllText(fn, Encoding.UTF8);
-                    }
-                    catch (Exception ex2)
-                    {
-                        Trace.WriteLine($"Can't read fallback cache MVVM template file {fn}: {ex2.Message}");
-                    }
+                    Trace.WriteLine($"Can't read template file {fn}: {ex1.Message}");
                 }
                 if (!string.IsNullOrWhiteSpace(contents))
                 {
-                    var template = ParseTemplate(contents);
-                    yield return template;
+                    var source = Path.GetFileNameWithoutExtension(f);
+                    List<ParseError> errors;
+                    var templates = _templateParseService.ParseTemplates(false, source, contents, out errors);
+                    foreach (var t in templates)
+                        yield return t;
                 }
             }
         }
         
-        private Template ParseTemplate(string contents)
-        {
-            return null;
-        }
-
         private void AddProjectOptionsFlattenedRecursive(ProjectOptions inherited, ICollection<ProjectOptions> projectOptionsCollection, IEnumerable<ProjectModel> solutionTree, string prefix = null)
         {
             foreach (var p in solutionTree)

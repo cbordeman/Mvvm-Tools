@@ -2,13 +2,14 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
+using MvvmTools.Core.ViewModels;
 
 namespace MvvmTools.Core.Views
 {
     /// <summary>
-    /// Interaction logic for OptionsTemplatesUserControl.xaml
+    /// Interaction logic for OptionsTemplateOptionsUserControl.xaml
     /// </summary>
-    public partial class OptionsTemplatesUserControl
+    public partial class OptionsTemplateOptionsUserControl
     {
         private const uint DLGC_WANTARROWS = 0x0001;
         private const uint DLGC_WANTTAB = 0x0002;
@@ -17,7 +18,7 @@ namespace MvvmTools.Core.Views
         private const uint DLGC_WANTCHARS = 0x0080;
         private const uint WM_GETDLGCODE = 0x0087;
 
-        public OptionsTemplatesUserControl()
+        public OptionsTemplateOptionsUserControl()
         {
             InitializeComponent();
 
@@ -45,8 +46,8 @@ namespace MvvmTools.Core.Views
         {
             if (e.ClickCount == 2)
             {
-                var vm = (OptionsTemplatesUserControl)DataContext;
-                //vm?.ExecuteEditViewSuffixCommand();
+                var vm = (OptionsUserControlViewModel)DataContext;
+                vm?.ExecuteEditViewSuffixCommand();
             }
         }
     }

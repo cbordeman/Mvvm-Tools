@@ -1,37 +1,38 @@
 ﻿using System.Collections.Generic;
-using MvvmTools.Core.Services;
 
 namespace MvvmTools.Core.Models
 {
     public class Template
     {
-        public Template()
+        public Template(bool isInternal, string source)
         {
-            Fields = new List<Field>();
-        }
-
-        public Template(string platforms, string framework, string name, string description, string language, string tags, List<Field> fields, string viewModel, string view, string codeBehind)
-        {
-            Platforms = platforms;
-            Framework = framework;
-
-            Name = name;
-            Description = description;
-            Language = language;
-            Tags = tags;
-            Fields = fields;
-
-            ViewModel = viewModel;
-            View = view;
-            CodeBehind = codeBehind;
+            IsInternal = isInternal;
+            Source = source;
 
             Fields = new List<Field>();
         }
+        
+        /// <summary>
+        /// True if built in and immutable (except via extension update).
+        /// False if part of the user's tpl collection.
+        /// </summary>
+        public bool IsInternal { get; set; }
 
         /// <summary>
-        /// 'Any' or a comma separated combination of: WPF, Silverlight, Xamarin, or WinRT.  For Universal apps, use WinRT.
+        /// Source of the template, the filename without the .tpl extension.
+        /// This should be the author if contributed.
         /// </summary>
-        public string Platforms { get; set; }
+        public string Source { get; set; }
+
+        /// <summary>
+        /// The supported platforms.
+        /// </summary>
+        public HashSet<Platform> Platforms { get; set; }
+
+        /// <summary>
+        /// The supported form factors: 'Any' or a comma separated combination of: Phone, Tablet, Desktop
+        /// </summary>
+        public HashSet<FormFactor> FormFactors { get; set; }
 
         /// <summary>
         /// One of: None, Prism, Catel, Modern UI, MVVM Light, Caliburn, Caliburn.Micro.
@@ -39,10 +40,13 @@ namespace MvvmTools.Core.Models
         public string Framework { get; set; }
 
         /// <summary>
-        /// Name must be unique, except for the Language.
+        /// Name doesn't need to be unique.
         /// </summary>
         public string Name { get; set; }
-        public string Language { get; set; }
+
+        /// <summary>
+        /// Comma separated, for searches.
+        /// </summary>
         public string Tags { get; set; }
 
         /// <summary>
@@ -56,19 +60,29 @@ namespace MvvmTools.Core.Models
         public List<Field> Fields { get; set; }
 
         /// <summary>
-        /// A T4 template.
-        /// </summary>
-        public string ViewModel { get; set; }
-
-        /// <summary>
-        /// A T4 template.
+        /// A T4 template.  Applies to all languages, though code behind and view model must be language specific.
         /// </summary>
         public string View { get; set; }
 
         /// <summary>
-        /// A T4 Template.
+        /// A T4 template, C# version.
         /// </summary>
-        public string CodeBehind { get; set; }
+        public string ViewModelCSharp { get; set; }
+
+        /// <summary>
+        /// A T4 template, VB version.
+        /// </summary>
+        public string ViewModelVisualBasic { get; set; }
+
+        /// <summary>
+        /// A T4 template, C# version.
+        /// </summary>
+        public string CodeBehindCSharp { get; set; }
+
+        /// <summary>
+        /// A T4 template, VB version.
+        /// </summary>
+        public string CodeBehindVisualBasic { get; set; }
     }
 
     public class Field
@@ -94,25 +108,25 @@ namespace MvvmTools.Core.Models
         public string Description { get; set; }
 
         /// <summary>
-        /// Applies to text fields.
-        /// </summary>
-        public bool? MultiLine { get; set; }
-
-        /// <summary>
         /// If non-empty, indicates a combobox.
         /// </summary>
         public string[] Choices { get; set; }
-
-        /// <summary>
-        /// Applies to combobox, indicates the user can type any free form value.
-        /// </summary>
-        public bool? Open { get; set; }
 
         public FieldType? FieldType { get; set; }
     }
 
     public enum FieldType
     {
-        TextBox, CheckBox, ComboBox
+        TextBox, TextBoxMultiLine, CheckBox, ComboBox, ComboBoxOpen
+    }
+
+    public enum FormFactor
+    {
+        Phone, Tablet, Desktop
+    }
+
+    public enum Platform
+    {
+        Wpf, Silverlight, Xamarin, WinRt
     }
 }

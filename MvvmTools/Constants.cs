@@ -9,6 +9,8 @@ namespace MvvmTools
         public const string GuidMvvmToolsTopLevelMenuGroup = "a244c5bf-b5d1-471b-9189-507dd1c78957";
         public const string GuidOptionsPageGeneral = "719F6FA2-A486-4A8E-A84D-0D7F1DB45448";
         public const string GuidOptionsPageSolutionAndProjects = "BA6E7A35-59A9-4FB0-8BEE-3D2CC777DBF9";
+        public const string GuidOptionsPageTemplateOptions = "1E4EAB14-D4FC-4FB6-83F6-2DEA7314FC12";
+        public const string GuidOptionsPageTemplateMaintenance = "96C77D2A-0889-461E-923C-7F510B1E58BB";
 
         public static readonly CommandID GoToViewOrViewModelCommandId = new CommandID(new Guid(GuidMvvmToolsTopLevelMenuGroup), 0x0100);
         public static readonly CommandID ScaffoldViewAndViewModelCommandId = new CommandID(new Guid(GuidMvvmToolsTopLevelMenuGroup), 0x0200);

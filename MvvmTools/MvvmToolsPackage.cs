@@ -19,6 +19,7 @@ using MvvmTools.Commands;
 using MvvmTools.Core.Services;
 using MvvmTools.Core.Utilities;
 using MvvmTools.Core.ViewModels;
+using MvvmTools.Core.Views;
 using MvvmTools.Options;
 using Ninject;
 
@@ -44,7 +45,8 @@ namespace MvvmTools
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [ProvideOptionPage(typeof(OptionsPageGeneral), "MVVM Tools", "General", 101, 107, true)]
     [ProvideOptionPage(typeof(OptionsPageSolutionAndProjects), "MVVM Tools", "Solution and Projects", 101, 113, true)]
-    [ProvideOptionPage(typeof(OptionsPageSolutionAndProjects), "MVVM Tools", "Templates", 101, 114, true)]
+    [ProvideOptionPage(typeof(OptionsPageTemplateOptions), "MVVM Tools", "Template Options", 101, 114, true)]
+    [ProvideOptionPage(typeof(OptionsPageTemplateMaintenance), "MVVM Tools", "Template Maintenance", 101, 115, true)]
     //[InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
     [ProvideBindingPath] // This is the magic attribute required so VS can find any 3rd party dlls.
     [ProvideMenuResource("Menus.ctmenu", 1)]

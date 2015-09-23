@@ -49,7 +49,7 @@ namespace MvvmTools.Core.Utilities
 
         public static string ValidatePathOffProject(string pathOffProject)
         {
-            if (String.IsNullOrWhiteSpace(pathOffProject))
+            if (string.IsNullOrWhiteSpace(pathOffProject))
                 return null;
 
             if (pathOffProject.StartsWith(" "))
@@ -144,43 +144,6 @@ namespace MvvmTools.Core.Utilities
                     return null;
             }
             return "Language must be C# or VB.";
-        }
-
-        //public static string ValidateFramework(string framework)
-        //{
-        //    switch (framework.ToUpper())
-        //    {
-        //        case "NONE":
-        //        case "PRISM":
-        //        case "CATEL":
-        //        case "MODERN UI":
-        //        case "MVVM LIGHT":
-        //        case "CALIBURN":
-        //        case "CALIBURN.MICRO":
-        //            return null;
-        //    }
-        //    return "Framework must be one of: None, Prism, Catel, Modern UI, MVVM Light, Caliburn, or Caliburn.Micro.  ";
-        //}
-
-
-
-        public static string ValidatePlatforms(string platforms)
-        {
-            // 'Any' or a comma separated combination of: WPF, Silverlight, Xamarin, or WinRT.
-            if (platforms.Equals("Any", StringComparison.OrdinalIgnoreCase))
-                return null;
-            foreach (var p in platforms.Split(','))
-            {
-                switch (p.Trim().ToUpper())
-                {
-                    case "WPF":
-                    case "SILVERLIGHT":
-                    case "XAMARIN":
-                    case "WINRT":
-                        return null;
-                }
-            }
-            return "Platforms must be 'Any' or a comma separated combination of: WPF, Silverlight, Xamarin, or WinRT.";
         }
     }
 }

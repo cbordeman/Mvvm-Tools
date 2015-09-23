@@ -1,0 +1,75 @@
+﻿<UserControl x:Class="MvvmTools.Core.Views.OptionsTemplateMaintenanceUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:MvvmTools.Core.ViewModels"
+             xmlns:views="clr-namespace:MvvmTools.Core.Views"
+             d:DataContext="{d:DesignInstance viewModels:OptionsUserControlViewModel,
+                                              IsDesignTimeCreatable=False}"
+             d:DesignHeight="300"
+             d:DesignWidth="300"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/GroupBox.xaml" />
+                <ResourceDictionary Source="../Converters/Converters.xaml" />
+                <ResourceDictionary Source="../Styles/Validation.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <!--  Header  -->
+        <views:HeaderUserControl />
+
+        <GroupBox Margin="0,15,0,0" Header="My Templates">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
+                <RichTextBox Margin="0,5,0,0"
+                             BorderThickness="0"
+                             IsReadOnly="True"
+                             IsReadOnlyCaretVisible="False"
+                             IsTabStop="False">
+                    <FlowDocument>
+                        <Paragraph>
+                            You can create your own templates by creating .TPL files.  Each .TPL can contain
+                            <Bold>several</Bold>
+                            templates, for organizational purposes, or you can split each template into a separate .TPL file.
+                            The filename of the template will be used as the
+                            displayed '
+                            <Italic>Source</Italic>
+                            ' of those templates in the Templates list.
+                        </Paragraph>
+
+                        <Paragraph>
+                            .TPL files are a mixture of INI and T4.  To get started, press the '
+                            <Bold>Create Sample.tpl Template</Bold>
+                            button, and read the comments inside it fully.
+                        </Paragraph>
+                    </FlowDocument>
+                </RichTextBox>
+
+
+            </Grid>
+        </GroupBox>
+
+
+    </Grid>
+</UserControl>

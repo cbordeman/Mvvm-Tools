@@ -1,16 +1,15 @@
-﻿# This is a comment.  Comments are allowed anywhere EXCEPT inside the [[ViewModel]], 
-# [[View]], and [[CodeBehind]] sections, which contain T4 templates.  The '#' must be
-# at column 0.  
+﻿# This is a comment.  The '#' must appear in column 0.
 #
-# This file can contain multiple templates, or multiple files may be used. As soon as the 
+# This file can contain multiple templates, or multiple files may be used. Each time the
 # [[Template]] section is encountered, a new template is started.
 #
-# Section must appear in order, and all but [[Field]] must be present:
+# The Template section must come first, followed by one or more Field sections, then the 
+# rest of the sections, in any order.
 # [[Template]]
 # [[Field]] (optional / multiple allowed)
-# [[ViewModel]]
-# [[View]]
-# [[CodeBehind]]
+# [[View]]                  | View = XAML, which is identical wither C# or VB.
+# [[ViewModel-(Language)]]  | (Language) is either CSharp or VisualBasic.  All four permutations
+# [[CodeBehind-(Language)]] | may speficied in one template, or just two for C# or VB.
 #
 # In property values (after ':'), use pipe for line continuation.  Comment lines aren't 
 # allowed until the value ends.
@@ -18,20 +17,22 @@
 # [[Template]] Section
 # ====================
 #
-# Platforms: 'Any' or a comma delimited combination of: WPF, Silverlight, Xamarin, or 
-#     WinRT.  For Universal apps, use WinRT.
-# Framework: 'None' or the requisite MVVM framework such as Prism, MVVM Light, or Caliburn.
-# Name + Language must be unique.
+# Platforms: 'All' or a comma separated list of: WPF, Silverlight, Xamarin, or WinRT.  
+#            For Universal apps, use WinRT.
+# Framework: 'None' or the requisite MVVM framework such as Prism, MVVM Cross, MVVM Light, 
+#            or Caliburn.Micro.
+# Form Factors: 'All' or a comma separated list of: Phone, Tablet, or Desktop.
 # Language: C# or VB.
-# Description: Required.
+# Description: Required.  It's encouraged to provide details about the expected structure
+#              of the project(s), and urls to any relevant sources and prerequesites.
 # Tags: Optional, a comma separated list of tags for searching.
 
 [[Template]]
 Platforms: WPF
 Framework: None
+Form Factors: All
 Name: Simple Window
 Description: This is a single line comment.
-Language: C#
 Tags: Simple,Window
 
 # [[Field]] Section(s)
@@ -46,58 +47,49 @@ Tags: Simple,Window
 # Type: Required.  One of: TextBox, ComboBox, or CheckBox.
 # Description: Optional for fields.
 #
-# If TextBox, set MultiLine: True to allow multiple lines.
+# If ComboBox or ComboBoxOpen, Choices must be set (pipe delimited list).
 #
-# If ComboBox, Choices must be set (pipe delimited list).  Set Open: True
-# to allow free-form text.
-#
-# If CheckBox, the Default property must specified, and must be 
-# set to True or False.
+# If CheckBox, the Default property must be True or False.
 
 [[Field]]
 Name: MyStringField
 Type: TextBox
-MultiLine: False
 Default: Whatever |
          Whatever 2 |
 		 Whatever 3
 Prompt: Prompt 2
 Description: This is a multi-line |
              description.  This is line two |
+             and this is on line three.  You should avoid continuing the line unless you want a hard break.  Your text will be automatically wrapped in any case.
+
+[[Field]]
+Name: MyCheckBoxField
+Type: CheckBox
+Default: True
+Prompt: This is a check box
+
+[[Field]]
+Name: MyComboBoxField
+# Type 'ComboBox' requires the Choices property.  Type 'ComboBoxOpen' avoids
+# checking that Default is present in the list of Choices.
+Type: ComboBoxOpen
+Default: Item X
+Prompt: Prompt 4
+Description: This is a multi-line |
+             description.  This is line two |
              and this is on line three.
+Choices: Item 1|Item 2|Item 3|Item 4|Note that choices|can't be multi-line.
 
-#[[Field]]
-#Name: MyCheckBoxField
-#Type: CheckBox
-#Default: Checked
-#Prompt: This is a check box
-#
-#[[Field]]
-#
-#
-#[[Field]]
-#Name: MyComboBoxField
-#Type: ComboBox
-#Default: Item 2
-#Prompt: Prompt 4
-#Description: This is a multi-line |
-#             description.  This is line two |
-#             and this is on line three.
-#Choices: Item 1|Item 2|Item 3|Item 4
-#Open: false
 
-# The [[ViewModel]], [[View]], and [[CodeBehind]] section each contain a
-# T4 template.  They are passed predefined field values, and your fields
-# defined in the [[Field]] section(s).
+# T4 Sections
+# ===========
+#
+# The [[ViewModel-(Language)]], [[View]], and [[CodeBehind-(Language)]] 
+# section each contain a T4 template.  They are passed predefined field 
+# values, and your fields defined in the [[Field]] section(s).
 #
 # '#' style Comments are not allowed from here on, until another
-# [[Template]] is started.
-
-[[ViewModel]]
-// <copyright file="$classname$" company="My Company Name">
-// Copyright (c) 2015 All Rights Reserved
-// <author>Chris Bordeman</author>
-// </copyright>
+# [[Template]] is started.  The '#' character would muck up the T4.
 
 [[View]]
 <#@ template debug="false" hostspecific="false" language="C#" #>
@@ -156,7 +148,13 @@ Description: This is a multi-line |
     </Grid>
 </Window>
 
-[[CodeBehind]]
+[[CodeBehind-CSharp]]
+// <copyright file="$classname$" company="My Company Name">
+// Copyright (c) 2015 All Rights Reserved
+// <author>Chris Bordeman</author>
+// </copyright>
+
+[[ViewModel-CSharp]]
 // <copyright file="$classname$" company="My Company Name">
 // Copyright (c) 2015 All Rights Reserved
 // <author>Chris Bordeman</author>

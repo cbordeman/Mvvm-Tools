@@ -11,7 +11,12 @@ namespace MvvmTools.Core.Services
 {
     public interface ITemplateParseService
     {
-        List<Template> ParseTemplates([NotNull] string data, out List<ParseError> errors);
+        List<Template> ParseTemplates(bool isInternal, [NotNull] string source, [NotNull] string data, out List<ParseError> errors);
+    }
+
+    public enum Section
+    {
+        Template, Field, ViewModelVisualBasic, ViewModelCSharp, CodeBehindVisualBasic, CodeBehindCSharp, View
     }
 
     public class TemplateParseService : ITemplateParseService
@@ -22,7 +27,7 @@ namespace MvvmTools.Core.Services
 
         #endregion Data
 
-        public List<Template> ParseTemplates(string data, out List<ParseError> errors)
+        public List<Template> ParseTemplates(bool isInternal, string source, string data, out List<ParseError> errors)
         {
             errors = _errors = new List<ParseError>();
 
@@ -37,7 +42,7 @@ namespace MvvmTools.Core.Services
 
                 bool inT4 = false;
 
-                string currentSection = null;
+                Section? currentSection = null;
                 var t4Sb = new StringBuilder(4096);
                 Field field = null;
 
@@ -50,38 +55,31 @@ namespace MvvmTools.Core.Services
                     switch (line.Trim().ToUpper())
                     {
                         case "[[TEMPLATE]]":
-                            // [[Template]] must come first, or it must come after a [[CodeBehind]] section.
-                            if (currentSection != null && currentSection != "CodeBehind")
-                                _errors.Add(new ParseError("Expected [[Template]].", linenum + 1));
-
-                            // If already in a template, save it.
                             if (template != null)
                             {
-                                if (currentSection == "CodeBehind")
-                                    template.CodeBehind = t4Sb.ToString().Trim();
+                                // A template is already started, fully validate it and add it.
+                                AssignT4SbToCorrectSection(currentSection, template, t4Sb);
+                                ValidateTemplateProperties(linenum, template);
                                 ValidateTemplateT4Sections(linenum, template);
                                 rval.Add(template);
                             }
 
                             // Start new template.
-                            template = new Template();
+                            template = new Template(isInternal, source);
                             field = null;
+                            inT4 = false;
 
-                            currentSection = "Template";
+                            currentSection = Section.Template;
 
                             break;
 
                         case "[[FIELD]]":
-                            if (!string.Equals(currentSection, "Field", StringComparison.OrdinalIgnoreCase) &&
-                                !string.Equals(currentSection, "Template", StringComparison.OrdinalIgnoreCase))
-                            {
-                                _errors.Add(new ParseError("[[Field]] sections must follow the [[Template]] section.", linenum + 1));
-                            }
+                            if (currentSection != Section.Template && currentSection != Section.Field)
+                                _errors.Add(new ParseError("[[Field]] sections must appear between the [[Template]] and the T4 sections ([[View]], [[CodeBehind-*]], and [[ViewModel-*]]).", linenum + 1));
+
                             if (field == null)
-                            {
                                 // Validate template properties.
                                 ValidateTemplateProperties(linenum, template);
-                            }
                             else
                             {
                                 // Already working on a field, validate and add it.
@@ -89,44 +87,62 @@ namespace MvvmTools.Core.Services
                                 template.Fields.Add(field);
                             }
 
-                            // Start a new field
+                            // Start a new field.
                             field = new Field();
 
-                            currentSection = "Field";
+                            currentSection = Section.Field;
 
                             break;
 
-                        case "[[VIEWMODEL]]":
-                            if (currentSection != "Field" && currentSection != "Template")
-                                _errors.Add(new ParseError("The [[ViewModel]] section must follow a [[Template]] or [[Field]] section.", linenum + 1));
+                        case "[[VIEW]]":
+                        case "[[VIEWMODEL-CSHARP]]":
+                        case "[[CODEBEHIND-CSHARP]]":
+                        case "[[VIEWMODEL-VISUALBASIC]]":
+                        case "[[CODEBEHIND-VISUALBASIC]]":
+                            if (template == null)
+                            {
+                                _errors.Add(new ParseError("Expected: [[Template]] section.", linenum + 1));
+                                break;
+                            }
 
                             if (field != null)
                             {
                                 // Working on a field, validate and add it.
                                 ValidateFieldProperties(linenum, field);
                                 template.Fields.Add(field);
+                                field = null;
                             }
+                            else
+                                // Validate template properties.
+                                ValidateTemplateProperties(linenum, template);
 
-                            currentSection = "ViewModel";
+                            AssignT4SbToCorrectSection(currentSection, template, t4Sb);
                             t4Sb = new StringBuilder(4096);
+
+                            switch (line.Trim().ToUpper())
+                            {
+                                case "[[VIEW]]":
+                                    currentSection = Section.View;
+                                    break;
+                                case "[[VIEWMODEL-CSHARP]]":
+                                    currentSection = Section.ViewModelCSharp;
+                                    break;
+                                case "[[CODEBEHIND-CSHARP]]":
+                                    currentSection = Section.CodeBehindCSharp;
+                                    break;
+                                case "[[VIEWMODEL-VISUALBASIC]]":
+                                    currentSection = Section.ViewModelVisualBasic;
+                                    break;
+                                case "[[CODEBEHIND-VISUALBASIC]]":
+                                    currentSection = Section.CodeBehindVisualBasic;
+                                    break;
+                            }
+                            
                             inT4 = true;
-                            break;
-                        case "[[VIEW]]":
-                            if (currentSection != "ViewModel")
-                                _errors.Add(new ParseError("The [[View]] section must follow the [[ViewModel]] section.", linenum + 1));
-                            template.ViewModel = t4Sb.ToString().Trim();
-                            currentSection = "View";
-                            t4Sb = new StringBuilder(4096);
-                            break;
-                        case "[[CODEBEHIND]]":
-                            if (currentSection != "View")
-                                _errors.Add(new ParseError("The [[CodeBehind]] section must follow the [[View]] section.", linenum + 1));
-                            template.View = t4Sb.ToString().Trim();
-                            currentSection = "CodeBehind";
-                            t4Sb = new StringBuilder(4096);
                             break;
 
                         default:
+
                             if (inT4)
                             {
                                 t4Sb.Append(line);
@@ -141,15 +157,15 @@ namespace MvvmTools.Core.Services
 
                             switch (currentSection)
                             {
-                                case "Template":
+                                case Section.Template:
                                     HandleTemplatePropertyAssignment(template, split, ref linenum);
                                     break;
 
-                                case "Field":
+                                case Section.Field:
                                     HandleFieldPropertyAssignment(field, split, ref linenum);
                                     break;
                                 default:
-                                    _errors.Add(new ParseError("Expected a section header.", linenum + 1));
+                                    _errors.Add(new ParseError("Expected whitespace, a single-line comment ('#'), or a section header ('[[Header-Name]]').", linenum + 1));
                                     break;
                             }
 
@@ -160,8 +176,8 @@ namespace MvvmTools.Core.Services
                 // End of file, add template.
                 if (template != null)
                 {
-                    if (currentSection == "CodeBehind")
-                        template.CodeBehind = t4Sb.ToString().Trim();
+                    AssignT4SbToCorrectSection(currentSection, template, t4Sb);
+                    ValidateTemplateProperties(linenum, template);
                     ValidateTemplateT4Sections(linenum, template);
                     rval.Add(template);
                 }
@@ -175,16 +191,69 @@ namespace MvvmTools.Core.Services
             }
         }
 
+        private void AssignT4SbToCorrectSection([NotNull] Section? currentSection, [NotNull] Template template, StringBuilder t4Sb)
+        {
+            if (t4Sb == null)
+                return;
+
+            if (currentSection == null)
+                throw new ArgumentNullException(nameof(currentSection));
+            if (template == null)
+                throw new ArgumentNullException(nameof(template));
+        
+            switch (currentSection.Value)
+            {
+                case Section.CodeBehindCSharp:
+                    template.CodeBehindCSharp = t4Sb.ToString().Trim();
+                    break;
+                case Section.CodeBehindVisualBasic:
+                    template.CodeBehindVisualBasic = t4Sb.ToString().Trim();
+                    break;
+                case Section.ViewModelCSharp:
+                    template.ViewModelCSharp = t4Sb.ToString().Trim();
+                    break;
+                case Section.ViewModelVisualBasic:
+                    template.ViewModelVisualBasic = t4Sb.ToString().Trim();
+                    break;
+                case Section.View:
+                    template.View = t4Sb.ToString().Trim();
+                    break;
+            }
+        }
+
         private void ValidateTemplateT4Sections(int linenum, Template template)
         {
-            var msg = "Expected \"[[{0}]]\" section.";
+            const string msg = "Expected \"[[{0}]]\" section.";
 
-            if (template.ViewModel == null)
-                _errors.Add(new ParseError(string.Format(msg, "ViewModel"), linenum + 1));
             if (template.View == null)
                 _errors.Add(new ParseError(string.Format(msg, "View"), linenum + 1));
-            if (template.CodeBehind == null)
-                _errors.Add(new ParseError(string.Format(msg, "CodeBehind"), linenum + 1));
+
+            // If provided none of the T4 sections, error.
+            if (template.ViewModelVisualBasic == null &&
+                template.CodeBehindVisualBasic == null &&
+                template.ViewModelCSharp == null && 
+                template.CodeBehindCSharp == null)
+            {
+                _errors.Add(new ParseError("Please provide sections: ViewModel-VisualBasic and CodeBehind-VisualBasic, OR ViewModel-CSharp and CodeBehind-CSharp, OR all four sections.", linenum + 1));
+            }
+
+            // If provided one of the VB sections, must also provide the other VB section.
+            if (template.ViewModelVisualBasic != null || template.CodeBehindVisualBasic != null)
+            {
+                if (template.ViewModelVisualBasic == null)
+                    _errors.Add(new ParseError(string.Format(msg, "ViewModel-VisualBasic"), linenum + 1));
+                if (template.CodeBehindVisualBasic == null)
+                    _errors.Add(new ParseError(string.Format(msg, "CodeBehind-VisualBasic"), linenum + 1));
+            }
+
+            // If provided one of the C# sections, must also provide the other C# section.
+            if (template.ViewModelCSharp != null || template.CodeBehindCSharp != null)
+            {
+                if (template.ViewModelCSharp == null)
+                    _errors.Add(new ParseError(string.Format(msg, "ViewModel-CSharp"), linenum + 1));
+                if (template.CodeBehindCSharp == null)
+                    _errors.Add(new ParseError(string.Format(msg, "CodeBehind-CSharp"), linenum + 1));
+            }
         }
 
         private void HandleFieldPropertyAssignment(Field field, string[] split, ref int linenum)
@@ -214,7 +283,7 @@ namespace MvvmTools.Core.Services
                 case "TYPE":
                     field.FieldType = ConvertToFieldType(sbValue.ToString().Trim());
                     if (field.FieldType == null)
-                        _errors.Add(new ParseError("Field's Type property must be one of: TextBox, CheckBox, or ComboBox.", linenum + 1));
+                        _errors.Add(new ParseError("Field's Type property must be one of: TextBox, TextBoxMultiLine, CheckBox, ComboBox, or ComboBoxOpen.", linenum + 1));
                     EnsureFieldPropertiesAreCompatible(field, firstline);
                     break;
 
@@ -229,27 +298,18 @@ namespace MvvmTools.Core.Services
                         _errors.Add(new ParseError("Field's Prompt property is required and must NOT end in a period ('.') or a colon (':').", firstline + 1));
                     break;
 
-                case "MULTILINE":
-                    field.MultiLine = ConvertToBoolean(sbValue.ToString().Trim());
-                    if (field.MultiLine == null)
-                        _errors.Add(new ParseError("Field's MultiLine property must be True or False.", firstline + 1));
-                    break;
-
                 case "CHOICES":
                     field.Choices = sbValue.ToString().Trim().Split('|');
+                    // Trim each choice.
+                    for (int index = 0; index < field.Choices.Length; index++)
+                        field.Choices[index] = field.Choices[index].Trim();
                     if (field.Choices.Length == 0)
-                        _errors.Add(new ParseError("Field's Choices property, if specified, must not be empty.", firstline + 1));
+                        _errors.Add(new ParseError("Field's Choices property, if specified, must not be empty, and values should be separated by pipe ('|') symbols.", firstline + 1));
                     EnsureFieldPropertiesAreCompatible(field, firstline);
                     break;
 
-                case "OPEN":
-                    field.Open = ConvertToBoolean(sbValue.ToString().Trim());
-                    if (field.Open == null)
-                        _errors.Add(new ParseError("Field's Open property, if specified, must be True or False.", firstline + 1));
-                    break;
-
                 default:
-                    _errors.Add(new ParseError($"Field property \"{name}\" is not valid.  Expected one of: Name, Description, Default, MultiLine, Choices, or Open.", firstline + 1));
+                    _errors.Add(new ParseError($"Field property \"{name}\" is not valid.  Expected one of: Name, Description, Default, or Choices.", firstline + 1));
                     break;
             }
         }
@@ -264,10 +324,11 @@ namespace MvvmTools.Core.Services
             }
 
             // If ComboBox and the Default and Choices are known, verify Default is in Choices.
+            // Note that ComboBoxOpen doesn't care if Default is in Choices.
             if (field.FieldType == FieldType.ComboBox && field.Default != null && field.Choices != null)
             {
                 if (!field.Choices.Any(c => c.Equals(field.Default, StringComparison.OrdinalIgnoreCase)))
-                    _errors.Add(new ParseError("Field's Default value doesn't exist in the Choices list.", firstline + 1));
+                    _errors.Add(new ParseError("Field's Default value doesn't exist in the Choices list.  To avoid this check, change field's type to ComboBoxOpen", firstline + 1));
             }
         }
 
@@ -279,8 +340,12 @@ namespace MvvmTools.Core.Services
                     return FieldType.CheckBox;
                 case "COMBOBOX":
                     return FieldType.ComboBox;
+                case "COMBOBOXOPEN":
+                    return FieldType.ComboBoxOpen;
                 case "TEXTBOX":
                     return FieldType.TextBox;
+                case "TEXTBOXMULTILINE":
+                    return FieldType.TextBoxMultiLine;
             }
             return null;
         }
@@ -359,7 +424,6 @@ namespace MvvmTools.Core.Services
             ParseProperty(split, ref linenum, out name, out sbValue);
 
             // Assign to field in template and validate.
-            string msg;
             switch (name.ToUpper())
             {
                 case "NAME":
@@ -381,29 +445,85 @@ namespace MvvmTools.Core.Services
                     break;
 
                 case "PLATFORMS":
-                    template.Platforms = sbValue.ToString().Trim();
-                    if (string.IsNullOrWhiteSpace(template.Platforms))
-                        _errors.Add(new ParseError("Template Platforms must be 'Any' or a comma separated combination of: WPF, Silverlight, Xamarin, or WinRT.  For Universal apps, use WinRT.", firstline + 1));
-                    msg = ValidationUtilities.ValidatePlatforms(template.Platforms);
-                    if (msg != null)
-                        _errors.Add(new ParseError(msg, firstline + 1));
+                    template.Platforms = GetPlatformsHashSet(sbValue.ToString().Trim(), firstline);
+                    if (template.Platforms == null)
+                        _errors.Add(new ParseError("Template Platforms must be 'All' or a comma separated combination of: WPF, Silverlight, Xamarin, or WinRT.  For Universal apps, use WinRT.", firstline + 1));
                     break;
 
-                case "LANGUAGE":
-                    template.Language = sbValue.ToString().Trim();
-                    msg = ValidationUtilities.ValidateLanguage(template.Language);
-                    if (msg != null)
-                        _errors.Add(new ParseError(msg, firstline + 1));
+                case "FORM FACTORS":
+                    template.FormFactors = GetFormFactorsHashSet(sbValue.ToString().Trim(), firstline);
+                    if (template.FormFactors == null)
+                        _errors.Add(new ParseError("Template Form Factors must be 'All' or a comma separated combination of: Phone, Tablet, Desktop.", firstline + 1));
                     break;
+
 
                 case "TAGS":
                     template.Tags = sbValue.ToString().Trim();
                     break;
+
                 default:
-                    _errors.Add(new ParseError($"Template property \"{name}\" is not valid.  Expected one of: Name, Description, Framework, Platforms, Language, or Tags.", firstline + 1));
+                    _errors.Add(new ParseError($"Template property \"{name}\" is not valid.  Expected one of: Name, Description, Framework, Platforms, or Tags.", firstline + 1));
                     break;
             }
         }
+
+        private HashSet<Platform> GetPlatformsHashSet(string platforms, int linenum)
+        {
+            // 'All' or a comma separated combination of: WPF, Silverlight, Xamarin, or WinRT.
+            if (platforms.Equals("All", StringComparison.OrdinalIgnoreCase))
+                return new HashSet<Platform> {Platform.Silverlight, Platform.Wpf, Platform.WinRt, Platform.Xamarin};
+            var rval = new HashSet<Platform>();
+            foreach (var p in platforms.Split(','))
+            {
+                switch (p.Trim().ToUpper())
+                {
+                    case "WPF":
+                        rval.Add(Platform.Wpf);
+                        break;
+                    case "SILVERLIGHT":
+                        rval.Add(Platform.Silverlight);
+                        break;
+                    case "XAMARIN":
+                        rval.Add(Platform.Xamarin);
+                        break;
+                    case "WINRT":
+                        rval.Add(Platform.WinRt);
+                        break;
+                    default:
+                        _errors.Add(new ParseError($"Unexpected Platform value: '{p.Trim()}'.", linenum));
+                        break;
+                }
+            }
+            return rval;
+        }
+
+        private HashSet<FormFactor> GetFormFactorsHashSet(string formFactors, int linenum)
+        {
+            // 'All' or a comma separated combination of: WPF, Silverlight, Xamarin, or WinRT.
+            if (formFactors.Equals("All", StringComparison.OrdinalIgnoreCase))
+                return new HashSet<FormFactor> { FormFactor.Phone, FormFactor.Tablet, FormFactor.Desktop };
+            var rval = new HashSet<FormFactor>();
+            foreach (var p in formFactors.Split(','))
+            {
+                switch (p.Trim().ToUpper())
+                {
+                    case "PHONE":
+                        rval.Add(FormFactor.Phone);
+                        break;
+                    case "TABLET":
+                        rval.Add(FormFactor.Tablet);
+                        break;
+                    case "DESKTOP":
+                        rval.Add(FormFactor.Desktop);
+                        break;
+                    default:
+                        _errors.Add(new ParseError($"Unexpected Form Factor value: '{p.Trim()}'.", linenum));
+                        break;
+                }
+            }
+            return rval;
+        }
+
 
         private void ValidateFieldProperties(int linenum, Field field)
         {
@@ -417,37 +537,19 @@ namespace MvvmTools.Core.Services
                 _errors.Add(new ParseError(string.Format(msg, "Prompt"), linenum + 1));
             if (field.FieldType == null)
                 _errors.Add(new ParseError(string.Format(msg, "Type"), linenum + 1));
-
-            if (field.FieldType != null)
-                switch (field.FieldType.Value)
-                {
-                    case FieldType.CheckBox:
-                        if (field.Open != null)
-                            _errors.Add(new ParseError("Only ComboBox fields can have the 'Open' property.", linenum + 1));
-                        if (field.MultiLine != null)
-                            _errors.Add(new ParseError("Only TextBox fields can have the 'MultiLine' property.", linenum + 1));
-                        break;
-                    case FieldType.ComboBox:
-                        if (field.MultiLine != null)
-                            _errors.Add(new ParseError("Only TextBox fields can have the 'MultiLine' property.", linenum + 1));
-                        break;
-                    case FieldType.TextBox:
-                        if (field.Open != null)
-                            _errors.Add(new ParseError("Only ComboBox fields can have the 'Open' property.", linenum + 1));
-                        break;
-                }
+            
         }
 
         private void ValidateTemplateProperties(int linenum, Template template)
         {
             var msg = "Expected template's \"{0}\" property, line " + (linenum + 1);
 
-            if (string.IsNullOrEmpty(template.Platforms))
+            if (template.Platforms == null || template.Platforms.Count == 0)
                 _errors.Add(new ParseError(string.Format(msg, "Platforms"), linenum + 1));
+            if (template.FormFactors == null || template.FormFactors.Count == 0)
+                _errors.Add(new ParseError(string.Format(msg, "Form Factors"), linenum + 1));
             if (string.IsNullOrEmpty(template.Framework))
                 _errors.Add(new ParseError(string.Format(msg, "Framework"), linenum + 1));
-            if (string.IsNullOrEmpty(template.Language))
-                _errors.Add(new ParseError(string.Format(msg, "Language"), linenum + 1));
             if (string.IsNullOrEmpty(template.Name))
                 _errors.Add(new ParseError(string.Format(msg, "Name"), linenum + 1));
         }

@@ -346,7 +346,6 @@
     <Compile Include="ViewModels\BaseDialogViewModel.cs" />
     <Compile Include="ViewModels\BaseViewModel.cs" />
     <Compile Include="ViewModels\LocationScaffoldUserControlViewModel.cs" />
-    <Compile Include="ViewModels\OptionsTemplatesUserControlViewModel.cs" />
     <Compile Include="ViewModels\OptionsUserControlViewModel.cs" />
     <Compile Include="ViewModels\LocationDescriptorUserControlViewModel.cs" />
     <Compile Include="ViewModels\ProjectOptionsUserControlViewModel.cs" />
@@ -374,8 +373,11 @@
     <Compile Include="Views\OptionsSolutionAndProjectsUserControl.xaml.cs">
       <DependentUpon>OptionsSolutionAndProjectsUserControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\OptionsTemplatesUserControl.xaml.cs">
-      <DependentUpon>OptionsTemplatesUserControl.xaml</DependentUpon>
+    <Compile Include="Views\OptionsTemplateMaintenanceUserControl.xaml.cs">
+      <DependentUpon>OptionsTemplateMaintenanceUserControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OptionsTemplateOptionsUserControl.xaml.cs">
+      <DependentUpon>OptionsTemplateOptionsUserControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ProjectOptionsUserControl.xaml.cs">
       <DependentUpon>ProjectOptionsUserControl.xaml</DependentUpon>
@@ -414,8 +416,8 @@
       <SubType>Designer</SubType>
     </None>
     <AppDesigner Include="Properties\" />
-    <EmbeddedResource Include="Templates\FactoryTemplates.tpl" />
-    <EmbeddedResource Include="Templates\SampleTemplate.tpl" />
+    <EmbeddedResource Include="Templates\Factory.tpl" />
+    <EmbeddedResource Include="Templates\Sample.tpl" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="Converters\Converters.xaml">
@@ -454,7 +456,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\OptionsTemplatesUserControl.xaml">
+    <Page Include="Views\OptionsTemplateMaintenanceUserControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\OptionsTemplateOptionsUserControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
