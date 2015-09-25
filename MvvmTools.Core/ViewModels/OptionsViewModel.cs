@@ -16,9 +16,13 @@ using Ninject;
 
 namespace MvvmTools.Core.ViewModels
 {
-    public class OptionsUserControlViewModel : BaseViewModel
+    public class OptionsViewModel : BaseViewModel
     {
         #region Data
+
+        private bool _isInitialized;
+
+        private ISolutionService _solutionService;
 
         private MvvmToolsSettings _unmodifiedSettings;
 
@@ -33,13 +37,37 @@ namespace MvvmTools.Core.ViewModels
 
         #region Ctor and Init
 
+        public OptionsViewModel(ISolutionService solutionService)
+        {
+            _solutionService = solutionService;
+        }
+
         public void Init()
         {
-            //var currentContext = SynchronizationContext.Current;
+            if (_isInitialized)
+                return;
+            _isInitialized = true;
+
+            // This sets IsBusy = true, starts to wait on the solution to finish loading,
+            // and then returns immediately.  After the solution loads, IsBusy is set
+            // to false and the view model finishes initializing itself.  It also subscribes
+            // to the solution service's SolutionLoadStateChanged event so it can do all
+            // this again if necessary.
+            SolutionServiceOnSolutionLoadStateChanged(null, null);
+        }
+
+        private void SolutionServiceOnSolutionLoadStateChanged(object sender, EventArgs eventArgs)
+        {
+            // Something happened in the solution or a project, respond by reloading solution 
+            // and project state.  Current state is ignored/discarded.
+
+            // Start by preventing a recursive call.
+            _solutionService.SolutionLoadStateChanged -= SolutionServiceOnSolutionLoadStateChanged;
 
             IsBusy = true;
 
-            // Load settings (from defaults if necessary).
+            // Load settings.  This takes a while because the solution may not be fully
+            // loaded yet or some other solution or project operation may be under way.
             var loadSettingsTask = SettingsSvc.LoadSettings();
 
             loadSettingsTask.ContinueWith(
@@ -62,6 +90,12 @@ namespace MvvmTools.Core.ViewModels
 
                     // This actually applies the _unmodifiedSettings to the properties.
                     RevertSettings().Forget();
+
+                    // Now subscribe to the Solution Service's SolutionLoadStateChanged event so
+                    // we can do all this over again when the solution or projects are unloaded,
+                    // loaded, added, or removed.
+                    _solutionService.SolutionLoadStateChanged += SolutionServiceOnSolutionLoadStateChanged;
+
                 }, TaskContinuationOptions.ExecuteSynchronously);
         }
 

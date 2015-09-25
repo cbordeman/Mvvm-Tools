@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -62,6 +63,11 @@ namespace MvvmTools.Core.Services
         Task<ProjectModel> GetSolution();
 
         /// <summary>
+        /// Lets consumers know when to call our methods again because the solution or some project has been unloaded, added, removed, or loaded.
+        /// </summary>
+        event EventHandler SolutionLoadStateChanged;
+
+        /// <summary>
         /// Gets the list of projects, flattened.
         /// </summary>
         /// <returns></returns>
@@ -103,6 +109,12 @@ namespace MvvmTools.Core.Services
 
         #endregion Ctor and Init
 
+        #region Events
+
+        public event EventHandler SolutionLoadStateChanged;
+
+        #endregion Events
+
         #region Properties
 
         #region SolutionLoadState
@@ -118,6 +130,7 @@ namespace MvvmTools.Core.Services
             {
                 lock (_solutionLock)
                     _solutionLoadState = value;
+                SolutionLoadStateChanged?.Invoke(this, null);
             }
         }
         #endregion SolutionLoadState

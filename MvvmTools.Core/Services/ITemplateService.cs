@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
@@ -9,9 +10,9 @@ using MvvmTools.Core.Utilities;
 
 namespace MvvmTools.Core.Services
 {
-    public interface ITemplateParseService
+    public interface ITemplateService
     {
-        List<Template> ParseTemplates(bool isInternal, [NotNull] string source, [NotNull] string data, out List<ParseError> errors);
+        void LoadTemplates(string localTemplateFolder);
     }
 
     public enum Section
@@ -19,7 +20,7 @@ namespace MvvmTools.Core.Services
         Template, Field, ViewModelVisualBasic, ViewModelCSharp, CodeBehindVisualBasic, CodeBehindCSharp, View
     }
 
-    public class TemplateParseService : ITemplateParseService
+    public class TemplateService : ITemplateService
     {
         #region Data
 
@@ -27,7 +28,16 @@ namespace MvvmTools.Core.Services
 
         #endregion Data
 
-        public List<Template> ParseTemplates(bool isInternal, string source, string data, out List<ParseError> errors)
+        #region Ctor
+
+        public TemplateService()
+        {
+
+        }
+
+        #endregion Ctor
+
+        private List<Template> ParseTemplates(bool isInternal, string source, string data, out List<ParseError> errors)
         {
             errors = _errors = new List<ParseError>();
 
@@ -137,7 +147,7 @@ namespace MvvmTools.Core.Services
                                     currentSection = Section.CodeBehindVisualBasic;
                                     break;
                             }
-                            
+
                             inT4 = true;
                             break;
 
@@ -200,7 +210,7 @@ namespace MvvmTools.Core.Services
                 throw new ArgumentNullException(nameof(currentSection));
             if (template == null)
                 throw new ArgumentNullException(nameof(template));
-        
+
             switch (currentSection.Value)
             {
                 case Section.CodeBehindCSharp:
@@ -231,7 +241,7 @@ namespace MvvmTools.Core.Services
             // If provided none of the T4 sections, error.
             if (template.ViewModelVisualBasic == null &&
                 template.CodeBehindVisualBasic == null &&
-                template.ViewModelCSharp == null && 
+                template.ViewModelCSharp == null &&
                 template.CodeBehindCSharp == null)
             {
                 _errors.Add(new ParseError("Please provide sections: ViewModel-VisualBasic and CodeBehind-VisualBasic, OR ViewModel-CSharp and CodeBehind-CSharp, OR all four sections.", linenum + 1));
@@ -471,7 +481,7 @@ namespace MvvmTools.Core.Services
         {
             // 'All' or a comma separated combination of: WPF, Silverlight, Xamarin, or WinRT.
             if (platforms.Equals("All", StringComparison.OrdinalIgnoreCase))
-                return new HashSet<Platform> {Platform.Silverlight, Platform.Wpf, Platform.WinRt, Platform.Xamarin};
+                return new HashSet<Platform> { Platform.Silverlight, Platform.Wpf, Platform.WinRt, Platform.Xamarin };
             var rval = new HashSet<Platform>();
             foreach (var p in platforms.Split(','))
             {
@@ -524,7 +534,6 @@ namespace MvvmTools.Core.Services
             return rval;
         }
 
-
         private void ValidateFieldProperties(int linenum, Field field)
         {
             var msg = "Expected field's \"{0}\" property, line " + (linenum + 1);
@@ -537,9 +546,8 @@ namespace MvvmTools.Core.Services
                 _errors.Add(new ParseError(string.Format(msg, "Prompt"), linenum + 1));
             if (field.FieldType == null)
                 _errors.Add(new ParseError(string.Format(msg, "Type"), linenum + 1));
-            
-        }
 
+        }
         private void ValidateTemplateProperties(int linenum, Template template)
         {
             var msg = "Expected template's \"{0}\" property, line " + (linenum + 1);
@@ -553,6 +561,72 @@ namespace MvvmTools.Core.Services
             if (string.IsNullOrEmpty(template.Name))
                 _errors.Add(new ParseError(string.Format(msg, "Name"), linenum + 1));
         }
+        
+        private string GetFromResources(string resourceName)
+        {
+            var assem = GetType().Assembly;
 
+            using (var stream = assem.GetManifestResourceStream(resourceName))
+            {
+                if (stream != null)
+                    using (var reader = new StreamReader(stream))
+                        return reader.ReadToEnd();
+                return null;
+            }
+        }
+
+        public void LoadTemplates(string localTemplateFolder)
+        {
+            var rval = new List<Template>();
+            try
+            {
+                // Factory templates.
+                var factoryTemplatesText = GetFromResources("MvvmTools.Core.Templates.Factory.tpl");
+                List<ParseError> errors;
+                var tmp1 = ParseTemplates(true, "Factory", factoryTemplatesText, out errors);
+                if (errors.Count == 0)
+                    rval.AddRange(tmp1);
+
+                // Local folder.
+                if (Directory.Exists(localTemplateFolder))
+                {
+                    var tmp2 = AddTemplatesFolder(localTemplateFolder);
+                    rval.AddRange(tmp2);
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"{nameof(LoadTemplates)}() failed: {ex}");
+                throw;
+            }
+        }
+
+        private IEnumerable<Template> AddTemplatesFolder(string sourceDirectory)
+        {
+            var folder = sourceDirectory;
+            var files = Directory.EnumerateFiles(folder, "*.tpl", SearchOption.AllDirectories);
+            foreach (var f in files)
+            {
+                string fn = null;
+                string contents = null;
+                try
+                {
+                    fn = Path.Combine(sourceDirectory, f);
+                    contents = File.ReadAllText(fn, Encoding.UTF8);
+                }
+                catch (Exception ex1)
+                {
+                    Trace.WriteLine($"Can't read template file {fn}: {ex1.Message}");
+                }
+                if (!string.IsNullOrWhiteSpace(contents))
+                {
+                    var source = Path.GetFileNameWithoutExtension(f);
+                    List<ParseError> errors;
+                    var templates = ParseTemplates(false, source, contents, out errors);
+                    foreach (var t in templates)
+                        yield return t;
+                }
+            }
+        }
     }
 }

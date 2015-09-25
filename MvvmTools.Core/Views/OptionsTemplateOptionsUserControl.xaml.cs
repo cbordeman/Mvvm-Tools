@@ -46,7 +46,7 @@ namespace MvvmTools.Core.Views
         {
             if (e.ClickCount == 2)
             {
-                var vm = (OptionsUserControlViewModel)DataContext;
+                var vm = (OptionsViewModel)DataContext;
                 vm?.ExecuteEditViewSuffixCommand();
             }
         }

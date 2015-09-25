@@ -319,7 +319,7 @@
     <Compile Include="Models\Template.cs" />
     <Compile Include="Services\IOutputService.cs" />
     <Compile Include="Services\ParseError.cs" />
-    <Compile Include="Services\TemplateParseService.cs" />
+    <Compile Include="Services\ITemplateService.cs" />
     <Compile Include="Utilities\NinjectServiceLocator.cs" />
     <Compile Include="Utilities\ProjectExtensions.cs" />
     <Compile Include="Utilities\SourceControlUtilities.cs" />
@@ -346,7 +346,7 @@
     <Compile Include="ViewModels\BaseDialogViewModel.cs" />
     <Compile Include="ViewModels\BaseViewModel.cs" />
     <Compile Include="ViewModels\LocationScaffoldUserControlViewModel.cs" />
-    <Compile Include="ViewModels\OptionsUserControlViewModel.cs" />
+    <Compile Include="ViewModels\OptionsViewModel.cs" />
     <Compile Include="ViewModels\LocationDescriptorUserControlViewModel.cs" />
     <Compile Include="ViewModels\ProjectOptionsUserControlViewModel.cs" />
     <Compile Include="ViewModels\ScaffoldDialogViewModel.cs" />

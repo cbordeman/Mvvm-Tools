@@ -24,7 +24,7 @@ namespace MvvmTools.Options
     {
         #region Fields
 
-        private OptionsUserControlViewModel _viewModel;
+        private OptionsViewModel _viewModel;
 
         #endregion Fields
 
@@ -66,7 +66,7 @@ namespace MvvmTools.Options
 
                 // Create, initialize, and bind a view model to our user control.
                 // This is a singleton.
-                _viewModel = MvvmToolsPackage.Kernel.Get<OptionsUserControlViewModel>();
+                _viewModel = MvvmToolsPackage.Kernel.Get<OptionsViewModel>();
                 optionsControl.DataContext = _viewModel;
 
                 _viewModel.Init();

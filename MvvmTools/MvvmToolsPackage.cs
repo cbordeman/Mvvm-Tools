@@ -169,7 +169,7 @@ namespace MvvmTools
                 Kernel.Bind<IDialogService>().To<DialogService>().InSingletonScope();
                 
                 // Option view model, a shared singleton because it's easier.
-                Kernel.Bind<OptionsUserControlViewModel>().ToSelf().InSingletonScope();
+                Kernel.Bind<OptionsViewModel>().ToSelf().InSingletonScope();
 
                 // Commands, which are singletons.
                 Kernel.Bind<GoToViewOrViewModelCommand>().ToSelf().InSingletonScope();
@@ -185,7 +185,7 @@ namespace MvvmTools
                 _solution = GetService(typeof(SVsSolution)) as IVsSolution;
                 _solution?.AdviseSolutionEvents(ss, out _solutionEventsCookie);
                 Kernel.Bind<IVsSolution>().ToConstant(_solution);
-                Kernel.Bind<ITemplateParseService>().To<TemplateParseService>().InSingletonScope();
+                Kernel.Bind<ITemplateService>().To<TemplateService>().InSingletonScope();
 
                 base.Initialize();
 

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -11,10 +10,8 @@ using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
 using MvvmTools.Core.Models;
-using MvvmTools.Core.Utilities;
 using Newtonsoft.Json;
 using Ninject;
-using Raven.Client.Linq.Indexing;
 
 namespace MvvmTools.Core.Services
 {
@@ -27,9 +24,10 @@ namespace MvvmTools.Core.Services
 
     public class SettingsService : ISettingsService
     {
-        private readonly ITemplateParseService _templateParseService;
-
         #region Data
+
+        private readonly ITemplateService _templateParseService;
+        private readonly ISolutionService _solutionService;
 
         // The file extension attached to a solution or project filename to store settings.
         // It can't be changed.
@@ -89,9 +87,9 @@ namespace MvvmTools.Core.Services
             };
         }
 
-        public SettingsService(IComponentModel componentModel, IKernel kernel, ITemplateParseService templateParseService)
+        public SettingsService(IComponentModel componentModel, ISolutionService solutionService)
         {
-            _templateParseService = templateParseService;
+            _solutionService = solutionService;
             var vsServiceProvider = componentModel.GetService<SVsServiceProvider>();
             var shellSettingsManager = new ShellSettingsManager(vsServiceProvider);
             _userSettingsStore = shellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
@@ -150,6 +148,10 @@ namespace MvvmTools.Core.Services
             }
         }
 
+        /// <summary>
+        /// This is async because it must wait for the solution to finish its operation(s).
+        /// </summary>
+        /// <returns></returns>
         public async Task<MvvmToolsSettings> LoadSettings()
         {
             // rval starts out containing default values.
@@ -163,11 +165,8 @@ namespace MvvmTools.Core.Services
                 rval.ViewSuffixes = GetStringCollection(ViewSuffixesPropName, DefaultViewSuffixes);
             }
 
-            // Load template urls.
-            LoadTemplates();
-
             // Get solution's ProjectOptions.
-            var solution = await SolutionService.GetSolution();
+            var solution = await _solutionService.GetSolution();
             if (solution == null)
                 return rval;
 
@@ -183,74 +182,6 @@ namespace MvvmTools.Core.Services
             return rval;
         }
 
-        private string GetFromResources(string resourceName)
-        {
-            var assem = GetType().Assembly;
-
-            using (var stream = assem.GetManifestResourceStream(resourceName))
-            {
-                if (stream != null)
-                    using (var reader = new StreamReader(stream))
-                        return reader.ReadToEnd();
-                return null;
-            }
-        }
-
-        private void LoadTemplates()
-        {
-            var rval = new List<Template>();
-            try
-            {
-                // Factory templates.
-                var factoryTemplatesText = GetFromResources("MvvmTools.Core.Templates.Factory.tpl");
-                List<ParseError> errors;
-                var tmp1 = _templateParseService.ParseTemplates(true, "Factory", factoryTemplatesText, out errors);
-                if (errors.Count == 0)
-                    rval.AddRange(tmp1);
-
-                // Local folder.
-                var localTemplateFolder = GetString(LocalTemplateFolderPropName, _defaultLocalTemplateFolder);
-                if (Directory.Exists(localTemplateFolder))
-                {
-                    var tmp2 = AddTemplatesFolder(localTemplateFolder);
-                    rval.AddRange(tmp2);
-                }
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"{nameof(LoadTemplates)}() failed: {ex}");
-                throw;
-            }
-        }
-
-        private IEnumerable<Template> AddTemplatesFolder(string sourceDirectory)
-        {
-            var folder = sourceDirectory;
-            var files = Directory.EnumerateFiles(folder, "*.tpl", SearchOption.AllDirectories);
-            foreach (var f in files)
-            {
-                string fn = null;
-                string contents = null;
-                try
-                {
-                    fn = Path.Combine(sourceDirectory, f);
-                    contents = File.ReadAllText(fn, Encoding.UTF8);
-                }
-                catch (Exception ex1)
-                {
-                    Trace.WriteLine($"Can't read template file {fn}: {ex1.Message}");
-                }
-                if (!string.IsNullOrWhiteSpace(contents))
-                {
-                    var source = Path.GetFileNameWithoutExtension(f);
-                    List<ParseError> errors;
-                    var templates = _templateParseService.ParseTemplates(false, source, contents, out errors);
-                    foreach (var t in templates)
-                        yield return t;
-                }
-            }
-        }
-        
         private void AddProjectOptionsFlattenedRecursive(ProjectOptions inherited, ICollection<ProjectOptions> projectOptionsCollection, IEnumerable<ProjectModel> solutionTree, string prefix = null)
         {
             foreach (var p in solutionTree)

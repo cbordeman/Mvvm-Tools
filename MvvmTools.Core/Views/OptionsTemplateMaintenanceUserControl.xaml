@@ -5,7 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:MvvmTools.Core.ViewModels"
              xmlns:views="clr-namespace:MvvmTools.Core.Views"
-             d:DataContext="{d:DesignInstance viewModels:OptionsUserControlViewModel,
+             d:DataContext="{d:DesignInstance viewModels:OptionsViewModel,
                                               IsDesignTimeCreatable=False}"
              d:DesignHeight="300"
              d:DesignWidth="300"
