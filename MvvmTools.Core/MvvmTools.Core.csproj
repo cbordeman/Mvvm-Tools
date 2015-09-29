@@ -310,12 +310,14 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Behaviors\FolderDialogBehavior.cs" />
     <Compile Include="Converters\BoolInvertedConverter.cs" />
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="Converters\FalseToVisibleConverter.cs" />
     <Compile Include="Converters\NullToCollapsedConverter.cs" />
     <Compile Include="Converters\NullToVisibleConverter.cs" />
     <Compile Include="Converters\ProjectDisplayNameConverter.cs" />
+    <Compile Include="Models\CDataWrapper.cs" />
     <Compile Include="Models\Template.cs" />
     <Compile Include="Services\IOutputService.cs" />
     <Compile Include="Services\ParseError.cs" />
@@ -353,6 +355,7 @@
     <Compile Include="ViewModels\SelectFileDialogViewModel.cs" />
     <Compile Include="ViewModels\StringDialogViewModel.cs" />
     <Compile Include="ViewModels\StringViewModel.cs" />
+    <Compile Include="ViewModels\TemplateViewModel.cs" />
     <Compile Include="ViewModels\TestPresentationModel.cs" />
     <Compile Include="ViewModels\ValueDescriptor.cs" />
     <Compile Include="Views\BusyUserControl.xaml.cs">
@@ -416,8 +419,6 @@
       <SubType>Designer</SubType>
     </None>
     <AppDesigner Include="Properties\" />
-    <EmbeddedResource Include="Templates\Factory.tpl" />
-    <EmbeddedResource Include="Templates\Sample.tpl" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="Converters\Converters.xaml">
@@ -498,6 +499,10 @@
       <Project>{51ef8471-4e69-4368-98ae-67e487860625}</Project>
       <Name>MvvmTools.Shared</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="InternalTemplates.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Microsoft.VisualStudio.SDK.VsixSuppression.14.0.50430-pre\build\Microsoft.VisualStudio.SDK.VsixSuppression.targets" Condition="Exists('..\packages\Microsoft.VisualStudio.SDK.VsixSuppression.14.0.50430-pre\build\Microsoft.VisualStudio.SDK.VsixSuppression.targets')" />

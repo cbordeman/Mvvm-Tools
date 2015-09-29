@@ -207,7 +207,6 @@ namespace MvvmTools.Core.ViewModels
         #region OkCommand
 
         private DelegateCommand _okCommand;
-
         public DelegateCommand OkCommand
             => _okCommand ?? (_okCommand = new DelegateCommand(ExecuteOkCommand, CanOkCommand));
         public bool CanOkCommand() => Error == null;

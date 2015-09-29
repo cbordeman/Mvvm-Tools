@@ -1,14 +1,20 @@
-﻿namespace MvvmTools.Core.Services
+﻿using MvvmTools.Core.Models;
+
+namespace MvvmTools.Core.Services
 {
     public class ParseError
     {
-        public ParseError(string error, int lineNumber)
+        public ParseError(Template template, Field field, string source, string error)
         {
+            Template = template;
+            Field = field;
+            Source = source;
             Error = error;
-            LineNumber = lineNumber;
         }
 
+        public Template Template { get; set; }
+        public Field Field { get; set; }
+        public string Source { get; set; }
         public string Error { get; private set; }
-        public int LineNumber { get; private set; }
     }
 }

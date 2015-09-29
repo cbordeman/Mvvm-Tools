@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -49,6 +50,11 @@ namespace MvvmTools.Core.Views
                 var vm = (OptionsViewModel)DataContext;
                 vm?.ExecuteEditViewSuffixCommand();
             }
+        }
+
+        private void Hyperlink_OnClick(object sender, RoutedEventArgs e)
+        {
+            Process.Start("mailto://mvvmtools@outlook.com");
         }
     }
 }

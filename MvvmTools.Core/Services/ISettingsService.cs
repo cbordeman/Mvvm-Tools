@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
 using MvvmTools.Core.Models;
 using Newtonsoft.Json;
-using Ninject;
 
 namespace MvvmTools.Core.Services
 {
@@ -19,15 +18,15 @@ namespace MvvmTools.Core.Services
     {
         Task<MvvmToolsSettings> LoadSettings();
         void SaveSettings(MvvmToolsSettings settings);
-        string RefreshToken { get; set; }
+        string DefaultLocalTemplateFolder { get; }
     }
 
     public class SettingsService : ISettingsService
     {
         #region Data
 
-        private readonly ITemplateService _templateParseService;
         private readonly ISolutionService _solutionService;
+        private readonly IDialogService _dialogService;
 
         // The file extension attached to a solution or project filename to store settings.
         // It can't be changed.
@@ -40,9 +39,6 @@ namespace MvvmTools.Core.Services
         private const string GoToViewOrViewModelPropName = "GoToViewOrViewModel";
         private const string GoToViewOrViewModelSearchSolutionPropName = "GoToViewOrViewModelSearchSolution";
         private const string ViewSuffixesPropName = "ViewSuffixes";
-
-        private readonly string _defaultLocalTemplateFolder = 
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "MVVM Tools\\Templates");
         private const string LocalTemplateFolderPropName = "LocalTemplateFolder";
         
         // Factory templates.
@@ -57,7 +53,7 @@ namespace MvvmTools.Core.Services
         // These are the defaults used for new solutions.
         public static readonly ProjectOptions SolutionDefaultProjectOptions;
 
-        private static readonly string TempFolder = Path.GetTempPath();
+        //private static readonly string TempFolder = Path.GetTempPath();
         
         #endregion Data
 
@@ -87,26 +83,27 @@ namespace MvvmTools.Core.Services
             };
         }
 
-        public SettingsService(IComponentModel componentModel, ISolutionService solutionService)
+        public SettingsService(IComponentModel componentModel, ISolutionService solutionService,
+            IDialogService dialogService)
         {
             _solutionService = solutionService;
+            _dialogService = dialogService;
             var vsServiceProvider = componentModel.GetService<SVsServiceProvider>();
             var shellSettingsManager = new ShellSettingsManager(vsServiceProvider);
             _userSettingsStore = shellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
+
+            // Get default local template folder, which is the user's My docs\mvvm tools\templates.
+            var mydocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            DefaultLocalTemplateFolder = Path.Combine(mydocs, "MVVM Tools\\Templates");
         }
 
         #endregion Ctor and Init
 
         #region Properties
 
-        [Inject]
         public ISolutionService SolutionService { get; set; }
 
-        public string RefreshToken
-        {
-            get { return GetString(nameof(RefreshToken), null); }
-            set { SetString(nameof(RefreshToken), value); }
-        }
+        public string DefaultLocalTemplateFolder { get; }
 
         #endregion Properties
 
@@ -154,7 +151,8 @@ namespace MvvmTools.Core.Services
         /// <returns></returns>
         public async Task<MvvmToolsSettings> LoadSettings()
         {
-            // rval starts out containing default values.
+            // rval starts out containing default values, exceptLocalTemplateFolder, which is null
+            // so we use our DefaultLocalTemplateFolder, which is a subfolder off My Docs.
             var rval = new MvvmToolsSettings();
 
             // Get any saved settings
@@ -163,9 +161,30 @@ namespace MvvmTools.Core.Services
                 rval.GoToViewOrViewModelOption = GetEnum(GoToViewOrViewModelPropName, GoToViewOrViewModelOption.ShowUi);
                 rval.GoToViewOrViewModelSearchSolution = GetBool(GoToViewOrViewModelSearchSolutionPropName, true);
                 rval.ViewSuffixes = GetStringCollection(ViewSuffixesPropName, DefaultViewSuffixes);
+                rval.LocalTemplateFolder = GetString(LocalTemplateFolderPropName, DefaultLocalTemplateFolder);
             }
 
-            // Get solution's ProjectOptions.
+            // Make sure the LocalTemplateFolder setting exists in our saved values.  It might not
+            // because the setting is being introduced in version 0.5 of MVVM Tools.
+            if (string.IsNullOrWhiteSpace(rval.LocalTemplateFolder))
+                rval.LocalTemplateFolder = DefaultLocalTemplateFolder;
+
+            try
+            {
+                if (!Directory.Exists(rval.LocalTemplateFolder))
+                    // This creates all the intermediate folders as well, if they don't exist.
+                    Directory.CreateDirectory(rval.LocalTemplateFolder);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"In {nameof(SettingsService)}.{nameof(LoadSettings)}(), failed to check existence of or create local template folder.  Value: {rval.LocalTemplateFolder}" + Environment.NewLine + ex);
+                await _dialogService.ShowMessage("Error",
+                    "Couldn't read or create the local template folder, which was:" + Environment.NewLine +
+                    Environment.NewLine + "\t" + rval.LocalTemplateFolder + Environment.NewLine + ex);
+                throw;
+            }
+            
+            // Get solution's structure.  Waits for solution operations to complete.
             var solution = await _solutionService.GetSolution();
             if (solution == null)
                 return rval;
@@ -222,6 +241,7 @@ namespace MvvmTools.Core.Services
             SetEnum(GoToViewOrViewModelPropName, settings.GoToViewOrViewModelOption);
             SetBool(GoToViewOrViewModelSearchSolutionPropName, settings.GoToViewOrViewModelSearchSolution);
             SetStringCollection(ViewSuffixesPropName, settings.ViewSuffixes);
+            SetString(LocalTemplateFolderPropName, settings.LocalTemplateFolder);
 
             // If a solution is loaded...
             if (settings.SolutionOptions != null)

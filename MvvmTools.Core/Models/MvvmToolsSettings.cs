@@ -30,8 +30,5 @@ namespace MvvmTools.Core.Models
 
         // Contains the list of configuration settings for the projects.
         public IList<ProjectOptions> ProjectOptions { get; set; }
-        
-        public IList<Template> FactoryTemplates { get; set; }
-        public IList<Template> LocalTemplates { get; set; }
     }
 }

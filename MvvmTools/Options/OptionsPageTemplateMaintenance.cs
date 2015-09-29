@@ -62,7 +62,7 @@ namespace MvvmTools.Options
 
                 // Create a WinForms container for our WPF General Options page.
                 var elementHost = new ElementHost();
-                var optionsControl = new OptionsTemplateOptionsUserControl();
+                var optionsControl = new OptionsTemplateMaintenanceUserControl();
 
                 // Create, initialize, and bind a view model to our user control.
                 // This is a singleton.

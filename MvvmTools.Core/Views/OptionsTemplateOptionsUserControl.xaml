@@ -1,7 +1,9 @@
 ﻿<UserControl x:Class="MvvmTools.Core.Views.OptionsTemplateOptionsUserControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:behaviors="clr-namespace:MvvmTools.Core.Behaviors"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:MvvmTools.Core.ViewModels"
              xmlns:views="clr-namespace:MvvmTools.Core.Views"
@@ -31,45 +33,78 @@
         <!--  Header  -->
         <views:HeaderUserControl />
 
-        <GroupBox Margin="0,15,0,0" Header="My Templates">
+        <StackPanel Grid.Row="1" Margin="0,15,0,0">
+            <TextBlock TextWrapping="WrapWithOverflow">
+                You can create your own templates on the &apos;Template Maintenance&apos; page.
+                They will be placed inside the &apos;LocalTemplates.xml&apos; file in your
+                Local Templates Folder (configured below).
+            </TextBlock>
+            <TextBlock Margin="0,10,0,0" TextWrapping="WrapWithOverflow">
+                If you'd like to share your templates with the community, please email the &apos;LocalTemplates.xml&apos; file to
+                <Hyperlink Click="Hyperlink_OnClick" NavigateUri="mailto://mvvmtools@outlook.com">mvvmtools@outlook.com</Hyperlink>
+                and I'll consider adding it for the next release.
+            </TextBlock>
+            <TextBlock Margin="0,10,0,0" TextWrapping="WrapWithOverflow">
+                Please be
+                <Bold>sure</Bold>
+                to indicate the
+                <Bold>name of the template(s)</Bold>
+                you want to share, along with the
+                <Bold>language(s)</Bold>
+                .  You may want to include your
+                <Bold>your name</Bold>
+                (e.g. &apos;Original author: Bob Smith&apos;) in the description
+                of the template.  Note that I might make some changes or corrections before inclusion.
+            </TextBlock>
+            <TextBlock Margin="0,10,0,0" TextWrapping="WrapWithOverflow">
+                I'm
+                <Hyperlink Click="Hyperlink_OnClick" NavigateUri="mailto://mvvmtools@outlook.com">open to suggestions</Hyperlink>
+                on existing templates.
+            </TextBlock>
+        </StackPanel>
+
+        <GroupBox Grid.Row="2"
+                  Margin="0,15,0,0"
+                  Header="Local Templates">
             <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
+                    <RowDefinition />
                 </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
 
-                <RichTextBox Margin="0,5,0,0"
-                             BorderThickness="0"
-                             IsReadOnly="True"
-                             IsReadOnlyCaretVisible="False"
-                             IsTabStop="False">
-                    <FlowDocument>
-                        <Paragraph>
-                            You can create your own templates by creating .TPL files.  Each .TPL can contain
-                            <Bold>several</Bold>
-                            templates, for organizational purposes, or you can split each template into a separate .TPL file.
-                            The filename of the template will be used as the
-                            displayed '
-                            <Italic>Source</Italic>
-                            ' of those templates in the Templates list.
-                        </Paragraph>
-
-                        <Paragraph>
-                            .TPL files are a mixture of INI and T4.  To get started, press the '
-                            <Bold>Create Sample.tpl Template</Bold>
-                            button, and read the comments inside it fully.
-                        </Paragraph>
-                    </FlowDocument>
-                </RichTextBox>
-
-
+                <TextBlock Margin="0,0,5,0" Text="Local Templates Folder:" />
+                <TextBox Grid.Row="0"
+                         Grid.Column="1"
+                         Text="{Binding LocalTemplateFolder,
+                                        Mode=TwoWay}" />
+                <Button Grid.Row="0"
+                        Grid.Column="2"
+                        Margin="5,0,0,0"
+                        Content="Browse..."
+                        Padding="3,1">
+                    <i:Interaction.Behaviors>
+                        <behaviors:FolderDialogBehavior FolderName="{Binding LocalTemplateFolder, Mode=TwoWay}" />
+                    </i:Interaction.Behaviors>
+                </Button>
+                <StackPanel Grid.Row="1"
+                            Grid.Column="1"
+                            Margin="0,3,0,0"
+                            Orientation="Horizontal">
+                    <Button Command="{Binding CreateLocalTemplateFolderCommand}"
+                            Content="Create Folder..."
+                            Padding="3,1" />
+                    <Button Margin="5,0,0,0"
+                            Command="{Binding OpenLocalTemplateFolderCommand}"
+                            Content="Open Folder..."
+                            Padding="3,1" />
+                </StackPanel>
             </Grid>
         </GroupBox>
-
-
     </Grid>
 </UserControl>

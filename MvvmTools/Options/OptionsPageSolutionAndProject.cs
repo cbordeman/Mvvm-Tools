@@ -18,7 +18,7 @@ namespace MvvmTools.Options
     // with support for the Visual Studio automation model, Windows Forms, and state 
     // persistence through the Visual Studio settings mechanism.
     /// </summary>
-	[Guid(Constants.GuidOptionsPageSolutionAndProjects)]
+    [Guid(Constants.GuidOptionsPageSolutionAndProjects)]
     [ComVisible(true)]
     internal class OptionsPageSolutionAndProjects : DialogPage
     {
@@ -44,15 +44,15 @@ namespace MvvmTools.Options
         /// <summary>
         /// Gets the window an instance of DialogPage that it uses as its user interface.
         /// </summary>
-		/// <devdoc>
-		/// The window this dialog page will use for its UI.
-		/// This window handle must be constant, so if you are
-		/// returning a Windows Forms control you must make sure
-		/// it does not recreate its handle.  If the window object
-		/// implements IComponent it will be sited by the 
-		/// dialog page so it can get access to global services.
-		/// </devdoc>
-		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        /// <devdoc>
+        /// The window this dialog page will use for its UI.
+        /// This window handle must be constant, so if you are
+        /// returning a Windows Forms control you must make sure
+        /// it does not recreate its handle.  If the window object
+        /// implements IComponent it will be sited by the 
+        /// dialog page so it can get access to global services.
+        /// </devdoc>
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         protected override IWin32Window Window
         {
             get
@@ -106,9 +106,9 @@ namespace MvvmTools.Options
         /// <summary>
         /// Handles "Close" messages from the Visual Studio environment.
         /// </summary>
-		/// <devdoc>
-		/// This event is raised when the page is closed.
-		/// </devdoc>
+        /// <devdoc>
+        /// This event is raised when the page is closed.
+        /// </devdoc>
         protected override async void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
@@ -121,16 +121,16 @@ namespace MvvmTools.Options
         /// <summary>
         /// Handles "Deactive" messages from the Visual Studio environment.
         /// </summary>
-		/// <devdoc>
-		/// This method is called when VS wants to deactivate this
-		/// page.  If true is set for the Cancel property of the event, 
-		/// the page is not deactivated.
-		/// </devdoc>
+        /// <devdoc>
+        /// This method is called when VS wants to deactivate this
+        /// page.  If true is set for the Cancel property of the event, 
+        /// the page is not deactivated.
+        /// </devdoc>
         /// <remarks>
         /// A "Deactive" message is sent when a dialog page's user interface 
         /// window loses focus or is minimized but is not closed.
         /// </remarks>
-		protected override void OnDeactivate(CancelEventArgs e)
+        protected override void OnDeactivate(CancelEventArgs e)
         {
             base.OnDeactivate(e);
             //var result = WinFormsHelper.ShowMessageBox(Resources.MessageOnDeactivateEntered, Resources.MessageOnDeactivateEntered, MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
@@ -152,10 +152,10 @@ namespace MvvmTools.Options
         /// <summary>
         /// Handles Apply messages from the Visual Studio environment.
         /// </summary>
-		/// <devdoc>
-		/// This method is called when VS wants to save the user's 
-		/// changes then the dialog is dismissed.
-		/// </devdoc>
+        /// <devdoc>
+        /// This method is called when VS wants to save the user's 
+        /// changes then the dialog is dismissed.
+        /// </devdoc>
         protected override void OnApply(PageApplyEventArgs e)
         {
             base.OnApply(e);

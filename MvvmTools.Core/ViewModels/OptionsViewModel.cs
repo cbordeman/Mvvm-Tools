@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using MvvmTools.Core.Models;
 using MvvmTools.Core.Services;
 using MvvmTools.Core.Utilities;
 using Ninject;
+using Raven.Abstractions.Extensions;
 
 // ReSharper disable ExplicitCallerInfoArgument
 
@@ -22,7 +24,12 @@ namespace MvvmTools.Core.ViewModels
 
         private bool _isInitialized;
 
-        private ISolutionService _solutionService;
+        private readonly ISolutionService _solutionService;
+        private readonly IDialogService _dialogService;
+        private readonly ISettingsService _settingsService;
+        private readonly ITemplateService _templateService;
+
+        private ObservableCollection<TemplateViewModel> _templatesSource;
 
         private MvvmToolsSettings _unmodifiedSettings;
 
@@ -37,9 +44,12 @@ namespace MvvmTools.Core.ViewModels
 
         #region Ctor and Init
 
-        public OptionsViewModel(ISolutionService solutionService)
+        public OptionsViewModel(ISolutionService solutionService, IDialogService dialogService, ISettingsService settingsService, ITemplateService templateService)
         {
             _solutionService = solutionService;
+            _dialogService = dialogService;
+            _settingsService = settingsService;
+            _templateService = templateService;
         }
 
         public void Init()
@@ -80,20 +90,20 @@ namespace MvvmTools.Core.ViewModels
                     // Save the original, unmodified settings.
                     _unmodifiedSettings = settings;
 
-                    GoToViewOrViewModelOptions = new List<ValueDescriptor<GoToViewOrViewModelOption>>
-                    {
-                        new ValueDescriptor<GoToViewOrViewModelOption>(GoToViewOrViewModelOption.ShowUi, "Ask"),
-                        new ValueDescriptor<GoToViewOrViewModelOption>(GoToViewOrViewModelOption.ChooseXaml, "If view, open the XAML"),
-                        new ValueDescriptor<GoToViewOrViewModelOption>(GoToViewOrViewModelOption.ChooseCodeBehind, "If view, open the code behind"),
-                        new ValueDescriptor<GoToViewOrViewModelOption>(GoToViewOrViewModelOption.ChooseFirst, "Always open the first item found")
-                    };
+                    if (GoToViewOrViewModelOptions == null)
+                        GoToViewOrViewModelOptions = new List<ValueDescriptor<GoToViewOrViewModelOption>>
+                        {
+                            new ValueDescriptor<GoToViewOrViewModelOption>(GoToViewOrViewModelOption.ShowUi, "Ask"),
+                            new ValueDescriptor<GoToViewOrViewModelOption>(GoToViewOrViewModelOption.ChooseXaml, "If view, open the XAML"),
+                            new ValueDescriptor<GoToViewOrViewModelOption>(GoToViewOrViewModelOption.ChooseCodeBehind, "If view, open the code behind"),
+                            new ValueDescriptor<GoToViewOrViewModelOption>(GoToViewOrViewModelOption.ChooseFirst, "Always open the first item found")
+                        };
 
                     // This actually applies the _unmodifiedSettings to the properties.
                     RevertSettings().Forget();
 
                     // Now subscribe to the Solution Service's SolutionLoadStateChanged event so
-                    // we can do all this over again when the solution or projects are unloaded,
-                    // loaded, added, or removed.
+                    // we can do all this over again when the solution or projects change again.
                     _solutionService.SolutionLoadStateChanged += SolutionServiceOnSolutionLoadStateChanged;
 
                 }, TaskContinuationOptions.ExecuteSynchronously);
@@ -118,6 +128,15 @@ namespace MvvmTools.Core.ViewModels
         }
         #endregion IsBusy
 
+        #region Templates
+        private ListCollectionView _templates;
+        public ListCollectionView Templates
+        {
+            get { return _templates; }
+            set { SetProperty(ref _templates, value); }
+        }
+        #endregion Templates
+        
         #region ViewSuffixesView
         private ListCollectionView _viewSuffixesView;
         public ListCollectionView ViewSuffixesView
@@ -144,6 +163,25 @@ namespace MvvmTools.Core.ViewModels
             }
         }
         #endregion ViewSuffixes
+
+        #region LocalTemplateFolder
+        private string _localTemplateFolder;
+        public string LocalTemplateFolder
+        {
+            get { return _localTemplateFolder; }
+            set
+            {
+                if (SetProperty(ref _localTemplateFolder, value))
+                {
+                    // Must be present, and non-relative.
+                    if (string.IsNullOrWhiteSpace(_localTemplateFolder) || !Path.IsPathRooted(_localTemplateFolder))
+                        LocalTemplateFolder = _settingsService.DefaultLocalTemplateFolder;
+
+                    RefreshTemplates();
+                }
+            }
+        }
+        #endregion LocalTemplateFolder
 
         #region ProjectsOptions
         private List<ProjectOptionsUserControlViewModel> _projectsOptions;
@@ -173,7 +211,6 @@ namespace MvvmTools.Core.ViewModels
 
         #region ShowResetAll
         public bool ShowResetAll => SelectedProjectOption != null && SelectedProjectOption == ProjectsOptions?[0];
-
         #endregion ShowResetAll
 
         #region GoToViewOrViewModelOptions
@@ -213,13 +250,14 @@ namespace MvvmTools.Core.ViewModels
                 return null;
 
             // Extracts settings from view model properties.  These are the 
-            // 'current' settings, while the unmodified settings values are store in
+            // 'current' settings, while the unmodified settings values are stored in
             // _unmodifiedSettings.
             var settings = new MvvmToolsSettings
             {
                 GoToViewOrViewModelOption = SelectedGoToViewOrViewModelOption,
                 GoToViewOrViewModelSearchSolution = GoToViewOrViewModelSearchSolution,
-                ViewSuffixes = ViewSuffixes.Select(vs => vs.Value).ToArray()
+                ViewSuffixes = ViewSuffixes.Select(vs => vs.Value).ToArray(),
+                LocalTemplateFolder = LocalTemplateFolder
             };
 
             for (int index = 0; index < ProjectsOptions.Count; index++)
@@ -258,7 +296,7 @@ namespace MvvmTools.Core.ViewModels
                 return;
 
             // Reverts properties to the values saved in _unmodifiedSettings.  This
-            // is used to cancel changes.
+            // is used to cancel changes or to set the properties' initial values.
 
             // Unsubscribe from solution events on the old solution.
             var oldSolutionVm = ProjectsOptions?.FirstOrDefault();
@@ -276,6 +314,7 @@ namespace MvvmTools.Core.ViewModels
             SelectedGoToViewOrViewModelOption = _unmodifiedSettings.GoToViewOrViewModelOption;
             GoToViewOrViewModelSearchSolution = _unmodifiedSettings.GoToViewOrViewModelSearchSolution;
             ViewSuffixes = new ObservableCollection<StringViewModel>(_unmodifiedSettings.ViewSuffixes.Select(s => new StringViewModel(s)));
+            LocalTemplateFolder = _unmodifiedSettings.LocalTemplateFolder;
 
             // Add solution and other projects.
             var tmp = new List<ProjectOptionsUserControlViewModel>();
@@ -469,7 +508,53 @@ namespace MvvmTools.Core.ViewModels
         #endregion Public Methods
 
         #region Commands
-
+        
+        #region CreateLocalTemplateFolderCommand
+        DelegateCommand _createLocalTemplateFolderCommand;
+        public DelegateCommand CreateLocalTemplateFolderCommand => _createLocalTemplateFolderCommand ?? (_createLocalTemplateFolderCommand = new DelegateCommand(ExecuteCreateLocalTemplateFolderCommand, CanCreateLocalTemplateFolderCommand));
+        public bool CanCreateLocalTemplateFolderCommand() => true;
+        public void ExecuteCreateLocalTemplateFolderCommand()
+        {
+            // Create directory if it doesn't exist.
+            try
+            {
+                if (Directory.Exists(LocalTemplateFolder))
+                    _dialogService.ShowMessage("Exists", "The folder already exists.");
+                else
+                {
+                    Directory.CreateDirectory(LocalTemplateFolder);
+                    _dialogService.ShowMessage("Created", "Folder created successfully.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _dialogService.ShowMessage("Error", $"The folder \"{LocalTemplateFolder}\" couldn't be created.");
+                Trace.WriteLine($"In {nameof(OptionalAttribute)}.{nameof(ExecuteCreateLocalTemplateFolderCommand)}(), couldn't create local template folder (and subfolders).  Folder: {LocalTemplateFolder}.  Error: {ex.Message}");
+            }
+        }
+        #endregion
+        
+        #region OpenLocalTemplateFolderCommand
+        DelegateCommand _openLocalTemplateFolderCommand;
+        public DelegateCommand OpenLocalTemplateFolderCommand => _openLocalTemplateFolderCommand ?? (_openLocalTemplateFolderCommand = new DelegateCommand(ExecuteOpenLocalTemplateFolderCommand, CanOpenLocalTemplateFolderCommand));
+        public bool CanOpenLocalTemplateFolderCommand() => true;
+        public void ExecuteOpenLocalTemplateFolderCommand()
+        {
+            try
+            {
+                // Create directory if it doesn't exist.
+                if (!Directory.Exists(LocalTemplateFolder))
+                    Directory.CreateDirectory(LocalTemplateFolder);
+                Process.Start(LocalTemplateFolder);
+            }
+            catch (Exception ex)
+            {
+                _dialogService.ShowMessage("Error", $"The folder \"{LocalTemplateFolder}\" doesn't exist and couldn't be created.");
+                Trace.WriteLine($"In {nameof(OptionalAttribute)}.{nameof(ExecuteCreateLocalTemplateFolderCommand)}(), couldn't create local template folder (and subfolders).  Folder: {LocalTemplateFolder}.  Error: {ex.Message}");
+            }
+        }
+        #endregion
+        
         #region ResetAllToInheritedCommand
         DelegateCommand _resetAllToInheritedCommand;
         public DelegateCommand ResetAllToInheritedCommand => _resetAllToInheritedCommand ?? (_resetAllToInheritedCommand = new DelegateCommand(ExecuteResetAllToInheritedCommand, CanResetAllToInheritedCommand));
@@ -527,11 +612,13 @@ namespace MvvmTools.Core.ViewModels
         DelegateCommand _deleteViewSuffixCommand;
         public DelegateCommand DeleteViewSuffixCommand => _deleteViewSuffixCommand ?? (_deleteViewSuffixCommand = new DelegateCommand(ExecuteDeleteViewSuffixCommand, CanDeleteViewSuffixCommand));
         public bool CanDeleteViewSuffixCommand() => ViewSuffixesView?.CurrentItem != null;
-        public void ExecuteDeleteViewSuffixCommand()
+        public async void ExecuteDeleteViewSuffixCommand()
         {
             try
             {
-                ViewSuffixesView.Remove(ViewSuffixesView.CurrentItem);
+                var vs = (StringViewModel) ViewSuffixesView?.CurrentItem;
+                if ((await _dialogService.Ask("Delete View Suffix?", $"Delete view suffix \"{vs?.Value}?\"", AskButton.OKCancel)) == AskResult.OK)
+                    ViewSuffixesView?.Remove(ViewSuffixesView.CurrentItem);
             }
             catch (Exception)
             {
@@ -539,6 +626,91 @@ namespace MvvmTools.Core.ViewModels
             }
         }
         #endregion
+
+
+        #region AddTemplateCommand
+        DelegateCommand _addTemplateCommand;
+        public DelegateCommand AddTemplateCommand => _addTemplateCommand ?? (_addTemplateCommand = new DelegateCommand(ExecuteAddTemplateCommand, CanAddTemplateCommand));
+        public bool CanAddTemplateCommand() => true;
+        public void ExecuteAddTemplateCommand()
+        {
+            //try
+            //{
+            //    var vm = Kernel.Get<StringDialogViewModel>();
+            //    vm.Add("Add View Suffix", "View Suffix:", ViewSuffixes?.Select(s => s.Value),
+            //        SuffixRegex, SuffixRegexErrorMessage);
+
+            //    if (DialogService.ShowDialog(vm))
+            //    {
+            //        var newItem = new StringViewModel(vm.Value);
+            //        ViewSuffixesView.AddNewItem(newItem);
+            //        // ReSharper disable once PossibleNullReferenceException
+            //        ViewSuffixesView.MoveCurrentToPosition(ViewSuffixes.IndexOf(newItem));
+            //    }
+            //}
+            //catch
+            //{
+            //    // ignored
+            //}
+        }
+        #endregion
+
+        #region EditTemplateCommand
+        DelegateCommand _editTemplateCommand;
+        public DelegateCommand EditTemplateCommand => _editTemplateCommand ?? (_editTemplateCommand = new DelegateCommand(ExecuteEditTemplateCommand, CanEditTemplateCommand));
+        public bool CanEditTemplateCommand() => Templates?.CurrentItem != null;
+        public void ExecuteEditTemplateCommand()
+        {
+            //try
+            //{
+            //    var cur = ViewSuffixesView.CurrentItem as StringViewModel;
+            //    Debug.Assert(cur != null);
+
+            //    var vm = Kernel.Get<StringDialogViewModel>();
+            //    vm.Edit("Edit View Suffix", "View Suffix:", cur.Value, ViewSuffixes.Select(s => s.Value),
+            //        SuffixRegex, SuffixRegexErrorMessage);
+            //    if (DialogService.ShowDialog(vm))
+            //        cur.Value = vm.Value;
+            //}
+            //catch
+            //{
+            //    // ignored
+            //}
+        }
+        #endregion
+        
+        #region DeleteTemplateCommand
+        DelegateCommand _deleteTemplateCommand;
+        public DelegateCommand DeleteTemplateCommand => _deleteTemplateCommand ?? (_deleteTemplateCommand = new DelegateCommand(ExecuteDeleteTemplateCommand, CanDeleteTemplateCommand));
+        public bool CanDeleteTemplateCommand() => Templates?.CurrentItem != null && !((Template) Templates.CurrentItem).IsInternal;
+        public async void ExecuteDeleteTemplateCommand()
+        {
+            try
+            {
+                var t = (Template) Templates.CurrentItem;
+                if ((await _dialogService.Ask("Delete Template?", $"Delete template \"{t.Name}?\"", AskButton.OKCancel)) == AskResult.OK)
+                    if ((await _dialogService.Ask("Are you sure?", $"Are you sure you want to DELETE template \"{t.Name}?\"", AskButton.OKCancel)) == AskResult.OK)
+                        Templates.Remove(Templates.CurrentItem);
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+        #endregion
+        
+        #region CopyTemplateCommand
+        DelegateCommand _copyTemplateCommand;
+        public DelegateCommand CopyTemplateCommand => _copyTemplateCommand ?? (_copyTemplateCommand = new DelegateCommand(ExecuteCopyTemplateCommand, CanCopyTemplateCommand));
+        public bool CanCopyTemplateCommand() => Templates?.CurrentItem != null;
+        public void ExecuteCopyTemplateCommand()
+        {
+            //var t = (Template)Templates.CurrentItem;
+            //if ((await _dialogService.Ask("Copy Template?", $"Copy template \"{t.Name}?\"", AskButton.OKCancel)) == AskResult.OK)
+            //    Templates.Add(ViewSuffixesView.CurrentItem);
+        }
+        #endregion
+
 
         #region AddViewSuffixCommand
         DelegateCommand _addViewSuffixCommand;
@@ -619,7 +791,55 @@ namespace MvvmTools.Core.ViewModels
             return rval;
         }
 
+        private void RefreshTemplates()
+        {
+            var templates = _templateService.LoadTemplates(LocalTemplateFolder);
+
+            bool restore = Templates != null;
+            int savedPos = 0;
+            if (restore)
+            {
+                Templates.Filter = null;
+                Templates.CurrentChanged -= TemplatesOnCurrentChanged;
+
+                // Save state of ListCollectionView to restore later.
+                savedPos = Templates.CurrentPosition;
+            }
+
+            _templatesSource = new ObservableCollection<TemplateViewModel>();
+            _templatesSource.AddRange(templates.Select(t => new TemplateViewModel(t)));
+            Templates = new ListCollectionView(_templatesSource) {Filter = TemplateFilter};
+            Templates.CurrentChanged += TemplatesOnCurrentChanged;
+
+            if (restore)
+            {
+                if (Templates.Count > savedPos)
+                    Templates.MoveCurrentToPosition(savedPos);
+            }
+            else if (Templates.Count > 0)
+                Templates.MoveCurrentToPosition(0);
+        }
+
+        private void TemplatesOnCurrentChanged(object sender, EventArgs eventArgs)
+        {
+            
+        }
+
+        private bool TemplateFilter(object template)
+        {
+            var t = (Template) template;
+            return true;
+        }
 
         #endregion Private Methods
+
+        #region Errors
+        private List<ParseError> _errors;
+        public List<ParseError> Errors
+        {
+            get { return _errors; }
+            set { SetProperty(ref _errors, value); }
+        }
+        #endregion Errors
     }
 }

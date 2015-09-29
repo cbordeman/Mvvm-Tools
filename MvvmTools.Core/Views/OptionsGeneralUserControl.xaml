@@ -81,7 +81,7 @@
                                        Grid.ColumnSpan="2"
                                        Margin="0,2,0,0"
                                        FontSize="10"
-                                       Text='If checked, you&apos;ll get false positives.  If unchecked, follows "Solution and Project" settings.'
+                                       Text="If checked, you&apos;ll get false positives.  If unchecked, follows &quot;Solution and Project&quot; settings."
                                        TextWrapping="WrapWithOverflow" />
                         </Grid>
                     </GroupBox>
