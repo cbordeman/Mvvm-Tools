@@ -24,9 +24,9 @@ namespace MvvmTools.Core.Tests
                 new Template(true, "Simple WPF Window")
                 {
                     Description = "This is a simple WPF window template, with d:DesignContext wired up.",
-                    Framework = "WPF",
+                    Framework = null,
                     FormFactors = new HashSet<FormFactor> { FormFactor.Desktop, FormFactor.Tablet },
-                    Platforms = new HashSet<Platform> { Platform.Wpf, Platform.Silverlight },
+                    Platforms = new HashSet<Platform> { Platform.WPF, Platform.Silverlight },
                     Tags = "Simple,Window",
                     Fields = new List<Field>
                     {

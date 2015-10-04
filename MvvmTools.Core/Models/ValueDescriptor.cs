@@ -1,4 +1,4 @@
-﻿namespace MvvmTools.Core.ViewModels
+﻿namespace MvvmTools.Core.Models
 {
     public class ValueDescriptor<T>
     {

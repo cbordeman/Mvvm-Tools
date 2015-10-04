@@ -5,5 +5,5 @@
 <#@ import namespace="System.Collections.Generic" #>
 // <copyright file="$classname$" company="My Company Name">
 // Copyright (c) 2015 All Rights Reserved
-// <author>Chris Bordeman</author>]]>
+// <author>Chris Bordeman</author>
 // </copyright>

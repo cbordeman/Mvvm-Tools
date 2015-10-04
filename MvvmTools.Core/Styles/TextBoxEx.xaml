@@ -1,0 +1,188 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:MvvmTools.Core.Controls">
+
+    <Style TargetType="DataGrid">
+        <Setter Property="CellStyle">
+            <Setter.Value>
+                <Style TargetType="DataGridCell">
+                    <Setter Property="BorderThickness" Value="0" />
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                </Style>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!--  Override Highlighting so that its easy to see what is selected even when the control is not focused  -->
+    <Style TargetType="{x:Type DataGridCell}">
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="true">
+                <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+            </Trigger>
+            <MultiDataTrigger>
+                <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True" />
+                    <Condition Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}, Path=IsKeyboardFocusWithin}" Value="False" />
+                </MultiDataTrigger.Conditions>
+                <MultiDataTrigger.Setters>
+                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                </MultiDataTrigger.Setters>
+            </MultiDataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!--Apply this to all but the first cell in your DataGrid so that pressing <Tab> moves
+        to next row, not next cell.-->
+    <Style x:Key="NoFocusDataGridCell"
+           BasedOn="{StaticResource {x:Type DataGridCell}}"
+           TargetType="{x:Type DataGridCell}">
+        <Setter Property="Focusable" Value="False" />
+    </Style>
+
+    <SolidColorBrush x:Key="TextBox.Static.Border" Color="#FFABAdB3" />
+    <SolidColorBrush x:Key="TextBox.MouseOver.Border" Color="#FF7EB4EA" />
+    <SolidColorBrush x:Key="TextBox.Focus.Border" Color="#FF569DE5" />
+
+    <Style TargetType="{x:Type controls:TextBoxEx}">
+        <Setter Property="Validation.ErrorTemplate">
+            <Setter.Value>
+                <ControlTemplate />
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" />
+        <Setter Property="BorderBrush" Value="{StaticResource TextBox.Static.Border}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="KeyboardNavigation.TabNavigation" Value="None" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="AllowDrop" Value="true" />
+        <Setter Property="ScrollViewer.PanningMode" Value="VerticalFirst" />
+        <Setter Property="Stylus.IsFlicksEnabled" Value="False" />
+
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type controls:TextBoxEx}">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="1"
+                            SnapsToDevicePixels="True">
+                        <Grid SnapsToDevicePixels="True">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <!--<ColumnDefinition Width="Auto" />-->
+                            </Grid.ColumnDefinitions>
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Focusable="False"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Hidden" />
+                            <TextBlock x:Name="Watermark"
+                                       Grid.Column="0"
+                                       Margin="2,0,0,0"
+                                       Focusable="False"
+                                       Foreground="Gray"
+                                       Text="{TemplateBinding Watermark}"
+                                       Visibility="Collapsed" />
+                            <Button x:Name="ClearButton"
+                                    Grid.Column="1"
+                                    BorderThickness="0"
+                                    Focusable="False"
+                                    Padding="2,0"
+                                    SnapsToDevicePixels="False"
+                                    Visibility="Collapsed">
+                                <TextBlock HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           FontFamily="Segoe UI Symbol"
+                                           Text="&#xE21C;" />
+                            </Button>
+                            <!--<Button x:Name="SearchButton"
+                                    Grid.Column="2"
+                                    BorderThickness="0"
+                                    Command="{TemplateBinding SearchCommand}"
+                                    CommandParameter="{TemplateBinding SearchCommandParameter}"
+                                    Focusable="False"
+                                    Padding="2,0"
+                                    SnapsToDevicePixels="False"
+                                    Visibility="Collapsed">
+                                <TextBlock HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           FontFamily="Segoe UI Symbol"
+                                           Text="&#xE11A;" />
+                            </Button>-->
+                            <Border x:Name="ErrorMessage"
+                                    Grid.Column="2"
+                                    Width="0"
+                                    Background="DarkRed"
+                                    Padding="3,0"
+                                    SnapsToDevicePixels="False">
+                                <TextBlock VerticalAlignment="Center"
+                                           FontWeight="Bold"
+                                           Foreground="White"
+                                           Text="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                          Path=(Validation.Errors)[0].ErrorContent}" />
+                            </Border>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="border" Property="Opacity" Value="0.56" />
+                        </Trigger>
+                        <Trigger Property="Text" Value="">
+                            <Setter TargetName="Watermark" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="Text" Value="{x:Null}">
+                            <Setter TargetName="Watermark" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="ShowClearButton" Value="True">
+                            <Setter TargetName="ClearButton" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <!--<Trigger Property="ShowSearchButton" Value="True">
+                            <Setter TargetName="SearchButton" Property="Visibility" Value="Visible" />
+                        </Trigger>-->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="true" />
+                                <Condition Property="ShowError" Value="false" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource TextBox.MouseOver.Border}" />
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsKeyboardFocused" Value="true" />
+                                <Condition Property="ShowError" Value="false" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource TextBox.Focus.Border}" />
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsEnabled" Value="true" />
+                                <Condition Property="ShowError" Value="true" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="ErrorMessage" Property="Border.Width" Value="NaN" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="DarkRed" />
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsInactiveSelectionHighlightEnabled" Value="true" />
+                    <Condition Property="IsSelectionActive" Value="false" />
+                </MultiTrigger.Conditions>
+                <Setter Property="SelectionBrush" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightBrushKey}}" />
+            </MultiTrigger>
+            <Trigger Property="Validation.HasError" Value="true">
+                <Setter Property="ShowError" Value="true" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

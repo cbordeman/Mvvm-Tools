@@ -115,22 +115,22 @@ namespace MvvmTools.Core.ViewModels
                 if (columnName == "Value")
                 {
                     if (string.IsNullOrWhiteSpace(Value))
-                        return "Can't be empty.";
+                        return "Can't be empty";
 
                     if (_existingValues != null && _existingValues.Any(s => string.Equals(s, Value, StringComparison.OrdinalIgnoreCase)))
-                        return "Already in list.";
+                        return "Already in list";
 
                     if (!_isAdd)
                     {
                         // In edit, must change the value.
                         if (string.Equals(Value, _unmodifiedValue, StringComparison.OrdinalIgnoreCase))
-                            return "Unchanged.";
+                            return "Unchanged";
                     }
 
                     if (_regexValidator != null)
                     {
                         if (!_regexValidator.IsMatch(Value))
-                            return _regexErrorMessage ?? "Invalid value.";
+                            return _regexErrorMessage ?? "Invalid";
                     }
 
                     return null;

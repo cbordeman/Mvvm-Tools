@@ -1,0 +1,203 @@
+﻿<UserControl x:Class="MvvmTools.Core.Views.TemplateDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:MvvmTools.Core.Controls"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:MvvmTools.Core.ViewModels"
+             xmlns:views="clr-namespace:MvvmTools.Core.Views"
+             x:Name="Root"
+             Width="700"
+             d:DataContext="{d:DesignInstance viewModels:TemplateDialogViewModel}"
+             d:DesignHeight="500"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/GroupBox.xaml" />
+                <ResourceDictionary Source="../Converters/Converters.xaml" />
+                <ResourceDictionary Source="../Styles/TextBoxEx.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TabControl Margin="5">
+            <TabItem Header="General">
+                <Grid Margin="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <!--  Name  -->
+                        <RowDefinition Height="Auto" />
+                        <!--  Description  -->
+                        <RowDefinition Height="Auto" />
+                        <!--  Tags  -->
+                        <RowDefinition Height="Auto" />
+                        <!--  Framework  -->
+                        <RowDefinition Height="Auto" />
+                        <!--  Platforms and Form Factors  -->
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+
+                    <!--  Name  -->
+                    <TextBlock Margin="0,0,5,0"
+                               HorizontalAlignment="Right"
+                               Text="Template Name:" />
+                    <controls:TextBoxEx x:Name="NameBox"
+                                        Grid.Row="0"
+                                        Grid.Column="1"
+                                        Grid.ColumnSpan="3"
+                                        IsReadOnly="{Binding IsInternal}"
+                                        Loaded="NameBox_OnLoaded"
+                                        Text="{Binding Name,
+                                                       UpdateSourceTrigger=PropertyChanged,
+                                                       ValidatesOnDataErrors=True,
+                                                       NotifyOnValidationError=True}" />
+
+                    <!--  Description  -->
+                    <TextBlock Grid.Row="1"
+                               Grid.Column="0"
+                               Margin="0,5,5,0"
+                               HorizontalAlignment="Right"
+                               Text="Description:" />
+                    <controls:TextBoxEx Grid.Row="1"
+                                        Grid.Column="1"
+                                        Grid.ColumnSpan="3"
+                                        Height="70"
+                                        Margin="0,5,0,0"
+                                        AcceptsReturn="True"
+                                        IsReadOnly="{Binding IsInternal}"
+                                        Text="{Binding Description,
+                                                       UpdateSourceTrigger=PropertyChanged,
+                                                       ValidatesOnDataErrors=True,
+                                                       NotifyOnValidationError=True}"
+                                        TextWrapping="WrapWithOverflow"
+                                        VerticalScrollBarVisibility="Auto" />
+
+                    <!--  Tags(s)  -->
+                    <TextBlock Grid.Row="2"
+                               Grid.Column="0"
+                               Margin="0,5,5,0"
+                               HorizontalAlignment="Right"
+                               Text="Tag(s):" />
+                    <controls:TextBoxEx Grid.Row="2"
+                                        Grid.Column="1"
+                                        Grid.ColumnSpan="3"
+                                        Margin="0,5,0,0"
+                                        IsReadOnly="{Binding IsInternal}"
+                                        Text="{Binding Tags,
+                                                       UpdateSourceTrigger=PropertyChanged,
+                                                       ValidatesOnDataErrors=True,
+                                                       NotifyOnValidationError=True}" />
+
+                    <!--  Framework(s)  -->
+                    <TextBlock Grid.Row="3"
+                               Grid.Column="0"
+                               Margin="0,5,5,0"
+                               HorizontalAlignment="Right"
+                               Text="MVVM Framework(s):" />
+                    <controls:TextBoxEx Grid.Row="3"
+                                        Grid.Column="1"
+                                        Grid.ColumnSpan="3"
+                                        Margin="0,5,0,0"
+                                        IsReadOnly="{Binding IsInternal}"
+                                        Text="{Binding Framework,
+                                                       UpdateSourceTrigger=PropertyChanged,
+                                                       ValidatesOnDataErrors=True,
+                                                       NotifyOnValidationError=True}" />
+
+                    <!--  Platforms  -->
+                    <TextBlock Grid.Row="4"
+                               Grid.Column="0"
+                               Margin="0,5,5,0"
+                               HorizontalAlignment="Right"
+                               Text="Platforms:" />
+                    <views:CheckListUserControl Grid.Row="4"
+                                                Grid.Column="1"
+                                                Margin="0,5,0,0"
+                                                DataContext="{Binding Platforms}"
+                                                Visibility="{Binding DataContext.IsInternal,
+                                                                     ElementName=Root,
+                                                                     Converter={StaticResource FalseToVisibleConverter}}" />
+                    <TextBlock Grid.Row="4"
+                               Grid.Column="1"
+                               Margin="0,5,0,0"
+                               Text="{Binding Platforms.CheckedItemsCommaSeparated}"
+                               Visibility="{Binding IsInternal,
+                                                    Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                    <!--  Form Factors  -->
+                    <TextBlock Grid.Row="4"
+                               Grid.Column="2"
+                               Margin="5,5,5,0"
+                               HorizontalAlignment="Right"
+                               Text="Form Factors:" />
+                    <views:CheckListUserControl Grid.Row="4"
+                                                Grid.Column="3"
+                                                Margin="0,5,0,0"
+                                                DataContext="{Binding FormFactors}"
+                                                Visibility="{Binding DataContext.IsInternal,
+                                                                     ElementName=Root,
+                                                                     Converter={StaticResource FalseToVisibleConverter}}" />
+                    <TextBlock Grid.Row="4"
+                               Grid.Column="3"
+                               Margin="0,5,0,0"
+                               Text="{Binding FormFactors.CheckedItemsCommaSeparated}"
+                               Visibility="{Binding IsInternal,
+                                                    Converter={StaticResource BoolToVisibilityConverter}}" />
+                </Grid>
+            </TabItem>
+            <TabItem Header="Fields">
+                <Grid Margin="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+
+                    <!--    -->
+                </Grid>
+            </TabItem>
+            <TabItem Header="View" />
+            <TabItem Header="Code Behind (C#)" />
+            <TabItem Header="View Model (C#)" />
+            <TabItem Header="Code Behind (VB)" />
+            <TabItem Header="View Model (VB)" />
+        </TabControl>
+
+        <StackPanel Grid.Row="1"
+                    Grid.ColumnSpan="2"
+                    Margin="0,5,5,0"
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal">
+            <Button Width="70"
+                    Command="{Binding OkCommand}"
+                    Content="_OK"
+                    IsDefault="True"
+                    Padding="5,4" />
+            <Button Width="70"
+                    Margin="5,0,0,0"
+                    Command="{Binding CancelCommand}"
+                    Content="Cancel"
+                    Padding="5,4" />
+        </StackPanel>
+    </Grid>
+</UserControl>

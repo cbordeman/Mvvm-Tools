@@ -6,7 +6,7 @@
              d:DesignHeight="300"
              d:DesignWidth="300"
              mc:Ignorable="d">
-    <Grid>
+    <Grid Margin="0,0,0,5">
         <TextBlock Margin="0,0,0,2"
                    FontSize="14"
                    FontWeight="SemiBold"

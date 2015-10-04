@@ -14,6 +14,7 @@ namespace MvvmTools.Core.Services
     public interface ITemplateService
     {
         List<Template> LoadTemplates(string localTemplateFolder);
+        void SaveTemplates(string localTemplateFolder, IEnumerable<Template> templates);
     }
 
     public enum Section
@@ -71,14 +72,12 @@ namespace MvvmTools.Core.Services
         {
             try
             {
-                var rval = new List<Template>();
-
                 var templates = Deserialize<List<Template>>(data);
 
                 foreach (var t in templates)
                     t.IsInternal = isInternal;
 
-                return rval;
+                return templates;
             }
             catch (Exception ex)
             {
@@ -137,6 +136,31 @@ namespace MvvmTools.Core.Services
 
             return rval;
         }
-        
+
+        public void SaveTemplates(string localTemplateFolder, IEnumerable<Template> templates)
+        {
+            try
+            {
+                string contents;
+                try
+                {
+                    contents = Serialize(templates.Where(t => !t.IsInternal).ToList());
+                }
+                catch (Exception ex1)
+                {
+                    Trace.WriteLine($"Templates can't be serialized. {ex1.Message}.");
+                    throw;
+                }
+
+                // Local templates folder.
+                var fn = Path.Combine(localTemplateFolder, LocalTemplatesFilename);
+                File.WriteAllText(fn, contents);
+            }
+            catch (Exception ex2)
+            {
+                Trace.WriteLine($"{nameof(TemplateService)}.{nameof(SaveTemplates)}() failed: {ex2}");
+            }
+        }
+
     }
 }

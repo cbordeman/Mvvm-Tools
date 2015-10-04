@@ -16,10 +16,10 @@ namespace MvvmTools.Core.Utilities
         public static string ValidateViewModelSuffix(string viewModelSuffix)
         {
             if (string.IsNullOrWhiteSpace(viewModelSuffix))
-                return "Empty.";
+                return "Empty";
 
             if (!SuffixRegex.IsMatch(viewModelSuffix))
-                return "Invalid.";
+                return "Invalid";
 
             return null;
         }
@@ -27,13 +27,13 @@ namespace MvvmTools.Core.Utilities
         public static string ValidateNamespace(string @namespace)
         {
             if (string.IsNullOrWhiteSpace(@namespace))
-                return "Empty.";
+                return "Empty";
 
             if (@namespace.Contains(" "))
-                return "Cannot contain spaces.";
+                return "Contains spaces.";
 
             if (@namespace == ".")
-                return "Invalid.";
+                return "Invalid";
 
             // Starting with '.' is OK (a relative namespace), but I don't know to
             // modify the regex to allow it, so I'm just doing it here.
@@ -42,7 +42,7 @@ namespace MvvmTools.Core.Utilities
                 ns = ns.Substring(1);
 
             if (!NamespaceRegex.IsMatch(ns))
-                return "Invalid.";
+                return "Invalid";
 
             return null;
         }
@@ -53,51 +53,51 @@ namespace MvvmTools.Core.Utilities
                 return null;
 
             if (pathOffProject.StartsWith(" "))
-                return "Cannot start with a space.";
+                return "Starts with a space";
 
             if (pathOffProject.EndsWith(" "))
-                return "Cannot end with a space.";
+                return "Ends with a space";
 
             if (pathOffProject.Contains(" ."))
-                return "Cannot contain ' .'.";
+                return "Contains ' .'";
 
             if (pathOffProject.Contains(". "))
-                return "Cannot contain '. '.";
+                return "Contains '. '";
 
             if (pathOffProject.Contains(".."))
-                return "Cannot contain '..'.";
+                return "Contains '..'";
 
             if (pathOffProject.EndsWith("."))
-                return "Cannot end with '.'.";
+                return "End with '.'";
 
             if (pathOffProject.StartsWith("."))
-                return "Cannot start with '.'.";
+                return "Starts with '.'";
 
             if (pathOffProject.StartsWith("/"))
-                return "Cannot start with '/'.";
+                return "Starts with '/'";
 
             if (pathOffProject.EndsWith("/"))
-                return "Cannot end with '/'.";
+                return "Ends with '/'";
 
             if (pathOffProject.Contains("/."))
-                return "Cannot contain '/.'.";
+                return "Contains '/.'";
 
             if (pathOffProject.Contains("./"))
-                return "Cannot contain './'.";
+                return "Contains './'";
 
             if (pathOffProject.Contains("\\"))
-                return "Use forward slashes ('/').";
+                return "Use forward slashes";
             
             var reservedNames = new[] {"CON", "AUX", "PRN", "COM1", "COM2", "LPT1", "LPT2"};
 
             foreach (var rn in reservedNames)
                 if (String.Equals(pathOffProject, rn, StringComparison.OrdinalIgnoreCase))
-                    return "System reserved name.";
+                    return "Reserved name";
 
             // Unicode surrogate characters are not allowed in solution folder names.
             foreach (var c in pathOffProject)
                 if ((c >= 0xD800 && c <= 0xDBFF) || (c >= 0xDC00 && c <= 0xDFFF))
-                    return "Surrogate character(s).";
+                    return "Surrogate character(s)";
 
             var containsInvalidChars = false;
 
@@ -116,7 +116,7 @@ namespace MvvmTools.Core.Utilities
                 }
 
             if (containsInvalidChars)
-                return "Cannot contain *?\"|<>:&#%";
+                return "Bad: *?\"|<>:&#%";
 
             return null;
         }
@@ -124,10 +124,10 @@ namespace MvvmTools.Core.Utilities
         public static string ValidateName(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
-                return "Type the name of the new item, without suffix.";
+                return "Type the name, without suffix";
 
             if (!NameRegex.IsMatch(name))
-                return "Invalid.";
+                return "Invalid";
 
             return null;
         }
@@ -135,7 +135,7 @@ namespace MvvmTools.Core.Utilities
         public static string ValidateLanguage(string language)
         {
             if (language == null)
-                return "Language must be C# or VB.";
+                return "Must be C# or VB";
 
             switch (language.Trim().ToUpper())
             {
@@ -143,7 +143,7 @@ namespace MvvmTools.Core.Utilities
                 case "VB":
                     return null;
             }
-            return "Language must be C# or VB.";
+            return "Must be C# or VB";
         }
     }
 }

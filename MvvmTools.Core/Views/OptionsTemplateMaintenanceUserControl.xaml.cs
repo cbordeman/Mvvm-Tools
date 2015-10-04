@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using MvvmTools.Core.ViewModels;
+// ReSharper disable AccessToStaticMemberViaDerivedType
 
 namespace MvvmTools.Core.Views
 {
@@ -28,8 +29,7 @@ namespace MvvmTools.Core.Views
         private void OnLoaded(object sender, RoutedEventArgs routedEventArgs)
         {
             var s = HwndSource.FromVisual(this) as HwndSource;
-            if (s != null)
-                s.AddHook(ChildHwndSourceHook);
+            s?.AddHook(ChildHwndSourceHook);
         }
 
         static IntPtr ChildHwndSourceHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -47,8 +47,14 @@ namespace MvvmTools.Core.Views
             if (e.ClickCount == 2)
             {
                 var vm = (OptionsViewModel)DataContext;
-                vm?.ExecuteEditViewSuffixCommand();
+                vm?.ExecuteEditTemplateCommand();
+                TemplatesDataGrid.Focus();
             }
+        }
+
+        private void TemplatesDataGrid_OnLoaded(object sender, RoutedEventArgs e)
+        {
+            SearchBox.Focus();
         }
     }
 }

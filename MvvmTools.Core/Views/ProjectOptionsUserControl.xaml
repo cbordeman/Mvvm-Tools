@@ -14,7 +14,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../Styles/GroupBox.xaml" />
                 <ResourceDictionary Source="../Converters/Converters.xaml" />
-                <ResourceDictionary Source="../Styles/Validation.xaml" />
+                <ResourceDictionary Source="../Styles/TextBoxEx.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>

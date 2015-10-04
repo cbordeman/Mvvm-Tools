@@ -17,12 +17,12 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../Styles/GroupBox.xaml" />
                 <ResourceDictionary Source="../Converters/Converters.xaml" />
-                <ResourceDictionary Source="../Styles/Validation.xaml" />
+                <ResourceDictionary Source="../Styles/TextBoxEx.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid Margin="5">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -33,7 +33,7 @@
         <!--  Header  -->
         <views:HeaderUserControl />
 
-        <StackPanel Grid.Row="1" Margin="0,15,0,0">
+        <StackPanel Grid.Row="1">
             <TextBlock TextWrapping="WrapWithOverflow">
                 You can create your own templates on the &apos;Template Maintenance&apos; page.
                 They will be placed inside the &apos;LocalTemplates.xml&apos; file in your
@@ -45,26 +45,23 @@
                 and I'll consider adding it for the next release.
             </TextBlock>
             <TextBlock Margin="0,10,0,0" TextWrapping="WrapWithOverflow">
-                Please be
-                <Bold>sure</Bold>
-                to indicate the
+                Please be sure to indicate the
                 <Bold>name of the template(s)</Bold>
-                you want to share, along with the
+                and
                 <Bold>language(s)</Bold>
-                .  You may want to include your
-                <Bold>your name</Bold>
-                (e.g. &apos;Original author: Bob Smith&apos;) in the description
+                you want to share.
+                You may want to include your your name (e.g. &apos;Original author: Bob Smith&apos;) in the description
                 of the template.  Note that I might make some changes or corrections before inclusion.
             </TextBlock>
             <TextBlock Margin="0,10,0,0" TextWrapping="WrapWithOverflow">
-                I'm
-                <Hyperlink Click="Hyperlink_OnClick" NavigateUri="mailto://mvvmtools@outlook.com">open to suggestions</Hyperlink>
+                I'm certainly
+                <Hyperlink Click="Hyperlink_OnClick" NavigateUri="mailto://mvvmtools@outlook.com">open to suggestions / help</Hyperlink>
                 on existing templates.
             </TextBlock>
         </StackPanel>
 
         <GroupBox Grid.Row="2"
-                  Margin="0,15,0,0"
+                  Margin="0,10,0,0"
                   Header="Local Templates">
             <Grid>
                 <Grid.ColumnDefinitions>

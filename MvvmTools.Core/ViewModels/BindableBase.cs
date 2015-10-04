@@ -13,17 +13,17 @@ namespace MvvmTools.Core.ViewModels
         /// <summary>
         /// Multicast event for property change notifications.
         /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged
-        {
-            add
-            {
-                ReactiveUI.WeakEventManager<BindableBase, PropertyChangedEventHandler, PropertyChangedEventArgs>.AddHandler(this, value);
-            }
-            remove
-            {
-                ReactiveUI.WeakEventManager<BindableBase, PropertyChangedEventHandler, PropertyChangedEventArgs>.RemoveHandler(this, value);
-            }
-        }
+        public event PropertyChangedEventHandler PropertyChanged;
+        //{
+        //    add
+        //    {
+        //        ReactiveUI.WeakEventManager<BindableBase, PropertyChangedEventHandler, PropertyChangedEventArgs>.AddHandler(this, value);
+        //    }
+        //    remove
+        //    {
+        //        ReactiveUI.WeakEventManager<BindableBase, PropertyChangedEventHandler, PropertyChangedEventArgs>.RemoveHandler(this, value);
+        //    }
+        //}
 
         /// <summary>
         /// Checks if a property already matches a desired value.  Sets the property and
@@ -45,14 +45,36 @@ namespace MvvmTools.Core.ViewModels
             // simply becuase the view model was a singleton and was being reused.
             // We also implement INotifyPropertyChainging.
 
-            OnPropertyChanging(propertyName);
+            NotifyPropertyChanging(propertyName);
 
             var orig = storage;
             storage = value;
-            OnPropertyChanged(propertyName);
+            NotifyPropertyChanged(propertyName);
 
-            if (Equals(orig, value)) return false;
-            return true;
+            return !Equals(orig, value);
+        }
+        
+        /// <summary>
+        /// Override to consume own PropertyChanged events without having to subscribe.
+        /// </summary>
+        /// <param name="propertyName"></param>
+        protected virtual void TakePropertyChanged(string propertyName)
+        {
+        }
+
+        /// <summary>
+        /// Override to consume own PropertyChanging events without having to subscribe.
+        /// </summary>
+        /// <param name="propertyName"></param>
+        protected virtual void TakePropertyChanging(string propertyName)
+        {
+        }
+        
+        protected void NotifyPropertyChanged(string propertyName)
+        {
+            //ReactiveUI.WeakEventManager<BindableBase, PropertyChangedEventHandler, PropertyChangedEventArgs>.DeliverEvent(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            TakePropertyChanged(propertyName);
         }
 
         /// <summary>
@@ -61,32 +83,23 @@ namespace MvvmTools.Core.ViewModels
         /// <param name="propertyName">Name of the property used to notify listeners.  This
         /// value is optional and can be provided automatically when invoked from compilers
         /// that support <see cref="CallerMemberNameAttribute"/>.</param>
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        protected void NotifyPropertyChanging([CallerMemberName] string propertyName = null)
         {
-            ReactiveUI.WeakEventManager<BindableBase, PropertyChangedEventHandler, PropertyChangedEventArgs>.DeliverEvent(this, new PropertyChangedEventArgs(propertyName));
+            //ReactiveUI.WeakEventManager<BindableBase, PropertyChangingEventHandler, PropertyChangingEventArgs>.DeliverEvent(this, new PropertyChangingEventArgs(propertyName));
+            PropertyChanging?.Invoke(this, new PropertyChangingEventArgs(propertyName));
+            TakePropertyChanging(propertyName);
         }
 
-        /// <summary>
-        /// Notifies listeners that a property value has changed.
-        /// </summary>
-        /// <param name="propertyName">Name of the property used to notify listeners.  This
-        /// value is optional and can be provided automatically when invoked from compilers
-        /// that support <see cref="CallerMemberNameAttribute"/>.</param>
-        protected void OnPropertyChanging([CallerMemberName] string propertyName = null)
-        {
-            ReactiveUI.WeakEventManager<BindableBase, PropertyChangingEventHandler, PropertyChangingEventArgs>.DeliverEvent(this, new PropertyChangingEventArgs(propertyName));
-        }
-
-        public event PropertyChangingEventHandler PropertyChanging
-        {
-            add
-            {
-                ReactiveUI.WeakEventManager<BindableBase, PropertyChangingEventHandler, PropertyChangingEventArgs>.AddHandler(this, value);
-            }
-            remove
-            {
-                ReactiveUI.WeakEventManager<BindableBase, PropertyChangingEventHandler, PropertyChangingEventArgs>.RemoveHandler(this, value);
-            }
-        }
+        public event PropertyChangingEventHandler PropertyChanging;
+        //{
+        //    add
+        //    {
+        //        ReactiveUI.WeakEventManager<BindableBase, PropertyChangingEventHandler, PropertyChangingEventArgs>.AddHandler(this, value);
+        //    }
+        //    remove
+        //    {
+        //        ReactiveUI.WeakEventManager<BindableBase, PropertyChangingEventHandler, PropertyChangingEventArgs>.RemoveHandler(this, value);
+        //    }
+        //}
     }
 }

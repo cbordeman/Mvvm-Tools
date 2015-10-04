@@ -16,13 +16,13 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../Styles/GroupBox.xaml" />
                 <ResourceDictionary Source="../Converters/Converters.xaml" />
-                <ResourceDictionary Source="../Styles/Validation.xaml" />
+                <ResourceDictionary Source="../Styles/TextBoxEx.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
 
     <Grid>
-        <Grid Margin="5">
+        <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition />
@@ -42,9 +42,7 @@
                     </Grid.RowDefinitions>
 
                     <!--  Row 0 is the Go to view/vm option.  -->
-                    <GroupBox Grid.Row="0"
-                              Margin="0,15,0,0"
-                              Header="Switch To View / ViewModel">
+                    <GroupBox Grid.Row="0" Header="Switch To View / ViewModel">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />

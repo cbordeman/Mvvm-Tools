@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:MvvmTools.Core.ViewModels"
+             xmlns:controls="clr-namespace:MvvmTools.Core.Controls"
              d:DataContext="{d:DesignInstance viewModels:LocationDescriptorUserControlViewModel}"
              d:DesignHeight="300"
              d:DesignWidth="500"
@@ -67,7 +68,7 @@
                     Content="Default"
                     IsTabStop="False"
                     Padding="3,0" />
-            <TextBox Grid.Row="3"
+            <controls:TextBoxEx Grid.Row="3"
                      Grid.Column="0"
                      Text="{Binding PathOffProject,
                                     Mode=TwoWay,
@@ -92,7 +93,7 @@
                     Content="Default"
                     IsTabStop="False"
                     Padding="3,0" />
-            <TextBox Grid.Row="6" Text="{Binding Namespace, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, NotifyOnValidationError=True}" />
+            <controls:TextBoxEx Grid.Row="6" Text="{Binding Namespace, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, NotifyOnValidationError=True}" />
             <TextBlock Grid.Row="7"
                        Grid.Column="0"
                        Margin="0,2,0,5"
