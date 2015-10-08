@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Windows.Data;
 using MvvmTools.Core.ViewModels;
 
 namespace MvvmTools.Core.Models
@@ -26,10 +27,9 @@ namespace MvvmTools.Core.Models
             Description = vm.Description ?? string.Empty;
 
             // Deep copy fields.
-            var mFields = (ObservableCollection<FieldDialogViewModel>) vm.Fields.SourceCollection;
-            Fields = new List<Field>(mFields.Select(f => new Field(f)));
+            Fields = new List<Field>(((ObservableCollection<FieldDialogViewModel>)vm.Fields.SourceCollection).Select(f => new Field(f)));
 
-            View = vm.View ?? string.Empty;
+            View = vm.View.Buffer ?? string.Empty;
 
             ViewModelCSharp = vm.ViewModelCSharp ?? string.Empty;
             CodeBehindCSharp = vm.CodeBehindCSharp ?? string.Empty;
@@ -173,34 +173,5 @@ namespace MvvmTools.Core.Models
             get { return ViewModelVisualBasic; }
             set { ViewModelVisualBasic = value; }
         }
-    }
-
-    [DataContract]
-    public enum FieldType
-    {
-        [EnumMember]TextBox,
-        [EnumMember]TextBoxMultiLine,
-        [EnumMember]CheckBox,
-        [EnumMember]ComboBox,
-        [EnumMember]ComboBoxOpen
-    }
-
-    [DataContract]
-    public enum FormFactor
-    {
-        [EnumMember]Phone,
-        [EnumMember]Tablet,
-        [EnumMember]Desktop
-    }
-
-    [DataContract]
-    public enum Platform
-    {
-        // ReSharper disable once InconsistentNaming
-        [EnumMember]WPF,
-        [EnumMember]Silverlight,
-        [EnumMember]Xamarin,
-        // ReSharper disable once InconsistentNaming
-        [EnumMember]WinRT
     }
 }

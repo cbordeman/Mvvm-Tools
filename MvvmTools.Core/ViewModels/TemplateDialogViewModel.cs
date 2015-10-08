@@ -5,7 +5,9 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows.Data;
 using MvvmTools.Core.Models;
+using MvvmTools.Core.Services;
 using MvvmTools.Core.Utilities;
+using Ninject;
 
 namespace MvvmTools.Core.ViewModels
 {
@@ -16,55 +18,24 @@ namespace MvvmTools.Core.ViewModels
         private TemplateDialogViewModel _unmodifiedValue;
         private bool _isAdd;
         private IEnumerable<string> _existingNames;
-
+        
         // This is recalculated after the user completes an operation that modifies, adds,
         // or deletes any field.  This is much more efficient than doing this calculation 
         // every time OkCommand.RaiseCanExecuteChanged() is called.
-        private bool _fieldsChanged = false;
+        private bool _fieldsChanged;
 
         #endregion Data
 
         #region Ctor and Init
 
-        public TemplateDialogViewModel()
-        {
-            Platforms = new CheckListUserControlViewModel<Platform>(Enum.GetValues(typeof(Platform)).Cast<Platform>().OrderBy(p => p.ToString().ToLower()).Select(p => new CheckedItemViewModel<Platform>(p, false)), "All Platforms");
-            FormFactors = new CheckListUserControlViewModel<FormFactor>(Enum.GetValues(typeof(FormFactor)).Cast<FormFactor>().OrderBy(ff => ff.ToString().ToLower()).Select(ff => new CheckedItemViewModel<FormFactor>(ff, false)), "All Form Factors");
-
-            Fields = new ListCollectionView(new ObservableCollection<FieldDialogViewModel>());
-        }
-
-        public TemplateDialogViewModel(Template template)
-        {
-            IsInternal = template.IsInternal;
-
-            Platforms = new CheckListUserControlViewModel<Platform>(Enum.GetValues(typeof(Platform)).Cast<Platform>().OrderBy(p => p.ToString().ToLower()).Select(p => new CheckedItemViewModel<Platform>(p, template.Platforms.Contains(p))), "All Platforms");
-            FormFactors = new CheckListUserControlViewModel<FormFactor>(Enum.GetValues(typeof(FormFactor)).Cast<FormFactor>().OrderBy(ff => ff.ToString().ToLower()).Select(ff => new CheckedItemViewModel<FormFactor>(ff, template.FormFactors.Contains(ff))), "All Form Factors");
-
-            Framework = template.Framework ?? string.Empty;
-            Name = template.Name ?? string.Empty;
-            Description = template.Description ?? string.Empty;
-
-            // Deep copy fields.
-            Fields = new ListCollectionView(new ObservableCollection<FieldDialogViewModel>(template.Fields.Select(f => new FieldDialogViewModel(f))));
-
-            View = template.View ?? string.Empty;
-
-            ViewModelCSharp = template.ViewModelCSharp ?? string.Empty;
-            CodeBehindCSharp = template.CodeBehindCSharp ?? string.Empty;
-
-            ViewModelVisualBasic = template.ViewModelVisualBasic ?? string.Empty;
-            CodeBehindVisualBasic = template.CodeBehindVisualBasic ?? string.Empty;
-        }
-
-        public TemplateDialogViewModel(TemplateDialogViewModel template)
-        {
-            CopyFrom(template);
-        }
-
         #endregion Ctor and Init
 
         #region Properties
+
+        #region DialogService
+        [Inject]
+        public IDialogService DialogService { get; set; }
+        #endregion DialogService
 
         #region IsInternal
         private bool _isInternal;
@@ -142,8 +113,8 @@ namespace MvvmTools.Core.ViewModels
         #endregion Fields
 
         #region View
-        private string _view = string.Empty;
-        public string View
+        private T4UserControlViewModel _view;
+        public T4UserControlViewModel View
         {
             get { return _view; }
             set { SetProperty(ref _view, value); }
@@ -193,7 +164,7 @@ namespace MvvmTools.Core.ViewModels
         #region OkCommand
         DelegateCommand _okCommand;
         public DelegateCommand OkCommand => _okCommand ?? (_okCommand = new DelegateCommand(ExecuteOkCommand, CanOkCommand));
-        public bool CanOkCommand() => Error == null && (_isAdd || !IsUnchanged(_unmodifiedValue));
+        public bool CanOkCommand() => Error == null && (_isAdd || !IsUnchanged());
         public void ExecuteOkCommand()
         {
             if (string.IsNullOrEmpty(Error))
@@ -202,7 +173,89 @@ namespace MvvmTools.Core.ViewModels
                 DialogResult = true;
             }
         }
-        #endregion Properties
+
+        #endregion Commands
+        
+        #region AddFieldCommand
+        DelegateCommand _addFieldCommand;
+        public DelegateCommand AddFieldCommand => _addFieldCommand ?? (_addFieldCommand = new DelegateCommand(ExecuteAddFieldCommand, CanAddFieldCommand));
+        public bool CanAddFieldCommand() => !IsInternal;
+        public void ExecuteAddFieldCommand()
+        {
+            var vm = Kernel.Get<FieldDialogViewModel>();
+            var source = (ObservableCollection<FieldDialogViewModel>) Fields.SourceCollection;
+            vm.Add(IsInternal, source.Select(t => t.Name));
+            if (DialogService.ShowDialog(vm))
+            {
+                source.Add(vm);
+                Fields.MoveCurrentTo(vm);
+                _fieldsChanged = true;
+                OkCommand.RaiseCanExecuteChanged();
+            }
+        }
+        #endregion
+        
+        #region EditFieldCommand
+        DelegateCommand _editFieldCommand;
+        public DelegateCommand EditFieldCommand => _editFieldCommand ?? (_editFieldCommand = new DelegateCommand(ExecuteEditFieldCommand, CanEditFieldCommand));
+        public bool CanEditFieldCommand() => Fields.CurrentItem != null && !IsInternal;
+        public void ExecuteEditFieldCommand()
+        {
+            var vm = (FieldDialogViewModel) Fields.CurrentItem;
+
+            var copy = FieldDialogViewModel.CreateFrom(Kernel, vm);
+
+            var source = (ObservableCollection<FieldDialogViewModel>)Fields.SourceCollection;
+            copy.Edit(IsInternal, source.Select(t => t.Name));
+            if (DialogService.ShowDialog(copy))
+            {
+                // Success, copy fields back into our instance, save, and refresh frameworks (filter combobox).
+                vm.CopyFrom(copy);
+                Fields.MoveCurrentTo(vm);
+                _fieldsChanged = true;
+                OkCommand.RaiseCanExecuteChanged();
+            }
+        }
+        #endregion
+        
+        #region DeleteFieldCommand
+        DelegateCommand _deleteFieldCommand;
+        public DelegateCommand DeleteFieldCommand => _deleteFieldCommand ?? (_deleteFieldCommand = new DelegateCommand(ExecuteDeleteFieldCommand, CanDeleteFieldCommand));
+        public bool CanDeleteFieldCommand() => Fields.CurrentItem != null && !IsInternal;
+        public async void ExecuteDeleteFieldCommand()
+        {
+            var vm = (FieldDialogViewModel) Fields.CurrentItem;
+            if ((await DialogService.Ask("Delete Field?", $"Delete field \"{vm.Name}?\"", AskButton.OKCancel)) == AskResult.OK)
+            {
+                if ((await DialogService.Ask("Are you sure?", $"Are you sure you want to DELETE field \"{vm.Name}?\"", AskButton.OKCancel)) == AskResult.OK)
+                {
+                    var source = (ObservableCollection<FieldDialogViewModel>)Fields.SourceCollection;
+                    source.Remove(vm);
+                    Fields.MoveCurrentTo(vm);
+                    _fieldsChanged = true;
+                    OkCommand.RaiseCanExecuteChanged();
+                }
+            }
+        }
+        #endregion
+        
+        #region CopyFieldCommand
+        DelegateCommand _copyFieldCommand;
+        public DelegateCommand CopyFieldCommand => _copyFieldCommand ?? (_copyFieldCommand = new DelegateCommand(ExecuteCopyFieldCommand, CanCopyFieldCommand));
+        public bool CanCopyFieldCommand() => Fields.CurrentItem != null;
+        public void ExecuteCopyFieldCommand()
+        {
+            var vm = (FieldDialogViewModel)Fields.CurrentItem;
+            var source = (ObservableCollection<FieldDialogViewModel>)Fields.SourceCollection;
+            vm.Add(IsInternal, source.Select(t => t.Name));
+            if (DialogService.ShowDialog(vm))
+            {
+                Fields.MoveCurrentTo(vm);
+                _fieldsChanged = true;
+                OkCommand.RaiseCanExecuteChanged();
+            }
+        }
+        #endregion
 
         #endregion Commands
 
@@ -224,7 +277,70 @@ namespace MvvmTools.Core.ViewModels
             _existingNames = existingNames.Where(t => !string.Equals(t, Name, StringComparison.OrdinalIgnoreCase)).ToList();
 
             // Save unmodified properties.
-            _unmodifiedValue = new TemplateDialogViewModel(this);
+            _unmodifiedValue = Kernel.Get<TemplateDialogViewModel>();
+            _unmodifiedValue.CopyFrom(this);
+        }
+
+        public static TemplateDialogViewModel CreateFrom(IKernel kernel)
+        {
+            var vm = kernel.Get<TemplateDialogViewModel>();
+            vm.InitEmpty();
+            return vm;
+        }
+
+        public static TemplateDialogViewModel CreateFrom(IKernel kernel, TemplateDialogViewModel template)
+        {
+            var vm = kernel.Get<TemplateDialogViewModel>();
+            vm.CopyFrom(template);
+            return vm;
+        }
+
+        public static TemplateDialogViewModel CreateFrom(IKernel kernel, Template template)
+        {
+            var vm = kernel.Get<TemplateDialogViewModel>();
+            vm.InitFrom(template);
+            return vm;
+        }
+
+        private void InitEmpty()
+        {
+            Platforms = new CheckListUserControlViewModel<Platform>(Enum.GetValues(typeof(Platform)).Cast<Platform>().OrderBy(p => p.ToString().ToLower()).Select(p => new CheckedItemViewModel<Platform>(p, false)), "All Platforms");
+            FormFactors = new CheckListUserControlViewModel<FormFactor>(Enum.GetValues(typeof(FormFactor)).Cast<FormFactor>().OrderBy(ff => ff.ToString().ToLower()).Select(ff => new CheckedItemViewModel<FormFactor>(ff, false)), "All Form Factors");
+
+            Fields = new ListCollectionView(new ObservableCollection<FieldDialogViewModel>());
+
+            View = new T4UserControlViewModel(null, string.Empty);
+        }
+        
+        private void InitFrom(Template template)
+        {
+            IsInternal = template.IsInternal;
+
+            Platforms = new CheckListUserControlViewModel<Platform>(Enum.GetValues(typeof(Platform)).Cast<Platform>().OrderBy(p => p.ToString().ToLower()).Select(p => new CheckedItemViewModel<Platform>(p, template.Platforms.Contains(p))), "All Platforms");
+
+            FormFactors = new CheckListUserControlViewModel<FormFactor>(Enum.GetValues(typeof(FormFactor)).Cast<FormFactor>().OrderBy(ff => ff.ToString().ToLower()).Select(ff => new CheckedItemViewModel<FormFactor>(ff, template.FormFactors.Contains(ff))), "All Form Factors");
+
+            Framework = template.Framework ?? string.Empty;
+            Name = template.Name ?? string.Empty;
+            Description = template.Description ?? string.Empty;
+
+            // Deep copy fields.
+            var fieldVms = new ObservableCollection<FieldDialogViewModel>();
+            foreach (var f in template.Fields)
+            {
+                var newFieldVm = Kernel.Get<FieldDialogViewModel>();
+                newFieldVm.CopyFrom(f);
+                fieldVms.Add(newFieldVm);
+            }
+            Fields = new ListCollectionView(fieldVms);
+            
+            View = new T4UserControlViewModel(null, template.View ?? string.Empty);
+
+            ViewModelCSharp = template.ViewModelCSharp ?? string.Empty;
+            CodeBehindCSharp = template.CodeBehindCSharp ?? string.Empty;
+
+            ViewModelVisualBasic = template.ViewModelVisualBasic ?? string.Empty;
+            CodeBehindVisualBasic = template.CodeBehindVisualBasic ?? string.Empty;
         }
 
         public void CopyFrom(TemplateDialogViewModel template)
@@ -312,25 +428,25 @@ namespace MvvmTools.Core.ViewModels
             }
         }
 
-        private bool IsUnchanged(TemplateDialogViewModel unmodifiedValue)
+        private bool IsUnchanged()
         {
             if (Platforms == null || FormFactors == null || _unmodifiedValue == null)
                 return true;
 
-            return string.Equals(Name, unmodifiedValue.Name, StringComparison.Ordinal) &&
-                   string.Equals(Description, unmodifiedValue.Description, StringComparison.Ordinal) &&
-                   string.Equals(Framework, unmodifiedValue.Framework, StringComparison.Ordinal) &&
-                   string.Equals(Tags, unmodifiedValue.Tags, StringComparison.Ordinal) &&
-                   string.Equals(View, unmodifiedValue.View, StringComparison.Ordinal) &&
-                   string.Equals(CodeBehindCSharp, unmodifiedValue.CodeBehindCSharp, StringComparison.Ordinal) &&
-                   string.Equals(ViewModelCSharp, unmodifiedValue.ViewModelCSharp, StringComparison.Ordinal) &&
-                   string.Equals(CodeBehindVisualBasic, unmodifiedValue.CodeBehindVisualBasic, StringComparison.Ordinal) &&
-                   string.Equals(ViewModelVisualBasic, unmodifiedValue.ViewModelVisualBasic, StringComparison.Ordinal) &&
+            return string.Equals(Name, _unmodifiedValue.Name, StringComparison.Ordinal) &&
+                   string.Equals(Description, _unmodifiedValue.Description, StringComparison.Ordinal) &&
+                   string.Equals(Framework, _unmodifiedValue.Framework, StringComparison.Ordinal) &&
+                   string.Equals(Tags, _unmodifiedValue.Tags, StringComparison.Ordinal) &&
+                   string.Equals(View.Buffer, _unmodifiedValue.View.Buffer, StringComparison.Ordinal) &&
+                   string.Equals(CodeBehindCSharp, _unmodifiedValue.CodeBehindCSharp, StringComparison.Ordinal) &&
+                   string.Equals(ViewModelCSharp, _unmodifiedValue.ViewModelCSharp, StringComparison.Ordinal) &&
+                   string.Equals(CodeBehindVisualBasic, _unmodifiedValue.CodeBehindVisualBasic, StringComparison.Ordinal) &&
+                   string.Equals(ViewModelVisualBasic, _unmodifiedValue.ViewModelVisualBasic, StringComparison.Ordinal) &&
 
                    !_fieldsChanged &&
 
-                   Platforms.CheckedItemsCommaSeparated == unmodifiedValue.Platforms.CheckedItemsCommaSeparated &&
-                   FormFactors.CheckedItemsCommaSeparated == unmodifiedValue.FormFactors.CheckedItemsCommaSeparated;
+                   Platforms.CheckedItemsCommaSeparated == _unmodifiedValue.Platforms.CheckedItemsCommaSeparated &&
+                   FormFactors.CheckedItemsCommaSeparated == _unmodifiedValue.FormFactors.CheckedItemsCommaSeparated;
         }
 
         #endregion IDataErrorInfo

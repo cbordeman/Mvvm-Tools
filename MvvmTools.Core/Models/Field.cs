@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using MvvmTools.Core.ViewModels;
@@ -27,10 +28,11 @@ namespace MvvmTools.Core.Models
         public Field(FieldDialogViewModel vm)
         {
             Name = vm.Name;
-            Default = vm.Default;
+            Default = vm.SelectedFieldType == FieldType.CheckBox ? vm.DefaultBoolean.ToString() : vm.DefaultString;
             Prompt = vm.Prompt;
             Description = vm.Description;
-            FieldType = vm.FieldType;
+            Debug.Assert(vm.SelectedFieldType.HasValue, "FieldType shouldn't be null.");
+            FieldType = vm.SelectedFieldType.Value;
             if (vm.Choices != null)
                 Choices = ((ObservableCollection<StringViewModel>) vm.Choices.SourceCollection).Select(c => c.Value).ToArray();
         }

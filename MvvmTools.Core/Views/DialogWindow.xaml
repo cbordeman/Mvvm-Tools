@@ -6,8 +6,9 @@
         xmlns:viewModels="clr-namespace:MvvmTools.Core.ViewModels"
         Title="{Binding Title}"
         KeyUp="DialogWindow_OnKeyUp"
-        ResizeMode="NoResize"
-        SizeToContent="WidthAndHeight"
+        Loaded="DialogWindow_OnLoaded"
+        ResizeMode="CanResizeWithGrip"
+        SizeToContent="Manual"
         WindowStartupLocation="CenterScreen"
         d:DataContext="{d:DesignInstance viewModels:BaseDialogViewModel}"
         mc:Ignorable="d" />

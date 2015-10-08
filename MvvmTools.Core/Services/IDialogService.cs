@@ -29,12 +29,16 @@ namespace MvvmTools.Core.Services
     public enum AskResult
     {
         None = 0,
+        // ReSharper disable once InconsistentNaming
         OK = 1,
         Cancel = 2,
         Yes = 6,
         No = 7,
     }
 
+    /// <summary>
+    /// This dialog service is fully abstracted.  
+    /// </summary>
     public class DialogService : IDialogService
     {
         [Inject]
@@ -67,6 +71,9 @@ namespace MvvmTools.Core.Services
             vm.PropertyChanged += VmOnPropertyChanged;
 
             var view = ViewFactory.GetView(vm);
+
+            MoveSizingFromViewToDialog(view, dialog);
+
             dialog.Content = view;
 
             _dialogs.Add(vm, dialog);
@@ -83,6 +90,65 @@ namespace MvvmTools.Core.Services
                 vm.DialogResult = result;
 
             return result;
+        }
+
+        private static void MoveSizingFromViewToDialog(FrameworkElement view, DialogWindow dialog)
+        {
+            // If Width, MaxWidth, Height, or MaxHeight are specified on the view, we transfer
+            // those to the dialog and clear them from the view.  The initial width and height,
+            // if specified on the view, are used as minimums on the dialog, as that's sort of
+            // what was intended by the developer.
+            //
+            // If width or height isn't specified, we set the dialog's SizeToContent so that
+            // the dialog will size to the content in that dimension.
+            //
+            // After the dialog window loads, actual width/height are set as the minimums on 
+            // each dimension that wasn't specified by the developer.  This bit is done in 
+            // DialogWindow.xaml.cs (code behind).
+
+            // Width
+            if (!double.IsNaN(view.Width))
+            {
+                dialog.Width = view.Width;
+                dialog.MinWidth = view.Width;
+                view.ClearValue(FrameworkElement.WidthProperty);
+            }
+            if (!double.IsInfinity(view.MinWidth))
+            {
+                view.ClearValue(FrameworkElement.MinWidthProperty);
+            }
+            if (!double.IsInfinity((view.MaxWidth)))
+            {
+                dialog.MaxWidth = view.MaxWidth;
+                view.ClearValue(FrameworkElement.MaxWidthProperty);
+            }
+
+            // Height
+            if (!double.IsNaN(view.Height))
+            {
+                dialog.Height = view.Height;
+                dialog.MinHeight = view.Height;
+                view.ClearValue(FrameworkElement.HeightProperty);
+            }
+            if (!double.IsInfinity(view.MinHeight))
+            {
+                view.ClearValue(FrameworkElement.MinHeightProperty);
+            }
+            if (!double.IsInfinity(view.MaxHeight))
+            {
+                dialog.MaxHeight = view.MaxHeight;
+                view.ClearValue(FrameworkElement.MaxHeightProperty);
+            }
+            
+            // Let dialog size to content on things that aren't specified.
+            if (!double.IsNaN(dialog.Width) && !double.IsNaN(dialog.Height))
+                dialog.SizeToContent = SizeToContent.Manual;
+            else if (!double.IsNaN(dialog.Width))
+                dialog.SizeToContent = SizeToContent.Height;
+            else if (!double.IsNaN(dialog.Height))
+                dialog.SizeToContent = SizeToContent.Width;
+            else
+                dialog.SizeToContent = SizeToContent.WidthAndHeight;
         }
 
         private void VmOnPropertyChanged(object sender, PropertyChangedEventArgs args)

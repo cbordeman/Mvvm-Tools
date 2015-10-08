@@ -8,8 +8,7 @@
              d:DesignHeight="300"
              d:DesignWidth="300"
              mc:Ignorable="d">
-    <ItemsControl ItemsSource="{Binding Items}"
-                  Focusable="False">
+    <ItemsControl Focusable="False" ItemsSource="{Binding Items}">
         <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
                 <WrapPanel />

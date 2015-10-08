@@ -1,15 +1,16 @@
-﻿namespace MvvmTools.Core.ViewModels
+﻿using System.Collections.Generic;
+using Ninject;
+
+namespace MvvmTools.Core.ViewModels
 {
     public class StringViewModel : BaseViewModel
     {
-        public StringViewModel()
+        public static StringViewModel CreateFromString(IKernel kernel, string s)
         {
-            
-        }
+            var cVm = kernel.Get<StringViewModel>();
+            cVm._value = s;
+            return cVm;
 
-        public StringViewModel(string value)
-        {
-            _value = value;
         }
 
         #region Value
@@ -21,4 +22,5 @@
         }
         #endregion Value
     }
+    
 }

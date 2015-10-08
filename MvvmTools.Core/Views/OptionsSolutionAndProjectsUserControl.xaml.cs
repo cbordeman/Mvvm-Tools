@@ -41,14 +41,5 @@ namespace MvvmTools.Core.Views
             }
             return IntPtr.Zero;
         }
-
-        private void UIElement_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ClickCount == 2)
-            {
-                var vm = (OptionsViewModel)DataContext;
-                vm?.ExecuteEditViewSuffixCommand();
-            }
-        }
     }
 }

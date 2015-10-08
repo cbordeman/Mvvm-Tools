@@ -37,7 +37,7 @@ namespace MvvmTools.Core.Views
             if (msg == WM_GETDLGCODE)
             {
                 handled = true;
-                return new IntPtr(DLGC_WANTALLKEYS | DLGC_WANTCHARS | DLGC_WANTARROWS | DLGC_HASSETSEL | DLGC_WANTTAB);
+                return new IntPtr(DLGC_WANTCHARS | DLGC_WANTARROWS | DLGC_HASSETSEL | DLGC_WANTTAB);
             }
             return IntPtr.Zero;
         }

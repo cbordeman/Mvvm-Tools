@@ -77,7 +77,6 @@
                                 <ColumnDefinition />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
-                                <!--<ColumnDefinition Width="Auto" />-->
                             </Grid.ColumnDefinitions>
                             <ScrollViewer x:Name="PART_ContentHost"
                                           Focusable="False"
@@ -102,20 +101,6 @@
                                            FontFamily="Segoe UI Symbol"
                                            Text="&#xE21C;" />
                             </Button>
-                            <!--<Button x:Name="SearchButton"
-                                    Grid.Column="2"
-                                    BorderThickness="0"
-                                    Command="{TemplateBinding SearchCommand}"
-                                    CommandParameter="{TemplateBinding SearchCommandParameter}"
-                                    Focusable="False"
-                                    Padding="2,0"
-                                    SnapsToDevicePixels="False"
-                                    Visibility="Collapsed">
-                                <TextBlock HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"
-                                           FontFamily="Segoe UI Symbol"
-                                           Text="&#xE11A;" />
-                            </Button>-->
                             <Border x:Name="ErrorMessage"
                                     Grid.Column="2"
                                     Width="0"
@@ -143,9 +128,6 @@
                         <Trigger Property="ShowClearButton" Value="True">
                             <Setter TargetName="ClearButton" Property="Visibility" Value="Visible" />
                         </Trigger>
-                        <!--<Trigger Property="ShowSearchButton" Value="True">
-                            <Setter TargetName="SearchButton" Property="Visibility" Value="Visible" />
-                        </Trigger>-->
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
                                 <Condition Property="IsMouseOver" Value="true" />

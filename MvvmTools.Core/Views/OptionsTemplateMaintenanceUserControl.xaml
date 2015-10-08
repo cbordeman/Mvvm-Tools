@@ -6,7 +6,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:MvvmTools.Core.ViewModels"
              xmlns:views="clr-namespace:MvvmTools.Core.Views"
-             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              d:DataContext="{d:DesignInstance viewModels:OptionsViewModel,
                                               IsDesignTimeCreatable=False}"
              d:DesignHeight="300"
@@ -31,7 +30,7 @@
         <!--  Header  -->
         <views:HeaderUserControl />
 
-        <GroupBox Grid.Row="1" Header="MVVM Templates  ( View + Code Behind + View Model )">
+        <GroupBox Grid.Row="1" Header="MVVM Templates  (View + Code Behind + View Model)">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />

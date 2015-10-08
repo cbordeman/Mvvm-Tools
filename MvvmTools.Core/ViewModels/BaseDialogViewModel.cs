@@ -1,4 +1,5 @@
-﻿using MvvmTools.Core.Utilities;
+﻿using System.Windows;
+using MvvmTools.Core.Utilities;
 
 namespace MvvmTools.Core.ViewModels
 {

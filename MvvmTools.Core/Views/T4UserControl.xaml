@@ -1,0 +1,115 @@
+﻿<UserControl x:Class="MvvmTools.Core.Views.T4UserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:MvvmTools.Core.Controls"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:MvvmTools.Core.ViewModels"
+             d:DataContext="{d:DesignInstance viewModels:T4UserControlViewModel}"
+             d:DesignHeight="300"
+             d:DesignWidth="300"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/TextBoxEx.xaml" />
+                <ResourceDictionary Source="../Converters/Converters.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <!--  Enabled  -->
+            <RowDefinition Height="Auto" />
+            <!--  Buffer  -->
+            <RowDefinition />
+            <!--  Splitter  -->
+            <RowDefinition Height="Auto" />
+            <!--  Preview  -->
+            <RowDefinition />
+            <!--  Splitter  -->
+            <RowDefinition Height="Auto" />
+            <!--  Error  -->
+            <RowDefinition Height="100" />
+        </Grid.RowDefinitions>
+
+        <!--  Row 0: Enabled Checkbox  -->
+        <CheckBox Grid.Row="0"
+                  Grid.Column="0"
+                  Margin="0,0,0,5"
+                  Content="{Binding IsEnabledText}"
+                  IsChecked="{Binding IsEnabled}"
+                  Visibility="{Binding IsEnabledText,
+                                       Converter={StaticResource NullToCollapsedConverter}}" />
+
+        <!--  Row 1: Buffer  -->
+        <controls:TextBoxEx Grid.Row="1"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2"
+                            AcceptsReturn="True"
+                            FontFamily="Consolas"
+                            Text="{Binding Buffer,
+                                           Mode=TwoWay}"
+                            VerticalScrollBarVisibility="Visible" />
+
+        <!--  Row 2  -->
+        <GridSplitter Grid.Row="2"
+                      Grid.Column="0"
+                      Grid.ColumnSpan="2"
+                      Height="8"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"
+                      Background="DarkSlateBlue" />
+
+        <!--  Row 3: Preview  -->
+        <controls:TextBoxEx Grid.Row="3"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2"
+                            AcceptsReturn="True"
+                            FontFamily="Consolas"
+                            Text="{Binding Preview,
+                                           Mode=OneWay}"
+                            VerticalScrollBarVisibility="Visible" />
+
+        <!--  Row 4  -->
+        <GridSplitter Grid.Row="4"
+                      Grid.Column="0"
+                      Height="8"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"
+                      Background="DarkSlateBlue" />
+
+        <!--  Row 5: Errors  -->
+        <DataGrid x:Name="ErrorsDataGrid"
+                  Grid.Row="5"
+                  Grid.Column="0"
+                  Grid.ColumnSpan="2"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  CanUserReorderColumns="False"
+                  CanUserResizeColumns="False"
+                  CanUserResizeRows="False"
+                  CanUserSortColumns="False"
+                  CellStyle="{StaticResource NoFocusDataGridCell}"
+                  GridLinesVisibility="None"
+                  HeadersVisibility="Column"
+                  ItemsSource="{Binding Errors}"
+                  SelectionUnit="FullRow"
+                  Visibility="{Binding ShowErrors,
+                                       Converter={StaticResource BoolToVisibilityConverter}}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Width="Auto"
+                                    Binding="{Binding LineNumber}"
+                                    Header="#" />
+                <DataGridTextColumn Width="*"
+                                    Binding="{Binding Error}"
+                                    Header="Error" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

@@ -219,6 +219,7 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="PresentationFramework.Aero2" />
     <Reference Include="ReactiveUI">
       <HintPath>..\lib\ReactiveUI.dll</HintPath>
     </Reference>
@@ -299,6 +300,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Behaviors\FolderDialogBehavior.cs" />
+    <Compile Include="Controls\ComboBoxEx.cs" />
     <Compile Include="Controls\TextBoxEx.cs" />
     <Compile Include="Converters\BoolInvertedConverter.cs" />
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
@@ -307,6 +309,7 @@
     <Compile Include="Converters\NullToVisibleConverter.cs" />
     <Compile Include="Converters\ProjectDisplayNameConverter.cs" />
     <Compile Include="Models\CDataWrapper.cs" />
+    <Compile Include="Models\Enums.cs" />
     <Compile Include="Models\Field.cs" />
     <Compile Include="Models\Template.cs" />
     <Compile Include="Services\IOutputService.cs" />
@@ -349,6 +352,7 @@
     <Compile Include="ViewModels\SelectFileDialogViewModel.cs" />
     <Compile Include="ViewModels\StringDialogViewModel.cs" />
     <Compile Include="ViewModels\StringViewModel.cs" />
+    <Compile Include="ViewModels\T4UserControlViewModel.cs" />
     <Compile Include="ViewModels\TemplateDialogViewModel.cs" />
     <Compile Include="ViewModels\TestPresentationModel.cs" />
     <Compile Include="Models\ValueDescriptor.cs" />
@@ -384,6 +388,12 @@
     </Compile>
     <Compile Include="Views\ScaffoldDialog.xaml.cs">
       <DependentUpon>ScaffoldDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\FieldDialog.xaml.cs">
+      <DependentUpon>FieldDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\T4UserControl.xaml.cs">
+      <DependentUpon>T4UserControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\TemplateDialog.xaml.cs">
       <DependentUpon>TemplateDialog.xaml</DependentUpon>
@@ -424,6 +434,10 @@
     <Page Include="Converters\Converters.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\ComboBoxEx.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Styles\GroupBox.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -474,6 +488,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\ScaffoldDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\FieldDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\T4UserControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

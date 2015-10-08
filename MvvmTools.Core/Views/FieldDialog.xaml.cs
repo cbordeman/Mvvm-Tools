@@ -1,16 +1,15 @@
-﻿using System;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 using MvvmTools.Core.ViewModels;
 
 namespace MvvmTools.Core.Views
 {
     /// <summary>
-    /// Interaction logic for TemplateDialog.xaml
+    /// Interaction logic for FieldDialog.xaml
     /// </summary>
-    public partial class TemplateDialog
+    public partial class FieldDialog
     {
-        public TemplateDialog()
+        public FieldDialog()
         {
             InitializeComponent();
         }
@@ -20,13 +19,13 @@ namespace MvvmTools.Core.Views
             NameBox.Focus();
         }
 
-        private void FieldItem_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void StringItem_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ClickCount == 2)
             {
-                var vm = (TemplateDialogViewModel)DataContext;
-                vm?.ExecuteEditFieldCommand();
-                FieldsDataGrid.Focus();
+                var vm = (FieldDialogViewModel) DataContext;
+                vm?.ExecuteEditChoiceCommand();
+                ChoicesDataGrid.Focus();
             }
         }
     }

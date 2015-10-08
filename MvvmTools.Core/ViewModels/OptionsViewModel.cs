@@ -13,6 +13,7 @@ using MvvmTools.Core.Models;
 using MvvmTools.Core.Services;
 using MvvmTools.Core.Utilities;
 using Ninject;
+using Ninject.Parameters;
 
 // ReSharper disable ExplicitCallerInfoArgument
 
@@ -414,7 +415,7 @@ namespace MvvmTools.Core.ViewModels
 
             SelectedGoToViewOrViewModelOption = _unmodifiedSettings.GoToViewOrViewModelOption;
             GoToViewOrViewModelSearchSolution = _unmodifiedSettings.GoToViewOrViewModelSearchSolution;
-            ViewSuffixes = new ObservableCollection<StringViewModel>(_unmodifiedSettings.ViewSuffixes.Select(s => new StringViewModel(s)));
+            ViewSuffixes = new ObservableCollection<StringViewModel>(_unmodifiedSettings.ViewSuffixes.Select(s => StringViewModel.CreateFromString(Kernel, s)));
             LocalTemplateFolder = _unmodifiedSettings.LocalTemplateFolder;
 
             // Add solution and other projects.
@@ -711,7 +712,7 @@ namespace MvvmTools.Core.ViewModels
         {
             try
             {
-                ViewSuffixes = new ObservableCollection<StringViewModel>(SettingsService.DefaultViewSuffixes.Select(s => new StringViewModel(s)));
+                ViewSuffixes = new ObservableCollection<StringViewModel>(SettingsService.DefaultViewSuffixes.Select(s => StringViewModel.CreateFromString(Kernel, s)));
             }
             catch
             {
@@ -748,7 +749,7 @@ namespace MvvmTools.Core.ViewModels
         {
             try
             {
-                var vm = Kernel.Get<TemplateDialogViewModel>();
+                var vm = TemplateDialogViewModel.CreateFrom(Kernel);
                 vm.Add(_templatesSource.Select(t => t.Name));
 
                 if (DialogService.ShowDialog(vm))
@@ -778,7 +779,8 @@ namespace MvvmTools.Core.ViewModels
                 var vm = (TemplateDialogViewModel) Templates.CurrentItem;
 
                 // Edit a copy so we don't have live updates in our list.
-                var copyVm = new TemplateDialogViewModel(vm);
+                var copyVm = TemplateDialogViewModel.CreateFrom(Kernel, vm);
+                
                 copyVm.Edit(_templatesSource.Select(t => t.Name));
                 if (DialogService.ShowDialog(copyVm))
                 {
@@ -835,7 +837,9 @@ namespace MvvmTools.Core.ViewModels
                 if ((await DialogService.Ask("Copy Template?", $"Copy template \"{t.Name}?\"", AskButton.OKCancel)) ==
                     AskResult.OK)
                 {
-                    var vm = new TemplateDialogViewModel(t) {IsInternal = false};
+                    var vm = Kernel.Get<TemplateDialogViewModel>();
+                    vm.CopyFrom(t);
+                    vm.IsInternal = false;
                     vm.Add(_templatesSource.Select(t2 => t2.Name));
                     if (DialogService.ShowDialog(vm))
                     {
@@ -869,7 +873,7 @@ namespace MvvmTools.Core.ViewModels
 
                 if (DialogService.ShowDialog(vm))
                 {
-                    var newItem = new StringViewModel(vm.Value);
+                    var newItem = StringViewModel.CreateFromString(Kernel, vm.Value);
                     ViewSuffixesView.AddNewItem(newItem);
                     // ReSharper disable once PossibleNullReferenceException
                     ViewSuffixesView.MoveCurrentTo(newItem);
@@ -948,33 +952,40 @@ namespace MvvmTools.Core.ViewModels
 
         private void RefreshTemplates()
         {
-            var templates = _templateService.LoadTemplates(LocalTemplateFolder);
-
-            bool restore = Templates != null;
-            int savedPos = 0;
-            if (restore)
+            try
             {
-                Templates.Filter = null;
-                Templates.CurrentChanged -= TemplatesOnCurrentChanged;
+                var templates = _templateService.LoadTemplates(LocalTemplateFolder);
 
-                // Save state of ListCollectionView to restore later.
-                savedPos = Templates.CurrentPosition;
+                bool restore = Templates != null;
+                int savedPos = 0;
+                if (restore)
+                {
+                    Templates.CurrentChanged -= TemplatesOnCurrentChanged;
+                    Templates.Filter = null;
+
+                    // Save state of ListCollectionView to restore later.
+                    savedPos = Templates.CurrentPosition;
+                }
+
+                _templatesSource = new ObservableCollection<TemplateDialogViewModel>(templates.Select(t => TemplateDialogViewModel.CreateFrom(Kernel, t)));
+                Templates = new ListCollectionView(_templatesSource) { Filter = TemplateFilter };
+                Templates.CurrentChanged += TemplatesOnCurrentChanged;
+
+                if (restore)
+                {
+                    if (Templates.Count > savedPos)
+                        Templates.MoveCurrentToPosition(savedPos);
+                }
+                else if (Templates.Count > 0)
+                    Templates.MoveCurrentToPosition(0);
+
+                RefreshFrameworksFilter();
             }
-
-            _templatesSource = new ObservableCollection<TemplateDialogViewModel>(templates.Select(t => new TemplateDialogViewModel(t)));
-            Templates = new ListCollectionView(_templatesSource);
-            Templates.Filter = TemplateFilter;
-            Templates.CurrentChanged += TemplatesOnCurrentChanged;
-
-            if (restore)
+            catch (Exception ex)
             {
-                if (Templates.Count > savedPos)
-                    Templates.MoveCurrentToPosition(savedPos);
+                
+                throw;
             }
-            else if (Templates.Count > 0)
-                Templates.MoveCurrentToPosition(0);
-
-            RefreshFrameworksFilter();
         }
 
         private void RefreshFrameworksFilter()

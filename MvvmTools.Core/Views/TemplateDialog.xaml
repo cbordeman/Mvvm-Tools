@@ -7,9 +7,9 @@
              xmlns:viewModels="clr-namespace:MvvmTools.Core.ViewModels"
              xmlns:views="clr-namespace:MvvmTools.Core.Views"
              x:Name="Root"
-             Width="700"
+             Width="800"
+             Height="500"
              d:DataContext="{d:DesignInstance viewModels:TemplateDialogViewModel}"
-             d:DesignHeight="500"
              mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -40,13 +40,15 @@
                         <!--  Name  -->
                         <RowDefinition Height="Auto" />
                         <!--  Description  -->
-                        <RowDefinition Height="Auto" />
+                        <RowDefinition />
                         <!--  Tags  -->
                         <RowDefinition Height="Auto" />
                         <!--  Framework  -->
                         <RowDefinition Height="Auto" />
-                        <!--  Platforms and Form Factors  -->
-                        <RowDefinition />
+                        <!--  Platforms  -->
+                        <RowDefinition Height="Auto" />
+                        <!--  Form Factors  -->
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <!--  Name  -->
@@ -73,7 +75,6 @@
                     <controls:TextBoxEx Grid.Row="1"
                                         Grid.Column="1"
                                         Grid.ColumnSpan="3"
-                                        Height="70"
                                         Margin="0,5,0,0"
                                         AcceptsReturn="True"
                                         IsReadOnly="{Binding IsInternal}"
@@ -137,13 +138,13 @@
                                                     Converter={StaticResource BoolToVisibilityConverter}}" />
 
                     <!--  Form Factors  -->
-                    <TextBlock Grid.Row="4"
-                               Grid.Column="2"
+                    <TextBlock Grid.Row="5"
+                               Grid.Column="0"
                                Margin="5,5,5,0"
                                HorizontalAlignment="Right"
                                Text="Form Factors:" />
-                    <views:CheckListUserControl Grid.Row="4"
-                                                Grid.Column="3"
+                    <views:CheckListUserControl Grid.Row="5"
+                                                Grid.Column="1"
                                                 Margin="0,5,0,0"
                                                 DataContext="{Binding FormFactors}"
                                                 Visibility="{Binding DataContext.IsInternal,
@@ -160,23 +161,117 @@
             <TabItem Header="Fields">
                 <Grid Margin="5">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition />
                         <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition />
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition />
-                    </Grid.RowDefinitions>
 
-                    <!--    -->
+                    <!--  Fields DataGrid  -->
+                    <DataGrid x:Name="FieldsDataGrid"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              CanUserReorderColumns="False"
+                              CanUserResizeColumns="False"
+                              CanUserResizeRows="False"
+                              CanUserSortColumns="False"
+                              CellStyle="{StaticResource NoFocusDataGridCell}"
+                              GridLinesVisibility="None"
+                              HeadersVisibility="None"
+                              ItemsSource="{Binding Fields}"
+                              SelectionUnit="FullRow">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Width="*" Header="Name">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate DataType="viewModels:FieldDialogViewModel">
+                                        <Grid x:Name="FieldItem" MouseLeftButtonDown="FieldItem_OnMouseLeftButtonDown">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="*" />
+                                            </Grid.RowDefinitions>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition />
+                                                <ColumnDefinition />
+                                            </Grid.ColumnDefinitions>
+
+                                            <!--  Name  -->
+                                            <TextBlock Grid.Row="0"
+                                                       FontWeight="Bold"
+                                                       Padding="3,1"
+                                                       Text="{Binding Name,
+                                                                      Mode=OneWay}" />
+
+                                            <!--  Description  -->
+                                            <TextBlock Grid.Row="1"
+                                                       Grid.RowSpan="2"
+                                                       Grid.Column="0"
+                                                       FontSize="10"
+                                                       Padding="3,1"
+                                                       Text="{Binding Description,
+                                                                      Mode=OneWay}"
+                                                       TextWrapping="WrapWithOverflow" />
+
+                                            <!--  Type  -->
+                                            <TextBlock Grid.Row="0"
+                                                       Grid.Column="1"
+                                                       Padding="3,1"
+                                                       Text="{Binding SelectedFieldTypeDescription,
+                                                                      Mode=OneWay}"
+                                                       TextWrapping="WrapWithOverflow" />
+
+                                            <!--  Default  -->
+                                            <TextBlock Grid.Row="1"
+                                                       Grid.Column="1"
+                                                       FontSize="10"
+                                                       Padding="3,1"
+                                                       Text="{Binding DefaultConditional,
+                                                                      Mode=OneWay}"
+                                                       TextWrapping="WrapWithOverflow" />
+
+                                            <!--  Choices  -->
+                                            <TextBlock Grid.Row="2"
+                                                       Grid.Column="1"
+                                                       FontSize="10"
+                                                       Padding="3,1"
+                                                       Text="{Binding ChoicesAsCommaDelimited,
+                                                                      Mode=OneWay}"
+                                                       TextWrapping="WrapWithOverflow" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!--  Add/Edit/Delete/Copy Buttons  -->
+                    <StackPanel Grid.Row="0"
+                                Grid.Column="1"
+                                Margin="5,0,0,0">
+                        <Button Command="{Binding AddFieldCommand}"
+                                Content="Add"
+                                Focusable="False"
+                                Padding="8,2" />
+                        <Button Margin="0,5,0,0"
+                                Command="{Binding EditFieldCommand}"
+                                Content="Edit"
+                                Focusable="False"
+                                Padding="8,2" />
+                        <Button Margin="0,5,0,0"
+                                Command="{Binding DeleteFieldCommand}"
+                                Content="Delete"
+                                Focusable="False"
+                                Padding="8,2" />
+                        <Button Margin="0,15,0,0"
+                                Command="{Binding CopyFieldCommand}"
+                                Content="Copy"
+                                Focusable="False"
+                                Padding="8,2" />
+                    </StackPanel>
                 </Grid>
             </TabItem>
-            <TabItem Header="View" />
+            <TabItem Header="View">
+                <views:T4UserControl DataContext="{Binding View}"/>
+            </TabItem>
             <TabItem Header="Code Behind (C#)" />
             <TabItem Header="View Model (C#)" />
             <TabItem Header="Code Behind (VB)" />

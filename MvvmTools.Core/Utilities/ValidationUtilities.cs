@@ -132,6 +132,17 @@ namespace MvvmTools.Core.Utilities
             return null;
         }
 
+        public static string ValidateFieldPrompt(string prompt)
+        {
+            if (string.IsNullOrWhiteSpace(prompt))
+                return "Required";
+
+            if (prompt.EndsWith(":") || prompt.EndsWith(" "))
+                return "Cannot end in colon or space";
+
+            return null;
+        }
+
         public static string ValidateLanguage(string language)
         {
             if (language == null)
