@@ -13,5 +13,6 @@
     <local:BoolInvertedConverter x:Key="BoolInvertedConverter" />
     <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     <local:ProjectDisplayNameConverter x:Key="ProjectDisplayNameConverter" />
+    <local:ZeroToCollapsedConverter x:Key="ZeroToCollapsedConverter" />
 
 </ResourceDictionary>

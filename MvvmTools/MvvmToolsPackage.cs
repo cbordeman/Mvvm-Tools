@@ -14,12 +14,12 @@ using Microsoft.Practices.ServiceLocation;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextTemplating;
 using Microsoft.VisualStudio.TextTemplating.VSHost;
 using MvvmTools.Commands;
 using MvvmTools.Core.Services;
 using MvvmTools.Core.Utilities;
 using MvvmTools.Core.ViewModels;
-using MvvmTools.Core.Views;
 using MvvmTools.Options;
 using Ninject;
 
@@ -159,9 +159,13 @@ namespace MvvmTools
                 Kernel.Bind<IMvvmToolsPackage>().ToConstant(this);
                 Kernel.Bind<IComponentModel>().ToConstant(GetGlobalService(typeof(SComponentModel)) as IComponentModel);
                 Kernel.Bind<IMenuCommandService>().ToConstant(GetService(typeof(IMenuCommandService)) as OleMenuCommandService);
-                var tt = GetService(typeof(STextTemplating)) as ITextTemplating;
-                Kernel.Bind<ITextTemplating>().ToConstant(tt);
 
+                // Templating services.
+                var tt = GetService(typeof(STextTemplating)) as STextTemplating;
+                Kernel.Bind<ITextTemplating>().ToConstant((ITextTemplating)tt);
+                Kernel.Bind<ITextTemplatingEngineHost>().ToConstant((ITextTemplatingEngineHost) tt);
+                Kernel.Bind<ITextTemplatingSessionHost>().ToConstant((ITextTemplatingSessionHost) tt);
+                //Kernel.Bind<ITextTemplatingEngine>().ToConstant((ITextTemplatingEngine) tt);
 
                 // Our own singleton services.
                 Kernel.Bind<ISettingsService>().To<SettingsService>().InSingletonScope();

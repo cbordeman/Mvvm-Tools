@@ -1,11 +1,15 @@
 ﻿<UserControl x:Class="MvvmTools.Core.Views.ScaffoldDialog"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:MvvmTools.Core.Controls"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:models="clr-namespace:MvvmTools.Core.Models"
              xmlns:viewModels="clr-namespace:MvvmTools.Core.ViewModels"
              xmlns:views="clr-namespace:MvvmTools.Core.Views"
+             x:Name="Root"
+             Width="700"
+             Height="400"
              d:DataContext="{d:DesignInstance viewModels:ScaffoldDialogViewModel}"
              mc:Ignorable="d">
     <UserControl.Resources>
@@ -14,150 +18,211 @@
                 <ResourceDictionary Source="../Styles/GroupBox.xaml" />
                 <ResourceDictionary Source="../Converters/Converters.xaml" />
                 <ResourceDictionary Source="../Styles/TextBoxEx.xaml" />
+                <ResourceDictionary Source="../Styles/ComboBoxEx.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid Width="700" Margin="10">
+    <Grid Margin="10">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition />
+            <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition />
-        </Grid.ColumnDefinitions>
+        <TabControl Background="Transparent"
+                    BorderThickness="0"
+                    SelectedIndex="{Binding PageNumber}">
 
-        <!--  Row 0: Name  -->
-        <TextBlock Grid.Row="0"
-                   Grid.Column="0"
-                   Margin="0,0,5,0"
-                   VerticalAlignment="Center"
-                   Text="New Item:" />
-        <TextBox Grid.Row="0"
-                 Grid.Column="1"
-                 Margin="0,5,0,0"
-                 VerticalAlignment="Center"
-                 Text="{Binding Name,
-                                Mode=TwoWay,
-                                UpdateSourceTrigger=PropertyChanged,
-                                ValidatesOnDataErrors=True,
-                                NotifyOnValidationError=True}" />
+            <!--  Enter parameters  -->
+            <TabItem Header="0" Visibility="Collapsed">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
 
-        <!--  Row 2: View Suffix  -->
-        <TextBlock Grid.Row="1"
-                   Grid.Column="0"
-                   Margin="0,22,5,0"
-                   VerticalAlignment="Center"
-                   Text="View Type:" />
-        <ComboBox Grid.Row="1"
-                  Grid.Column="1"
-                  Margin="0,22,0,0"
-                  VerticalAlignment="Center"
-                  ItemsSource="{Binding ViewSuffixes}"
-                  SelectedItem="{Binding SelectedViewSuffix,
-                                         UpdateSourceTrigger=PropertyChanged,
-                                         ValidatesOnDataErrors=True,
-                                         NotifyOnValidationError=True}" />
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
 
-        <TextBlock Grid.Row="2"
-                   Grid.Column="0"
-                   Grid.ColumnSpan="2"
-                   Margin="0,20,0,0"
-                   VerticalAlignment="Center"
-                   Text="Use Settings for Project" />
-        <ComboBox Grid.Row="3"
-                  Grid.Column="0"
-                  Grid.ColumnSpan="2"
-                  Margin="0,1,0,0"
-                  HorizontalContentAlignment="Stretch"
-                  ItemsSource="{Binding Projects,
-                                        Mode=TwoWay}"
-                  SelectedItem="{Binding SettingsProject,
-                                         Mode=TwoWay}">
+                    <!--  Row 0: Name  -->
+                    <TextBlock Grid.Row="0"
+                               Grid.Column="0"
+                               Margin="0,0,5,0"
+                               VerticalAlignment="Center"
+                               Text="New Item:" />
+                    <controls:TextBoxEx Grid.Row="0"
+                                        Grid.Column="1"
+                                        Margin="0,5,0,0"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding Name,
+                                                       Mode=TwoWay,
+                                                       UpdateSourceTrigger=PropertyChanged,
+                                                       ValidatesOnDataErrors=True,
+                                                       NotifyOnValidationError=True}" />
 
-            <ComboBox.ItemTemplate>
-                <DataTemplate DataType="models:ProjectOptions">
-                    <DockPanel>
-                        <TextBlock Margin="4,3"
-                                   HorizontalAlignment="Left"
-                                   VerticalAlignment="Center"
-                                   DockPanel.Dock="Right"
-                                   Text="{Binding ProjectModel.TypeDescription}" />
-                        <TextBlock Margin="4,3"
-                                   HorizontalAlignment="Left"
-                                   VerticalAlignment="Center"
-                                   DockPanel.Dock="Left"
-                                   FontWeight="SemiBold"
-                                   Text="{Binding ProjectModel.Name}" />
-                    </DockPanel>
-                </DataTemplate>
-            </ComboBox.ItemTemplate>
-        </ComboBox>
+                    <!--  Row 2: View Suffix  -->
+                    <TextBlock Grid.Row="1"
+                               Grid.Column="0"
+                               Margin="0,5,5,0"
+                               VerticalAlignment="Center"
+                               Text="View Type:" />
+                    <controls:ComboBoxEx Grid.Row="1"
+                                         Grid.Column="1"
+                                         Margin="0,5,0,0"
+                                         VerticalAlignment="Center"
+                                         ItemsSource="{Binding ViewSuffixes}"
+                                         SelectedItem="{Binding SelectedViewSuffix,
+                                                                UpdateSourceTrigger=PropertyChanged,
+                                                                ValidatesOnDataErrors=True,
+                                                                NotifyOnValidationError=True}" />
 
-        <!--  Row 4: View Model Suffix  -->
-        <TextBlock Grid.Row="4"
-                   Grid.Column="0"
-                   Margin="0,18,5,0"
-                   VerticalAlignment="Center"
-                   Text="View Model Suffix:" />
-        <TextBox Grid.Row="4"
-                 Grid.Column="1"
-                 Margin="0,18,0,0"
-                 VerticalAlignment="Center"
-                 Text="{Binding ViewModelSuffix,
-                                Mode=TwoWay,
-                                UpdateSourceTrigger=PropertyChanged,
-                                ValidatesOnDataErrors=True,
-                                NotifyOnValidationError=True}" />
+                    <TextBlock Grid.Row="2"
+                               Grid.Column="0"
+                               Grid.ColumnSpan="2"
+                               Margin="0,5,0,0"
+                               VerticalAlignment="Center"
+                               Text="Apply Settings for this Project:" />
+                    <controls:ComboBoxEx Grid.Row="3"
+                                         Grid.ColumnSpan="2"
+                                         Margin="0,3,0,10"
+                                         HorizontalContentAlignment="Stretch"
+                                         ItemsSource="{Binding Projects,
+                                                               Mode=TwoWay}"
+                                         SelectedItem="{Binding SettingsProject,
+                                                                Mode=TwoWay,
+                                                                UpdateSourceTrigger=PropertyChanged,
+                                                                ValidatesOnDataErrors=true,
+                                                                NotifyOnValidationError=true}">
 
-        <Grid Grid.Row="5"
-              Grid.Column="0"
-              Grid.ColumnSpan="2"
-              Margin="0,15,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate DataType="models:ProjectOptions">
+                                <DockPanel>
+                                    <TextBlock Margin="4,3"
+                                               HorizontalAlignment="Left"
+                                               VerticalAlignment="Center"
+                                               DockPanel.Dock="Right"
+                                               Text="{Binding ProjectModel.TypeDescription}" />
+                                    <TextBlock Margin="4,3"
+                                               HorizontalAlignment="Left"
+                                               VerticalAlignment="Center"
+                                               DockPanel.Dock="Left"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding ProjectModel.Name}" />
+                                </DockPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </controls:ComboBoxEx>
 
-            <!--  View Model  -->
-            <GroupBox Grid.Column="0"
-                      Margin="0,0,2,0"
-                      BorderBrush="{StaticResource GroupLvl2AccentBrush}"
-                      Header="View Model Location">
-                <views:LocationScaffoldUserControl DataContext="{Binding LocationForViewModel}" />
-            </GroupBox>
+                    <!--  Row 4: View Model Suffix  -->
+                    <TextBlock Grid.Row="4"
+                               Grid.Column="0"
+                               Margin="0,5,5,0"
+                               VerticalAlignment="Center"
+                               Text="View Model Suffix:" />
+                    <TextBox Grid.Row="4"
+                             Grid.Column="1"
+                             Margin="0,5,0,0"
+                             VerticalAlignment="Center"
+                             Text="{Binding ViewModelSuffix,
+                                            Mode=TwoWay,
+                                            UpdateSourceTrigger=PropertyChanged,
+                                            ValidatesOnDataErrors=True,
+                                            NotifyOnValidationError=True}" />
 
-            <!--  View  -->
-            <GroupBox Grid.Column="1"
-                      Margin="2,0,0,0"
-                      BorderBrush="{StaticResource GroupLvl2AccentBrush}"
-                      Header="View Location">
-                <views:LocationScaffoldUserControl DataContext="{Binding LocationForView}" />
-            </GroupBox>
-        </Grid>
+                    <Grid Grid.Row="5"
+                          Grid.Column="0"
+                          Grid.ColumnSpan="2"
+                          Margin="0,5,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+
+                        <!--  View Model  -->
+                        <GroupBox Grid.Column="0"
+                                  Margin="0,0,2,0"
+                                  BorderBrush="{StaticResource GroupLvl2AccentBrush}"
+                                  Header="View Model Location">
+                            <views:LocationScaffoldUserControl DataContext="{Binding LocationForViewModel}" />
+                        </GroupBox>
+
+                        <!--  View  -->
+                        <GroupBox Grid.Column="1"
+                                  Margin="2,0,0,0"
+                                  BorderBrush="{StaticResource GroupLvl2AccentBrush}"
+                                  Header="View Location">
+                            <views:LocationScaffoldUserControl DataContext="{Binding LocationForView}" />
+                        </GroupBox>
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <!--  Select template  -->
+            <TabItem VerticalContentAlignment="Stretch"
+                     Header="1"
+                     Visibility="Collapsed">
+                <views:TemplateBrowseUserControl DataContext="{Binding TemplateBrowse}"
+                                                 SelectCommand="{Binding ElementName=Root,
+                                                                         Path=DataContext.SelectCommand}"
+                                                 ShowSelectButton="True" />
+            </TabItem>
+
+            <!--  Enter field values  -->
+            <TabItem Header="2" Visibility="Collapsed">
+                <views:FieldValuesUserControl DataContext="{Binding FieldValues}" />
+            </TabItem>
+
+            <!--  Final page - let user modify buffers  -->
+            <TabItem Header="3" Visibility="Collapsed">
+                <TabControl>
+                    <TabItem Header="View">
+                        <views:T4UserControl DataContext="{Binding View}" />
+                    </TabItem>
+                    <TabItem Header="Code Behind (C#)">
+                        <views:T4UserControl DataContext="{Binding CodeBehindCSharp}" />
+                    </TabItem>
+                    <TabItem Header="View Model (C#)">
+                        <views:T4UserControl DataContext="{Binding ViewModelCSharp}" />
+                    </TabItem>
+                    <TabItem Header="Code Behind (VB)">
+                        <views:T4UserControl DataContext="{Binding CodeBehindVisualBasic}" />
+                    </TabItem>
+                    <TabItem Header="View Model (VB)">
+                        <views:T4UserControl DataContext="{Binding ViewModelVisualBasic}" />
+                    </TabItem>
+                </TabControl>
+            </TabItem>
+        </TabControl>
 
         <!--  Back, Next, and Cancel  -->
-        <StackPanel Grid.Row="9"
+        <StackPanel Grid.Row="1"
                     Grid.Column="0"
-                    Grid.ColumnSpan="2"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Bottom"
                     Orientation="Horizontal">
             <Button Width="70"
-                    Margin="20,0,0,0"
+                    Margin="0,0,0,0"
+                    Command="{Binding BackCommand}"
+                    Content="Back"
+                    Padding="0,3"
+                    Visibility="{Binding PageNumber,
+                                         Converter={StaticResource ZeroToCollapsedConverter}}" />
+            <Button Width="70"
+                    Margin="5,0,0,0"
                     Command="{Binding OkCommand}"
-                    Content="_OK"
+                    Content="Next"
+                    Padding="0,3" />
+            <Button Width="70"
+                    Margin="5,0,0,0"
+                    Command="{Binding CancelCommand}"
+                    Content="Cancel"
                     Padding="0,3" />
         </StackPanel>
     </Grid>

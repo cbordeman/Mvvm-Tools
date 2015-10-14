@@ -6,6 +6,7 @@ using System.Windows;
 using MvvmTools.Core.ViewModels;
 using MvvmTools.Core.Views;
 using Ninject;
+using MessageBox = System.Windows.MessageBox;
 
 namespace MvvmTools.Core.Services
 {
@@ -14,6 +15,18 @@ namespace MvvmTools.Core.Services
         bool ShowDialog(BaseDialogViewModel vm);
         Task ShowMessage(string title, string message);
         Task<AskResult> Ask(string title, string message, AskButton buttons);
+    }
+
+    public class MessageOverrideActions
+    {
+        public Action AddAction;
+        public Action RemoveAction;
+
+        public MessageOverrideActions(Action addAction, Action removeAction)
+        {
+            AddAction = addAction;
+            RemoveAction = removeAction;
+        }
     }
 
     public enum AskButton
@@ -44,6 +57,9 @@ namespace MvvmTools.Core.Services
         [Inject]
         public IViewFactory ViewFactory { get; set; }
 
+        [Inject]
+        public IKernel Kernel { get; set; }
+
         private readonly Dictionary<BaseDialogViewModel, DialogWindow> _dialogs = new Dictionary<BaseDialogViewModel, DialogWindow>();
 
         public Task ShowMessage(string title, string message)
@@ -58,6 +74,7 @@ namespace MvvmTools.Core.Services
             var result = MessageBox.Show(message, title, b);
             return Task.FromResult((AskResult)Enum.Parse(typeof(AskResult), result.ToString()));
         }
+
 
         public bool ShowDialog(BaseDialogViewModel vm)
         {
@@ -87,7 +104,7 @@ namespace MvvmTools.Core.Services
             vm.PropertyChanged -= VmOnPropertyChanged;
 
             if (!result)
-                vm.DialogResult = result;
+                vm.DialogResult = false;
 
             return result;
         }
@@ -96,8 +113,7 @@ namespace MvvmTools.Core.Services
         {
             // If Width, MaxWidth, Height, or MaxHeight are specified on the view, we transfer
             // those to the dialog and clear them from the view.  The initial width and height,
-            // if specified on the view, are used as minimums on the dialog, as that's sort of
-            // what was intended by the developer.
+            // if specified on the view, are used as minimums on the dialog.
             //
             // If width or height isn't specified, we set the dialog's SizeToContent so that
             // the dialog will size to the content in that dimension.

@@ -6,8 +6,10 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Xml;
+using Microsoft.VisualStudio.TextTemplating;
+using Microsoft.VisualStudio.TextTemplating.VSHost;
 using MvvmTools.Core.Models;
-using MvvmTools.Core.Utilities;
+using Ninject;
 
 namespace MvvmTools.Core.Services
 {
@@ -15,6 +17,7 @@ namespace MvvmTools.Core.Services
     {
         List<Template> LoadTemplates(string localTemplateFolder);
         void SaveTemplates(string localTemplateFolder, IEnumerable<Template> templates);
+        List<string> Transform(string contents, out string output);
     }
 
     public enum Section
@@ -27,14 +30,29 @@ namespace MvvmTools.Core.Services
         #region Data
 
         public const string LocalTemplatesFilename = "LocalTemplates.xml";
-        
-        List<ParseError> _errors;
 
         #endregion Data
 
         #region Ctor
-        
+
         #endregion Ctor
+
+        #region Properties
+
+        [Inject]
+        public ITextTemplating TextTemplating { get; set; }
+
+        //[Inject]
+        //public ITextTemplatingEngine TextTemplatingEngine { get; set; }
+
+        [Inject]
+        public ITextTemplatingEngineHost TextTemplatingEngineHost { get; set; }
+
+        [Inject]
+        public ITextTemplatingSessionHost TextTemplatingSessionHost { get; set; }
+
+
+        #endregion Properties
 
         public static string Serialize(object obj)
         {
@@ -162,5 +180,47 @@ namespace MvvmTools.Core.Services
             }
         }
 
+        public List<string> Transform(string contents, out string output)
+        {
+            try
+            {
+                // Create a Session in which to pass parameters:
+                TextTemplatingSessionHost.Session = TextTemplatingSessionHost.CreateSession();
+                TextTemplatingSessionHost.Session["parameter1"] = "Hello";
+                TextTemplatingSessionHost.Session["parameter2"] = DateTime.Now;
+
+                // Process T4.
+                var cb = new T4Callback();
+                output = TextTemplating.ProcessTemplate(string.Empty, contents, cb);
+
+                return cb.ErrorMessages;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+    }
+
+    public class T4Callback : ITextTemplatingCallback
+    {
+        public List<string> ErrorMessages { get; } = new List<string>();
+        public string FileExtension { get; private set; } = ".txt";
+        public Encoding OutputEncoding { get; private set; } = Encoding.UTF8;
+
+        public void ErrorCallback(bool warning, string message, int line, int column)
+        {
+            ErrorMessages.Add(message);
+        }
+
+        public void SetFileExtension(string extension)
+        {
+            FileExtension = extension;
+        }
+
+        public void SetOutputEncoding(Encoding encoding, bool fromOutputDirective)
+        {
+            OutputEncoding = encoding;
+        }
     }
 }

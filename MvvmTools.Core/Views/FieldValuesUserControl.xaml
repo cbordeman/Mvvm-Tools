@@ -1,0 +1,104 @@
+﻿<UserControl x:Class="MvvmTools.Core.Views.FieldValuesUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:MvvmTools.Core.Controls"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:MvvmTools.Core.ViewModels"
+             xmlns:views="clr-namespace:MvvmTools.Core.Views"
+             d:DataContext="{d:DesignInstance views:FieldValuesUserControlViewModel}"
+             d:DesignHeight="300"
+             d:DesignWidth="300"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/GroupBox.xaml" />
+                <ResourceDictionary Source="../Styles/ComboBoxEx.xaml" />
+                <ResourceDictionary Source="../Converters/Converters.xaml" />
+                <ResourceDictionary Source="../Styles/TextBoxEx.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <ItemsControl ItemsSource="{Binding Fields}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="viewModels:FieldValueUserControlViewModel">
+                    <Grid>
+                        <Separator VerticalAlignment="Top" />
+
+                        <Grid Margin="0,3,0,0" Background="#ECECEC">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="A" />
+                                <ColumnDefinition SharedSizeGroup="B" />
+                                <ColumnDefinition SharedSizeGroup="C" />
+                            </Grid.ColumnDefinitions>
+
+                            <!--  Prompt  -->
+                            <TextBlock Grid.Column="0"
+                                       Margin="5,8,5,5"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Top"
+                                       Text="{Binding PromptWithColon}" />
+
+                            <!--  TextBox  -->
+                            <controls:TextBoxEx Grid.Row="0"
+                                                Grid.Column="1"
+                                                Margin="0,7,0,5"
+                                                VerticalAlignment="Top"
+                                                AcceptsReturn="{Binding ShowTextBoxMultiline}"
+                                                Text="{Binding DefaultString,
+                                                               UpdateSourceTrigger=PropertyChanged,
+                                                               ValidatesOnDataErrors=True,
+                                                               NotifyOnValidationError=True}"
+                                                VerticalScrollBarVisibility="Auto"
+                                                Visibility="{Binding ShowTextBox,
+                                                                     Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                            <!--  CheckBox  -->
+                            <CheckBox Grid.Row="0"
+                                      Grid.Column="1"
+                                      Margin="0,9,0,5"
+                                      VerticalAlignment="Top"
+                                      IsChecked="{Binding DefaultBoolean}"
+                                      Visibility="{Binding ShowDefaultCheckBox,
+                                                           Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                            <!--  ComboBox  -->
+                            <ComboBox Grid.Row="0"
+                                      Grid.Column="1"
+                                      Margin="0,5,0,5"
+                                      VerticalAlignment="Top"
+                                      IsEditable="{Binding ShowComboBoxOpen}"
+                                      ItemsSource="{Binding ChoicesAsString}"
+                                      Text="{Binding DefaultString}"
+                                      Visibility="{Binding ShowComboBox,
+                                                           Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                            <!--  Description  -->
+                            <controls:TextBoxEx Grid.Row="0"
+                                                Grid.Column="2"
+                                                Margin="5,3,0,2"
+                                                VerticalAlignment="Center"
+                                                AcceptsReturn="True"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                IsReadOnly="True"
+                                                Text="{Binding Description,
+                                                               UpdateSourceTrigger=PropertyChanged,
+                                                               ValidatesOnDataErrors=True,
+                                                               NotifyOnValidationError=True}"
+                                                TextWrapping="WrapWithOverflow"
+                                                VerticalScrollBarVisibility="Auto" />
+                        </Grid>
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </ScrollViewer>
+</UserControl>

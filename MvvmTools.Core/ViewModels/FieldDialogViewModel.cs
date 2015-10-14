@@ -16,7 +16,6 @@ namespace MvvmTools.Core.ViewModels
     {
         #region Data
 
-        private ObservableCollection<StringViewModel> _choicesSource;
         private IEnumerable<string> _existingNames;
         private FieldDialogViewModel _unmodified;
         private bool _choicesChanged;
@@ -84,6 +83,15 @@ namespace MvvmTools.Core.ViewModels
             set { SetProperty(ref _description, value); }
         }
         #endregion Description
+
+        #region ChoicesSource
+        private ObservableCollection<StringViewModel> _choicesSource;
+        public ObservableCollection<StringViewModel> ChoicesSource
+        {
+            get { return _choicesSource; }
+            set { SetProperty(ref _choicesSource, value); }
+        }
+        #endregion ChoicesSource
 
         #region Choices
         private ListCollectionView _choices;
@@ -284,7 +292,10 @@ namespace MvvmTools.Core.ViewModels
             _prompt = field.Prompt;
             _description = field.Description;
 
-            _choicesSource = new ObservableCollection<StringViewModel>(field.Choices.Select(s => StringViewModel.CreateFromString(Kernel, s)));
+            if (field.Choices == null)
+                ChoicesSource = new ObservableCollection<StringViewModel>();
+            else
+                ChoicesSource = new ObservableCollection<StringViewModel>(field.Choices.Select(s => StringViewModel.CreateFromString(Kernel, s)));
             _choices = new ListCollectionView(_choicesSource);
 
             _selectedFieldType = field.FieldType;
@@ -298,7 +309,7 @@ namespace MvvmTools.Core.ViewModels
             _prompt = field.Prompt;
             _description = field.Description;
 
-            _choicesSource = field._choicesSource == null ? new ObservableCollection<StringViewModel>() : new ObservableCollection<StringViewModel>(field._choicesSource);
+            ChoicesSource = field._choicesSource == null ? new ObservableCollection<StringViewModel>() : new ObservableCollection<StringViewModel>(field._choicesSource);
             _choices = new ListCollectionView(_choicesSource);
 
             _selectedFieldType = field.SelectedFieldType;

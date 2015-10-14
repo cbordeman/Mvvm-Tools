@@ -32,10 +32,21 @@ namespace MvvmTools.Core.ViewModels
 
         #region Properties
 
+        #region BottomError
+        private string _bottomError;
+        public string BottomError
+        {
+            get { return _bottomError; }
+            set { SetProperty(ref _bottomError, value); }
+        }
+        #endregion BottomError
+
         #region DialogService
         [Inject]
         public IDialogService DialogService { get; set; }
         #endregion DialogService
+
+        public Template TemplateModel { get; set; }
 
         #region IsInternal
         private bool _isInternal;
@@ -122,8 +133,8 @@ namespace MvvmTools.Core.ViewModels
         #endregion View
 
         #region ViewModelCSharp
-        private string _viewModelCSharp = string.Empty;
-        public string ViewModelCSharp
+        private T4UserControlViewModel _viewModelCSharp;
+        public T4UserControlViewModel ViewModelCSharp
         {
             get { return _viewModelCSharp; }
             set { SetProperty(ref _viewModelCSharp, value); }
@@ -131,8 +142,8 @@ namespace MvvmTools.Core.ViewModels
         #endregion ViewModelCSharp
 
         #region ViewModelVisualBasic
-        private string _viewModelVisualBasic = string.Empty;
-        public string ViewModelVisualBasic
+        private T4UserControlViewModel _viewModelVisualBasic;
+        public T4UserControlViewModel ViewModelVisualBasic
         {
             get { return _viewModelVisualBasic; }
             set { SetProperty(ref _viewModelVisualBasic, value); }
@@ -140,8 +151,8 @@ namespace MvvmTools.Core.ViewModels
         #endregion ViewModelVisualBasic
         
         #region CodeBehindCSharp
-        private string _codeBehindCSharp = string.Empty;
-        public string CodeBehindCSharp
+        private T4UserControlViewModel _codeBehindCSharp;
+        public T4UserControlViewModel CodeBehindCSharp
         {
             get { return _codeBehindCSharp; }
             set { SetProperty(ref _codeBehindCSharp, value); }
@@ -149,8 +160,8 @@ namespace MvvmTools.Core.ViewModels
         #endregion CodeBehindCSharp
 
         #region CodeBehindVisualBasic
-        private string _codeBehindVisualBasic = string.Empty;
-        public string CodeBehindVisualBasic
+        private T4UserControlViewModel _codeBehindVisualBasic;
+        public T4UserControlViewModel CodeBehindVisualBasic
         {
             get { return _codeBehindVisualBasic; }
             set { SetProperty(ref _codeBehindVisualBasic, value); }
@@ -173,9 +184,8 @@ namespace MvvmTools.Core.ViewModels
                 DialogResult = true;
             }
         }
+        #endregion OkCommand
 
-        #endregion Commands
-        
         #region AddFieldCommand
         DelegateCommand _addFieldCommand;
         public DelegateCommand AddFieldCommand => _addFieldCommand ?? (_addFieldCommand = new DelegateCommand(ExecuteAddFieldCommand, CanAddFieldCommand));
@@ -266,6 +276,8 @@ namespace MvvmTools.Core.ViewModels
             _isAdd = true;
             Title = "New Template";
 
+            _fieldsChanged = false;
+
             _existingNames = existingNames;
         }
 
@@ -275,6 +287,8 @@ namespace MvvmTools.Core.ViewModels
             Title = $"Editing \"{Name}\"";
             
             _existingNames = existingNames.Where(t => !string.Equals(t, Name, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            _fieldsChanged = false;
 
             // Save unmodified properties.
             _unmodifiedValue = Kernel.Get<TemplateDialogViewModel>();
@@ -309,11 +323,33 @@ namespace MvvmTools.Core.ViewModels
 
             Fields = new ListCollectionView(new ObservableCollection<FieldDialogViewModel>());
 
-            View = new T4UserControlViewModel(null, string.Empty);
+            View = T4UserControlViewModel.Create(Kernel, null, string.Empty);
+            View.PropertyChanged += T4OnPropertyChanged;
+
+            ViewModelCSharp = T4UserControlViewModel.Create(Kernel, null, string.Empty);
+            ViewModelCSharp.PropertyChanged += T4OnPropertyChanged;
+            CodeBehindCSharp = T4UserControlViewModel.Create(Kernel, null, string.Empty);
+            CodeBehindCSharp.PropertyChanged += T4OnPropertyChanged;
+
+            ViewModelVisualBasic = T4UserControlViewModel.Create(Kernel, null, string.Empty);
+            ViewModelVisualBasic.PropertyChanged += T4OnPropertyChanged;
+            CodeBehindVisualBasic = T4UserControlViewModel.Create(Kernel, null, string.Empty);
+            CodeBehindVisualBasic.PropertyChanged += T4OnPropertyChanged;
         }
-        
+
+        private void T4OnPropertyChanged(object sender, PropertyChangedEventArgs propertyChangedEventArgs)
+        {
+            if (propertyChangedEventArgs.PropertyName == nameof(T4UserControlViewModel.IsModified))
+            {
+                //var vm = (T4UserControlViewModel) sender;
+                OkCommand.RaiseCanExecuteChanged();
+            }
+        }
+
         private void InitFrom(Template template)
         {
+            TemplateModel = template;
+
             IsInternal = template.IsInternal;
 
             Platforms = new CheckListUserControlViewModel<Platform>(Enum.GetValues(typeof(Platform)).Cast<Platform>().OrderBy(p => p.ToString().ToLower()).Select(p => new CheckedItemViewModel<Platform>(p, template.Platforms.Contains(p))), "All Platforms");
@@ -334,17 +370,24 @@ namespace MvvmTools.Core.ViewModels
             }
             Fields = new ListCollectionView(fieldVms);
             
-            View = new T4UserControlViewModel(null, template.View ?? string.Empty);
+            View = T4UserControlViewModel.Create(Kernel, null, template.View);
+            View.PropertyChanged += T4OnPropertyChanged;
 
-            ViewModelCSharp = template.ViewModelCSharp ?? string.Empty;
-            CodeBehindCSharp = template.CodeBehindCSharp ?? string.Empty;
+            ViewModelCSharp = T4UserControlViewModel.Create(Kernel, null, template.ViewModelCSharp);
+            ViewModelCSharp.PropertyChanged += T4OnPropertyChanged;
+            CodeBehindCSharp = T4UserControlViewModel.Create(Kernel, null, template.CodeBehindCSharp);
+            CodeBehindCSharp.PropertyChanged += T4OnPropertyChanged;
 
-            ViewModelVisualBasic = template.ViewModelVisualBasic ?? string.Empty;
-            CodeBehindVisualBasic = template.CodeBehindVisualBasic ?? string.Empty;
+            ViewModelVisualBasic = T4UserControlViewModel.Create(Kernel, null, template.ViewModelVisualBasic);
+            ViewModelVisualBasic.PropertyChanged += T4OnPropertyChanged;
+            CodeBehindVisualBasic = T4UserControlViewModel.Create(Kernel, null, template.CodeBehindVisualBasic);
+            CodeBehindVisualBasic.PropertyChanged += T4OnPropertyChanged;
         }
 
         public void CopyFrom(TemplateDialogViewModel template)
         {
+            TemplateModel = template.TemplateModel;
+
             IsInternal = template.IsInternal;
 
             Platforms = new CheckListUserControlViewModel<Platform>(template.Platforms.Items.Select(p => new CheckedItemViewModel<Platform>(p.Value, p.IsChecked)), "All Platforms ");
@@ -357,23 +400,28 @@ namespace MvvmTools.Core.ViewModels
             // Deep copy fields.
             Fields = new ListCollectionView(new ObservableCollection<FieldDialogViewModel>((ObservableCollection<FieldDialogViewModel>)template.Fields.SourceCollection));
 
-            View = template.View;
+            View = T4UserControlViewModel.Create(Kernel, null, template.View.Buffer);
+            View.PropertyChanged += T4OnPropertyChanged;
 
-            ViewModelCSharp = template.ViewModelCSharp;
-            CodeBehindCSharp = template.CodeBehindCSharp;
+            ViewModelCSharp = T4UserControlViewModel.Create(Kernel, null, template.ViewModelCSharp.Buffer);
+            ViewModelCSharp.PropertyChanged += T4OnPropertyChanged;
+            CodeBehindCSharp = T4UserControlViewModel.Create(Kernel, null, template.CodeBehindCSharp.Buffer);
+            CodeBehindCSharp.PropertyChanged += T4OnPropertyChanged;
 
-            ViewModelVisualBasic = template.ViewModelVisualBasic;
-            CodeBehindVisualBasic = template.CodeBehindVisualBasic;
+            ViewModelVisualBasic = T4UserControlViewModel.Create(Kernel, null, template.ViewModelVisualBasic.Buffer);
+            ViewModelVisualBasic.PropertyChanged += T4OnPropertyChanged;
+            CodeBehindVisualBasic = T4UserControlViewModel.Create(Kernel, null, template.CodeBehindVisualBasic.Buffer);
+            CodeBehindVisualBasic.PropertyChanged += T4OnPropertyChanged;
         }
-
-
+        
         #endregion Public Methods
 
         #region Virtuals
 
         protected override void TakePropertyChanged(string propertyName)
         {
-            OkCommand.RaiseCanExecuteChanged();
+            if (propertyName != nameof(BottomError))
+                OkCommand.RaiseCanExecuteChanged();
         }
         
         #endregion Virtuals
@@ -407,11 +455,13 @@ namespace MvvmTools.Core.ViewModels
                         return null;
 
                     case nameof(Description):
+
                         if (string.IsNullOrWhiteSpace(Description))
                             return "Required";
 
                         return null;
                 }
+
                 return null;
             }
         }
@@ -420,10 +470,37 @@ namespace MvvmTools.Core.ViewModels
         {
             get
             {
-                if (this[nameof(Name)] != null ||
-                    this[nameof(Description)] != null)
-                    return "Error";
+                BottomError = this[nameof(Name)];
+                if (BottomError != null)
+                {
+                    BottomError = "Template name is required.";
+                    return string.Empty;
+                }
+
+                BottomError = this[nameof(Description)];
+                if (BottomError != null)
+                {
+                    BottomError = "Template description is required.";
+                    return string.Empty;
+                }
+
+                if (string.IsNullOrWhiteSpace(View.Buffer))
+                {
+                    BottomError = "View is required.";
+                    return string.Empty;
+                }
+
+                var csSatisfied = !string.IsNullOrWhiteSpace(CodeBehindCSharp.Buffer) &&
+                                  !string.IsNullOrWhiteSpace(ViewModelCSharp.Buffer);
+                var vbSatisfied = !string.IsNullOrWhiteSpace(CodeBehindVisualBasic.Buffer) &&
+                                  !string.IsNullOrWhiteSpace(ViewModelVisualBasic.Buffer);
+                if (!csSatisfied && !vbSatisfied)
+                {
+                    BottomError = "Both the C# blocks OR both the VB blocks must be set.";
+                    return string.Empty;
+                }
                 
+                BottomError = null;
                 return null;
             }
         }
@@ -437,11 +514,12 @@ namespace MvvmTools.Core.ViewModels
                    string.Equals(Description, _unmodifiedValue.Description, StringComparison.Ordinal) &&
                    string.Equals(Framework, _unmodifiedValue.Framework, StringComparison.Ordinal) &&
                    string.Equals(Tags, _unmodifiedValue.Tags, StringComparison.Ordinal) &&
-                   string.Equals(View.Buffer, _unmodifiedValue.View.Buffer, StringComparison.Ordinal) &&
-                   string.Equals(CodeBehindCSharp, _unmodifiedValue.CodeBehindCSharp, StringComparison.Ordinal) &&
-                   string.Equals(ViewModelCSharp, _unmodifiedValue.ViewModelCSharp, StringComparison.Ordinal) &&
-                   string.Equals(CodeBehindVisualBasic, _unmodifiedValue.CodeBehindVisualBasic, StringComparison.Ordinal) &&
-                   string.Equals(ViewModelVisualBasic, _unmodifiedValue.ViewModelVisualBasic, StringComparison.Ordinal) &&
+                   
+                   !View.IsModified &&
+                   !CodeBehindCSharp.IsModified &&
+                   !ViewModelCSharp.IsModified &&
+                   !CodeBehindVisualBasic.IsModified &&
+                   !ViewModelVisualBasic.IsModified &&
 
                    !_fieldsChanged &&
 

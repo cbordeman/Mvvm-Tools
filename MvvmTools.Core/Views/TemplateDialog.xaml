@@ -21,7 +21,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid Margin="10">
+    <Grid Margin="5">
         <Grid.RowDefinitions>
             <RowDefinition />
             <RowDefinition Height="Auto" />
@@ -270,17 +270,33 @@
                 </Grid>
             </TabItem>
             <TabItem Header="View">
-                <views:T4UserControl DataContext="{Binding View}"/>
+                <views:T4UserControl DataContext="{Binding View}" />
             </TabItem>
-            <TabItem Header="Code Behind (C#)" />
-            <TabItem Header="View Model (C#)" />
-            <TabItem Header="Code Behind (VB)" />
-            <TabItem Header="View Model (VB)" />
+            <TabItem Header="Code Behind (C#)">
+                <views:T4UserControl DataContext="{Binding CodeBehindCSharp}" />
+            </TabItem>
+            <TabItem Header="View Model (C#)">
+                <views:T4UserControl DataContext="{Binding ViewModelCSharp}" />
+            </TabItem>
+            <TabItem Header="Code Behind (VB)">
+                <views:T4UserControl DataContext="{Binding CodeBehindVisualBasic}" />
+            </TabItem>
+            <TabItem Header="View Model (VB)">
+                <views:T4UserControl DataContext="{Binding ViewModelVisualBasic}" />
+            </TabItem>
         </TabControl>
+
+        <TextBlock Grid.Row="1"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Center"
+                   Foreground="DarkRed"
+                   Text="{Binding BottomError}"
+                   Visibility="{Binding BottomError,
+                                        Converter={StaticResource NullToCollapsedConverter}}" />
 
         <StackPanel Grid.Row="1"
                     Grid.ColumnSpan="2"
-                    Margin="0,5,5,0"
+                    Margin="0,0,5,0"
                     HorizontalAlignment="Right"
                     Orientation="Horizontal">
             <Button Width="70"

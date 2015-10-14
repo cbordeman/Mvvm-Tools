@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using MvvmTools.Core.Models;
 using MvvmTools.Core.Services;
 using MvvmTools.Core.Utilities;
+using MvvmTools.Core.Views;
 using Ninject;
 
 // ReSharper disable once ExplicitCallerInfoArgument
@@ -51,6 +52,11 @@ namespace MvvmTools.Core.ViewModels
             ViewSuffixes.Insert(0, string.Empty);
             SelectedViewSuffix = ViewSuffixes[0];
 
+            TemplateBrowse = Kernel.Get<TemplateBrowseUserControlViewModel>();
+            TemplateBrowse.Init(_settings.LocalTemplateFolder);
+
+            FieldValues = Kernel.Get<FieldValuesUserControlViewModel>();
+
             IsBusy = false;
         }
 
@@ -67,8 +73,19 @@ namespace MvvmTools.Core.ViewModels
         [Inject]
         public ISolutionService SolutionService { get; set; }
 
-        #region LocationForView
+        [Inject]
+        public ITemplateService TemplateService { get; set; }
+        
+        #region TemplateBrowseUserControl
+        private TemplateBrowseUserControlViewModel _templateBrowse;
+        public TemplateBrowseUserControlViewModel TemplateBrowse
+        {
+            get { return _templateBrowse; }
+            set { SetProperty(ref _templateBrowse, value); }
+        }
+        #endregion TemplateBrowseUserControl
 
+        #region LocationForView
         private LocationScaffoldUserControlViewModel _locationForView;
         public LocationScaffoldUserControlViewModel LocationForView
         {
@@ -84,11 +101,9 @@ namespace MvvmTools.Core.ViewModels
                     _locationForView.PropertyChanged += OnPropertyChanged;
             }
         }
-
         #endregion LocationForView
 
         #region LocationForViewModel
-
         private LocationScaffoldUserControlViewModel _locationForViewModel;
         public LocationScaffoldUserControlViewModel LocationForViewModel
         {
@@ -104,25 +119,19 @@ namespace MvvmTools.Core.ViewModels
                     _locationForViewModel.PropertyChanged += OnPropertyChanged;
             }
         }
-
         #endregion LocationForViewModel
 
         #region Projects
-
         private IList<ProjectOptions> _projects;
-
         public IList<ProjectOptions> Projects
         {
             get { return _projects; }
             set { SetProperty(ref _projects, value); }
         }
-
         #endregion ProjectModels
 
         #region SettingsProject
-
         private ProjectOptions _settingsProject;
-
         public ProjectOptions SettingsProject
         {
             get { return _settingsProject; }
@@ -131,91 +140,178 @@ namespace MvvmTools.Core.ViewModels
                 if (SetProperty(ref _settingsProject, value))
                 {
                     ViewModelSuffix = value.ViewModelSuffix;
-                    LocationForView = new LocationScaffoldUserControlViewModel();
+                    LocationForView = Kernel.Get<LocationScaffoldUserControlViewModel>();
                     LocationForView.Init(_projOptions, value.ViewLocation, SettingsProject);
-                    LocationForViewModel = new LocationScaffoldUserControlViewModel();
+                    LocationForViewModel = Kernel.Get<LocationScaffoldUserControlViewModel>();
                     LocationForViewModel.Init(_projOptions, value.ViewModelLocation, SettingsProject);
                 }
             }
         }
-
         #endregion SettingsProject
 
         #region Name
-
         private string _name;
-
         public string Name
         {
             get { return _name; }
             set { SetProperty(ref _name, value); }
         }
-
         #endregion Name
 
         #region ViewModelSuffix
-
         private string _viewModelSuffix;
-
         public string ViewModelSuffix
         {
             get { return _viewModelSuffix; }
             set { SetProperty(ref _viewModelSuffix, value); }
         }
-
         #endregion ViewModelSuffix
 
         #region IsBusy
-
         private bool _isBusy;
-
         public bool IsBusy
         {
             get { return _isBusy; }
             set { SetProperty(ref _isBusy, value); }
         }
-
         #endregion IsBusy
-
+        
         #region ViewSuffixes
-
         private ObservableCollection<string> _viewSuffixes;
-
         public ObservableCollection<string> ViewSuffixes
         {
             get { return _viewSuffixes; }
             set { SetProperty(ref _viewSuffixes, value); }
         }
-
         #endregion ViewSuffixes
 
         #region SelectedViewSuffix
-
         private string _selectedViewSuffix;
         public string SelectedViewSuffix
         {
             get { return _selectedViewSuffix; }
             set { SetProperty(ref _selectedViewSuffix, value); }
         }
-
         #endregion SelectedViewSuffix
+        
+        #region SelectedTemplate
+        private Template _selectedTemplate;
+        public Template SelectedTemplate
+        {
+            get { return _selectedTemplate; }
+            set { SetProperty(ref _selectedTemplate, value); }
+        }
+        #endregion SelectedTemplate
+
+        #region PageNumber
+        private int _pageNumber;
+        public int PageNumber
+        {
+            get { return _pageNumber; }
+            set
+            {
+                if (SetProperty(ref _pageNumber, value))
+                {
+                    BackCommand.RaiseCanExecuteChanged();
+                    OkCommand.RaiseCanExecuteChanged();
+                }
+            }
+        }
+        #endregion PageNumber
+
+        #region View
+        private T4UserControlViewModel _view;
+        public T4UserControlViewModel View
+        {
+            get { return _view; }
+            set { SetProperty(ref _view, value); }
+        }
+        #endregion View
+
+        #region ViewModelCSharp
+        private T4UserControlViewModel _viewModelCSharp;
+        public T4UserControlViewModel ViewModelCSharp
+        {
+            get { return _viewModelCSharp; }
+            set { SetProperty(ref _viewModelCSharp, value); }
+        }
+        #endregion ViewModelCSharp
+
+        #region ViewModelVisualBasic
+        private T4UserControlViewModel _viewModelVisualBasic;
+        public T4UserControlViewModel ViewModelVisualBasic
+        {
+            get { return _viewModelVisualBasic; }
+            set { SetProperty(ref _viewModelVisualBasic, value); }
+        }
+        #endregion ViewModelVisualBasic
+        
+        #region CodeBehindCSharp
+        private T4UserControlViewModel _codeBehindCSharp;
+        public T4UserControlViewModel CodeBehindCSharp
+        {
+            get { return _codeBehindCSharp; }
+            set { SetProperty(ref _codeBehindCSharp, value); }
+        }
+        #endregion CodeBehindCSharp
+
+        #region CodeBehindVisualBasic
+        private T4UserControlViewModel _codeBehindVisualBasic;
+        public T4UserControlViewModel CodeBehindVisualBasic
+        {
+            get { return _codeBehindVisualBasic; }
+            set { SetProperty(ref _codeBehindVisualBasic, value); }
+        }
+        #endregion CodeBehindVisualBasic
+
+        public FieldValuesUserControlViewModel FieldValues { get; set; }
 
         #endregion Properties
 
         #region Commands
 
-        #region OkCommand
+        #region SelectCommand
+        DelegateCommand<Template> _selectCommand;
+        public DelegateCommand<Template> SelectCommand => _selectCommand ?? (_selectCommand = new DelegateCommand<Template>(ExecuteSelectCommand, CanSelectCommand));
+        public bool CanSelectCommand(Template t) => true;
+        public void ExecuteSelectCommand(Template t)
+        {
+            SelectedTemplate = t;
+            FieldValues.Init(t.Fields);
+            PageNumber++;
+        }
+        #endregion
 
+        #region BackCommand
+        DelegateCommand _backCommand;
+        public DelegateCommand BackCommand => _backCommand ?? (_backCommand = new DelegateCommand(ExecuteBackCommand, CanBackCommand));
+        public bool CanBackCommand() => PageNumber > 0;
+        public void ExecuteBackCommand()
+        {
+            PageNumber--;
+
+        }
+        #endregion
+
+        #region OkCommand
         private DelegateCommand _okCommand;
-        public DelegateCommand OkCommand
-            => _okCommand ?? (_okCommand = new DelegateCommand(ExecuteOkCommand, CanOkCommand));
-        public bool CanOkCommand() => Error == null;
+        public DelegateCommand OkCommand => _okCommand ?? (_okCommand = new DelegateCommand(ExecuteOkCommand, CanOkCommand));
+        public bool CanOkCommand() => Error == null && PageNumber != 1;
         public void ExecuteOkCommand()
         {
-            // do something
+            PageNumber++;
         }
+        #endregion OkCommand
 
-        #endregion
+        #region SelectTemplateCommand
+        DelegateCommand _selectTemplateCommand;
+        public DelegateCommand SelectTemplateCommand => _selectTemplateCommand ?? (_selectTemplateCommand = new DelegateCommand(ExecuteSelectTemplateCommand, CanSelectTemplateCommand));
+        public bool CanSelectTemplateCommand() => true;
+        public void ExecuteSelectTemplateCommand()
+        {
+
+        }
+        #endregion SelectTemplateCommand
 
         #endregion Commands
 
@@ -241,12 +337,14 @@ namespace MvvmTools.Core.ViewModels
             {
                 switch (columnName)
                 {
-                    case "ViewModelSuffix":
+                    case nameof(ViewModelSuffix):
                         return ValidationUtilities.ValidateViewModelSuffix(ViewModelSuffix);
-                    case "Name":
+                    case nameof(Name):
                         return ValidationUtilities.ValidateName(Name);
-                    case "SelectedViewSuffix":
-                        return string.IsNullOrWhiteSpace(SelectedViewSuffix) ? "Select the view suffix." : null;
+                    case nameof(SettingsProject):
+                        return SettingsProject == null ? "Required" : null;
+                    case nameof(SelectedViewSuffix):
+                        return string.IsNullOrWhiteSpace(SelectedViewSuffix) ? "Required" : null;
                 }
                 return null;
             }
@@ -257,7 +355,7 @@ namespace MvvmTools.Core.ViewModels
                                string.IsNullOrWhiteSpace(SelectedViewSuffix) ||
                                LocationForViewModel == null || LocationForViewModel.Error != null ||
                                LocationForView == null || LocationForView.Error != null
-            ? "There are errors"
+            ? string.Empty
             : null;
 
         #endregion IDataErrorInfo

@@ -124,7 +124,7 @@ namespace MvvmTools.Core.Utilities
         public static string ValidateName(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
-                return "Type the name, without suffix";
+                return "Required";
 
             if (!NameRegex.IsMatch(name))
                 return "Invalid";

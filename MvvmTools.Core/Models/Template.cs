@@ -31,11 +31,11 @@ namespace MvvmTools.Core.Models
 
             View = vm.View.Buffer ?? string.Empty;
 
-            ViewModelCSharp = vm.ViewModelCSharp ?? string.Empty;
-            CodeBehindCSharp = vm.CodeBehindCSharp ?? string.Empty;
+            ViewModelCSharp = vm.ViewModelCSharp.Buffer ?? string.Empty;
+            CodeBehindCSharp = vm.CodeBehindCSharp.Buffer ?? string.Empty;
 
-            ViewModelVisualBasic = vm.ViewModelVisualBasic ?? string.Empty;
-            CodeBehindVisualBasic = vm.CodeBehindVisualBasic ?? string.Empty;
+            ViewModelVisualBasic = vm.ViewModelVisualBasic.Buffer ?? string.Empty;
+            CodeBehindVisualBasic = vm.CodeBehindVisualBasic.Buffer ?? string.Empty;
         }
 
 

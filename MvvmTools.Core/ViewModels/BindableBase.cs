@@ -70,7 +70,7 @@ namespace MvvmTools.Core.ViewModels
         {
         }
         
-        protected void NotifyPropertyChanged(string propertyName)
+        public void NotifyPropertyChanged(string propertyName)
         {
             //ReactiveUI.WeakEventManager<BindableBase, PropertyChangedEventHandler, PropertyChangedEventArgs>.DeliverEvent(this, new PropertyChangedEventArgs(propertyName));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
