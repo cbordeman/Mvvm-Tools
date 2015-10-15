@@ -154,7 +154,7 @@
                                             VerticalAlignment="Center"
                                             Command="{Binding ElementName=Root,
                                                               Path=SelectCommand}"
-                                            CommandParameter="{Binding TemplateModel}"
+                                            CommandParameter="{Binding}"
                                             Content="Select"
                                             Padding="6,3"
                                             Visibility="{Binding ElementName=Root,

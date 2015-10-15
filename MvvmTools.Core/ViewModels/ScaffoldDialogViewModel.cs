@@ -195,8 +195,8 @@ namespace MvvmTools.Core.ViewModels
         #endregion SelectedViewSuffix
         
         #region SelectedTemplate
-        private Template _selectedTemplate;
-        public Template SelectedTemplate
+        private TemplateDialogViewModel _selectedTemplate;
+        public TemplateDialogViewModel SelectedTemplate
         {
             get { return _selectedTemplate; }
             set { SetProperty(ref _selectedTemplate, value); }
@@ -271,13 +271,13 @@ namespace MvvmTools.Core.ViewModels
         #region Commands
 
         #region SelectCommand
-        DelegateCommand<Template> _selectCommand;
-        public DelegateCommand<Template> SelectCommand => _selectCommand ?? (_selectCommand = new DelegateCommand<Template>(ExecuteSelectCommand, CanSelectCommand));
-        public bool CanSelectCommand(Template t) => true;
-        public void ExecuteSelectCommand(Template t)
+        DelegateCommand<TemplateDialogViewModel> _selectCommand;
+        public DelegateCommand<TemplateDialogViewModel> SelectCommand => _selectCommand ?? (_selectCommand = new DelegateCommand<TemplateDialogViewModel>(ExecuteSelectCommand, CanSelectCommand));
+        public bool CanSelectCommand(TemplateDialogViewModel t) => true;
+        public void ExecuteSelectCommand(TemplateDialogViewModel t)
         {
             SelectedTemplate = t;
-            FieldValues.Init(t.Fields);
+            FieldValues.Init((ObservableCollection<FieldDialogViewModel>)t.Fields.SourceCollection);
             PageNumber++;
         }
         #endregion

@@ -155,7 +155,7 @@ namespace MvvmTools.Core.ViewModels
                 {
                     case FieldType.ComboBox:
                     case FieldType.ComboBoxOpen:
-                        var choices = string.Join(" | ", _choicesSource.Select(c => c.Value));
+                        var choices = _choicesSource == null ? string.Empty : string.Join(" | ", _choicesSource.Select(c => c.Value));
                         return choices;
                     default:
                         return null;

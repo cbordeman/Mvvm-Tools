@@ -46,8 +46,6 @@ namespace MvvmTools.Core.ViewModels
         public IDialogService DialogService { get; set; }
         #endregion DialogService
 
-        public Template TemplateModel { get; set; }
-
         #region IsInternal
         private bool _isInternal;
         public bool IsInternal
@@ -221,9 +219,11 @@ namespace MvvmTools.Core.ViewModels
             {
                 // Success, copy fields back into our instance, save, and refresh frameworks (filter combobox).
                 vm.CopyFrom(copy);
+
                 Fields.MoveCurrentTo(vm);
                 _fieldsChanged = true;
                 OkCommand.RaiseCanExecuteChanged();
+                Fields.Refresh();
             }
         }
         #endregion
@@ -348,8 +348,6 @@ namespace MvvmTools.Core.ViewModels
 
         private void InitFrom(Template template)
         {
-            TemplateModel = template;
-
             IsInternal = template.IsInternal;
 
             Platforms = new CheckListUserControlViewModel<Platform>(Enum.GetValues(typeof(Platform)).Cast<Platform>().OrderBy(p => p.ToString().ToLower()).Select(p => new CheckedItemViewModel<Platform>(p, template.Platforms.Contains(p))), "All Platforms");
@@ -386,8 +384,6 @@ namespace MvvmTools.Core.ViewModels
 
         public void CopyFrom(TemplateDialogViewModel template)
         {
-            TemplateModel = template.TemplateModel;
-
             IsInternal = template.IsInternal;
 
             Platforms = new CheckListUserControlViewModel<Platform>(template.Platforms.Items.Select(p => new CheckedItemViewModel<Platform>(p.Value, p.IsChecked)), "All Platforms ");
