@@ -34,8 +34,6 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <TextBlock Margin="0,0,0,0"
@@ -101,28 +99,6 @@
                        Text="If starts with a dot, will be relative to the project's default namespace, e.g.: .Sample.ViewModels. or .Sample.Views."
                        TextWrapping="WrapWithOverflow" />
 
-            <CheckBox Grid.Row="8"
-                      Grid.Column="0"
-                      Margin="0,5,0,2"
-                      HorizontalAlignment="Left"
-                      VerticalAlignment="Center"
-                      Content="Append View Suffix"
-                      IsChecked="{Binding AppendViewType}" />
-            <Button Grid.Row="8"
-                    Margin="0,5,0,2"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Center"
-                    Command="{Binding ResetAppendViewTypeCommand}"
-                    Content="Default"
-                    IsTabStop="False"
-                    Padding="3,0" />
-            <TextBlock Grid.Row="9"
-                       Grid.Column="0"
-                       Margin="0,2,0,0"
-                       VerticalAlignment="Center"
-                       FontSize="10"
-                       Text="If checked, a subfolder will be created for the view suffix, e.g.: Module\Dialogs\SampleDialog."
-                       TextWrapping="WrapWithOverflow" />
         </Grid>
     </Grid>
 </UserControl>

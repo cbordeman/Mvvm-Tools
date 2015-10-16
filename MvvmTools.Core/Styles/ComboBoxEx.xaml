@@ -248,6 +248,14 @@
                                   ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
                                   IsHitTestVisible="false"
                                   SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                <TextBlock x:Name="Watermark"
+                           Grid.Column="0"
+                           Margin="2,0"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Center"
+                           Focusable="False"
+                           Text="{TemplateBinding Watermark}"
+                           Visibility="Collapsed" />
                 <Border x:Name="ErrorMessage"
                         Grid.Column="1"
                         Width="0"
@@ -264,6 +272,9 @@
         </Grid>
 
         <ControlTemplate.Triggers>
+            <Trigger Property="SelectionBoxItem" Value="{x:Null}">
+                <Setter TargetName="Watermark" Property="Visibility" Value="Visible" />
+            </Trigger>
             <MultiTrigger>
                 <MultiTrigger.Conditions>
                     <Condition Property="IsEnabled" Value="true" />

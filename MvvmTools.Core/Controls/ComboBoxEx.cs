@@ -5,11 +5,11 @@ namespace MvvmTools.Core.Controls
 {
     public class ComboBoxEx : ComboBox
     {
-        public ComboBoxEx()
+        static ComboBoxEx()
         {
-            DefaultStyleKey = typeof (ComboBoxEx);
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(ComboBoxEx), new FrameworkPropertyMetadata(typeof(ComboBoxEx)));
         }
-
+        
         #region ShowError
         public bool ShowError
         {
@@ -19,5 +19,16 @@ namespace MvvmTools.Core.Controls
         public static readonly DependencyProperty ShowErrorProperty =
             DependencyProperty.Register("ShowError", typeof(bool), typeof(ComboBoxEx), new PropertyMetadata(false));
         #endregion ShowError
+
+        #region Watermark
+        public string Watermark
+        {
+            get { return (string)GetValue(WatermarkProperty); }
+            set { SetValue(WatermarkProperty, value); }
+        }
+        public static readonly DependencyProperty WatermarkProperty =
+            DependencyProperty.Register("Watermark", typeof(string), typeof(ComboBoxEx), new PropertyMetadata(null));
+        #endregion Watermark
+
     }
 }

@@ -75,19 +75,6 @@ namespace MvvmTools.Core.ViewModels
         }
         #endregion Namespace
 
-        #region AppendViewType
-        private bool _appendViewType;
-        public bool AppendViewType
-        {
-            get { return _appendViewType; }
-            set
-            {
-                if (SetProperty(ref _appendViewType, value))
-                    ResetAppendViewTypeCommand.RaiseCanExecuteChanged();
-            }
-        }
-        #endregion AppendViewType
-
         #endregion Properties
 
         #region Commands
@@ -122,16 +109,6 @@ namespace MvvmTools.Core.ViewModels
         }
         #endregion
 
-        #region ResetAppendViewTypeCommand
-        DelegateCommand _resetAppendViewTypeCommand;
-        public DelegateCommand ResetAppendViewTypeCommand => _resetAppendViewTypeCommand ?? (_resetAppendViewTypeCommand = new DelegateCommand(ExecuteResetAppendViewTypeCommand, CanResetAppendViewTypeCommand));
-        public bool CanResetAppendViewTypeCommand() => AppendViewType != Inherited?.AppendViewType;
-        public void ExecuteResetAppendViewTypeCommand()
-        {
-            AppendViewType = Inherited.AppendViewType;
-        }
-        #endregion
-        
         #endregion Commands
 
         #region Virtuals
@@ -145,7 +122,6 @@ namespace MvvmTools.Core.ViewModels
             _projectIdentifier = descriptor.ProjectIdentifier;
             _pathOffProject = descriptor.PathOffProject;
             _namespace = descriptor.Namespace;
-            _appendViewType = descriptor.AppendViewType;
         }
 
         public LocationDescriptor GetDescriptor()
@@ -154,8 +130,7 @@ namespace MvvmTools.Core.ViewModels
             {
                 ProjectIdentifier = ProjectIdentifier,
                 PathOffProject = PathOffProject,
-                Namespace = Namespace,
-                AppendViewType = AppendViewType
+                Namespace = Namespace
             };
         }
 
@@ -163,7 +138,7 @@ namespace MvvmTools.Core.ViewModels
         public async Task InitializeFromSolution()
         {
             var projects = await SolutionService.GetProjectsList();
-            projects.Insert(0, new ProjectModel("(current project)", null, null, ProjectKind.Project, null));
+            projects.Insert(0, new ProjectModel("(current project)", null, null, ProjectKind.Project, null, null));
             
             // Have to save and restore the project id because the XAML binding engine nulls it.
             var save = ProjectIdentifier;
@@ -186,9 +161,7 @@ namespace MvvmTools.Core.ViewModels
                     return false;
                 if (ProjectIdentifier != Inherited.ProjectIdentifier)
                     return false;
-                if (AppendViewType != Inherited.AppendViewType)
-                    return false;
-
+                
                 return true;
             }
         }
@@ -199,7 +172,6 @@ namespace MvvmTools.Core.ViewModels
             PathOffProject = Inherited.PathOffProject;
             Namespace = Inherited.Namespace;
             ProjectIdentifier = Inherited.ProjectIdentifier;
-            AppendViewType = Inherited.AppendViewType;
         }
 
         #endregion Public Methods

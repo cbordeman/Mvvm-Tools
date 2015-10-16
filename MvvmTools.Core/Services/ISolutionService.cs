@@ -5,12 +5,13 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell.Interop;
 using MvvmTools.Core.Models;
 using MvvmTools.Core.Utilities;
+using VSLangProj2;
+using VSLangProj80;
 
 // ReSharper disable SuspiciousTypeConversion.Global
 
@@ -191,7 +192,8 @@ namespace MvvmTools.Core.Services
                             p.FullPath,
                             p.ProjectIdentifier,
                             p.Kind,
-                            p.KindId));
+                            p.KindId,
+                            p.RootNamespace));
                         break;
                     case ProjectKind.ProjectFolder:
                         return;
@@ -235,7 +237,7 @@ namespace MvvmTools.Core.Services
         {
             ProjectModel rval = new ProjectModel(projectItem.Name, projectItem.Name, null, 
                 projectItem.Kind == VsConstants.VsProjectItemKindPhysicalFolder ? ProjectKind.ProjectFolder : ProjectKind.Item, 
-                projectItem.Kind);
+                projectItem.Kind, null);
 
             if (projectItem.ProjectItems == null)
                 return rval;
@@ -482,16 +484,25 @@ namespace MvvmTools.Core.Services
         // This just converts the main properties, it doesn't recurse through the children.
         private static ProjectModel ConvertProjectToProjectModel(Project project)
         {
-            // Sometimes unloaded or some project types projects throw on .FullName.
+            string rootNamespace = null;
+            try
+            {
+                rootNamespace = project.Properties.Item("DefaultNamespace").Value.ToString();
+            }
+            catch
+            {
+                // ignored
+            }
+            
+            // Sometimes projects throw on .FullName.
             string fullName = null;
             try
             {
                 fullName = project.FullName;
-                // Add the project.
             }
             catch
             {
-                // Ignored.
+                // ignored
             }
 
             var projectModel = new ProjectModel(
@@ -501,7 +512,8 @@ namespace MvvmTools.Core.Services
                     project.Kind == VsConstants.VsProjectItemKindSolutionFolder
                         ? ProjectKind.SolutionFolder
                         : ProjectKind.Project,
-                    project.Kind);
+                    project.Kind,
+                    rootNamespace);
 
             return projectModel;
         }
@@ -670,10 +682,12 @@ namespace MvvmTools.Core.Services
                     solution.FullName,
                     null,
                     ProjectKind.Solution,
+                    null,
                     null);
 
                 // Add each of the top level projects and children to the local solutionModel.
                 var topLevelProjects = solution.Projects.Cast<Project>().Where(p => p.Name != "Solution Items").ToArray();
+
                 foreach (var p in topLevelProjects)
                 {
                     var projectModels = GetProjectModelsRecursive(p);

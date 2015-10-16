@@ -28,10 +28,10 @@
 
         <TextBlock Margin="0,0,0,5"
                    FontWeight="SemiBold"
-                   Text="Please enter the following field values." />
+                   Text="Please enter the following template field values:" />
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding Fields}">
+            <ItemsControl Grid.IsSharedSizeScope="True" ItemsSource="{Binding Fields}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel />
@@ -45,8 +45,8 @@
                             <Grid Margin="0,2,0,0" Background="#ECECEC">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="A" />
-                                    <ColumnDefinition SharedSizeGroup="B" />
-                                    <ColumnDefinition SharedSizeGroup="C" />
+                                    <ColumnDefinition />
+                                    <ColumnDefinition />
                                 </Grid.ColumnDefinitions>
 
                                 <!--  Prompt  -->
@@ -99,6 +99,7 @@
                                                     Background="Transparent"
                                                     BorderThickness="0"
                                                     IsReadOnly="True"
+                                                    IsTabStop="False"
                                                     Text="{Binding Description,
                                                                    UpdateSourceTrigger=PropertyChanged,
                                                                    ValidatesOnDataErrors=True,

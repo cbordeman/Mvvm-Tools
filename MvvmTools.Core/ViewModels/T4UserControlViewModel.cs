@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using MvvmTools.Core.Services;
-using MvvmTools.Core.Utilities;
 using Ninject;
 
 namespace MvvmTools.Core.ViewModels
@@ -15,11 +15,6 @@ namespace MvvmTools.Core.ViewModels
         #endregion Data
 
         #region Ctor and Init
-
-        public T4UserControlViewModel()
-        {
-            
-        }
 
         #endregion Ctor and Init
 
@@ -135,34 +130,21 @@ namespace MvvmTools.Core.ViewModels
 
         #region Public Methods
 
-        public static T4UserControlViewModel Create(IKernel kernel, string isEnabledText, string buffer)
+        public static T4UserControlViewModel Create(IKernel kernel, string isEnabledText, string buffer, List<InsertFieldViewModel> predefinedFields, List<InsertFieldViewModel> customFields)
         {
             var rval = kernel.Get<T4UserControlViewModel>();
-            rval.Init(isEnabledText, buffer);
+            rval.Init(isEnabledText, buffer, predefinedFields, customFields);
             return rval;
         }
 
-        public void Init(string isEnabledText, string buffer)
+        public void Init(string isEnabledText, string buffer, List<InsertFieldViewModel> predefinedFields, List<InsertFieldViewModel> customFields)
         {
             _isEnabledText = isEnabledText;
             _initialBuffer = buffer;
             Buffer = buffer;
 
-            PredefinedFields = new List<InsertFieldViewModel>
-            {
-                InsertFieldViewModel.Create(Kernel, new FieldDialogViewModel { Name = "Field1", Description = "Description 1"}, "Value 1"),
-                InsertFieldViewModel.Create(Kernel, new FieldDialogViewModel { Name = "Field2", Description = "Description 2"}, "Value 2"),
-                InsertFieldViewModel.Create(Kernel, new FieldDialogViewModel { Name = "Field3", Description = "Description 3"}, "Value 3"),
-                InsertFieldViewModel.Create(Kernel, new FieldDialogViewModel { Name = "Field4", Description = "Description 4"}, "Value 4"),
-            };
-
-            CustomFields = new List<InsertFieldViewModel>
-            {
-                InsertFieldViewModel.Create(Kernel, new FieldDialogViewModel { Name = "Field1", Description = "Description 1"}, "Value 1"),
-                InsertFieldViewModel.Create(Kernel, new FieldDialogViewModel { Name = "Field2", Description = "Description 2"}, "Value 2"),
-                InsertFieldViewModel.Create(Kernel, new FieldDialogViewModel { Name = "Field3", Description = "Description 3"}, "Value 3"),
-                InsertFieldViewModel.Create(Kernel, new FieldDialogViewModel { Name = "Field4", Description = "Description 4"}, "Value 4"),
-            };
+            PredefinedFields = predefinedFields;
+            CustomFields = customFields;
         }
 
         #endregion Public Methods

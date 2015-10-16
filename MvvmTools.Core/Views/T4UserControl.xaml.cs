@@ -24,10 +24,14 @@ namespace MvvmTools.Core.Views
             TextEditor.Document.Changed += TextEditorOnDocumentChanged;
         }
 
+        private bool _documentChanging;
+
         private void TextEditorOnDocumentChanged(object sender, EventArgs eventArgs)
         {
+            _documentChanging = true;
             var vm = (T4UserControlViewModel)DataContext;
             vm.Buffer = TextEditor.Text;
+            _documentChanging = false;
         }
 
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs args)
@@ -53,6 +57,15 @@ namespace MvvmTools.Core.Views
                     using (var stream = GenerateStreamFromString(vm.Preview))
                         PreviewTextEditor.Load(stream);
             }
+            else if (args.PropertyName == nameof(T4UserControlViewModel.Buffer))
+            {
+                if (_documentChanging)
+                    return;
+                var vm = (T4UserControlViewModel)DataContext;
+                if (vm != null)
+                    using (var stream = GenerateStreamFromString(vm.Buffer))
+                        TextEditor.Load(stream);
+            }
         }
 
         public Stream GenerateStreamFromString(string s)
@@ -69,7 +82,7 @@ namespace MvvmTools.Core.Views
         {
             var button = (Button) sender;
             var vm = (InsertFieldViewModel) button.DataContext;
-            TextEditor.Document.Insert(TextEditor.TextArea.Caret.Offset, vm.Value);
+            TextEditor.Document.Insert(TextEditor.TextArea.Caret.Offset, vm.Name);
             InsertFieldSplitButton.IsOpen = false;
         }
     }

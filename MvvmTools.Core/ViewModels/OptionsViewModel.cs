@@ -365,10 +365,6 @@ namespace MvvmTools.Core.ViewModels
                     location = (LocationDescriptorUserControlViewModel)sender;
                     _oldValue = location.PathOffProject;
                     break;
-                case "AppendViewType":
-                    location = (LocationDescriptorUserControlViewModel)sender;
-                    _oldValue = location.AppendViewType;
-                    break;
                 case "Namespace":
                     location = (LocationDescriptorUserControlViewModel)sender;
                     _oldValue = location.Namespace;
@@ -441,19 +437,6 @@ namespace MvvmTools.Core.ViewModels
                         {
                             if (projectOptions.LocationDescriptorForViewModel.PathOffProject == (string)_oldValue)
                                 projectOptions.LocationDescriptorForViewModel.PathOffProject = solution.LocationDescriptorForViewModel.PathOffProject;
-                        }
-                        ResetAllToInheritedCommand.RaiseCanExecuteChanged();
-                        break;
-                    case "AppendViewType":
-                        if (isView)
-                        {
-                            if (projectOptions.LocationDescriptorForView.AppendViewType == (bool)_oldValue)
-                                projectOptions.LocationDescriptorForView.AppendViewType = solution.LocationDescriptorForView.AppendViewType;
-                        }
-                        else
-                        {
-                            if (projectOptions.LocationDescriptorForViewModel.AppendViewType == (bool)_oldValue)
-                                projectOptions.LocationDescriptorForViewModel.AppendViewType = solution.LocationDescriptorForViewModel.AppendViewType;
                         }
                         ResetAllToInheritedCommand.RaiseCanExecuteChanged();
                         break;

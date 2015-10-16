@@ -55,15 +55,6 @@ namespace MvvmTools.Core.ViewModels
         }
         #endregion Namespace
 
-        #region AppendViewType
-        private bool _appendViewType;
-        public bool AppendViewType
-        {
-            get { return _appendViewType; }
-            set { SetProperty(ref _appendViewType, value); }
-        }
-        #endregion AppendViewType
-
         #endregion Properties
 
         #region Commands
@@ -85,7 +76,6 @@ namespace MvvmTools.Core.ViewModels
             ProjectIdentifier = descriptor.ProjectIdentifier ?? settingsProject.ProjectModel.ProjectIdentifier;
             PathOffProject = descriptor.PathOffProject;
             Namespace = descriptor.Namespace;
-            AppendViewType = descriptor.AppendViewType;
         }
         
         #endregion Public Methods

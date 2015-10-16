@@ -70,7 +70,6 @@ namespace MvvmTools.Commands
 
                     var viewModelLocationOptions = new LocationDescriptor()
                     {
-                        AppendViewType = settingsPm.ViewModelLocation.AppendViewType,
                         Namespace = settingsPm.ViewModelLocation.Namespace,
                         PathOffProject = settingsPm.ViewModelLocation.PathOffProject,
                         ProjectIdentifier = settingsPm.ViewModelLocation.ProjectIdentifier ?? pi.ContainingProject.UniqueName
@@ -78,7 +77,6 @@ namespace MvvmTools.Commands
 
                     var viewLocationOptions = new LocationDescriptor()
                     {
-                        AppendViewType = settingsPm.ViewLocation.AppendViewType,
                         Namespace = settingsPm.ViewLocation.Namespace,
                         PathOffProject = settingsPm.ViewLocation.PathOffProject,
                         ProjectIdentifier = settingsPm.ViewLocation.ProjectIdentifier ?? pi.ContainingProject.UniqueName

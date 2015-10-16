@@ -4,20 +4,17 @@ namespace MvvmTools.Core.ViewModels
 {
     public class InsertFieldViewModel
     {
-        public FieldDialogViewModel Field { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
         public string Value { get; set; }
 
-        public static InsertFieldViewModel Create(IKernel kernel, FieldDialogViewModel field, string @value)
+        public static InsertFieldViewModel Create(IKernel kernel, string name, string description, string @value)
         {
             var vm = kernel.Get<InsertFieldViewModel>();
-            vm.Init(field, @value);
+            vm.Name = name;
+            vm.Description = description;
+            vm.Value = @value;
             return vm;
-        }
-
-        public void Init(FieldDialogViewModel field, string @value)
-        {
-            Field = field;
-            Value = @value;
         }
     }
 }

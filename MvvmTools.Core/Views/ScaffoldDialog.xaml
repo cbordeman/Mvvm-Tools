@@ -56,10 +56,12 @@
                                Margin="0,0,5,0"
                                VerticalAlignment="Center"
                                Text="New Item:" />
-                    <controls:TextBoxEx Grid.Row="0"
+                    <controls:TextBoxEx x:Name="NameTextBox"
+                                        Grid.Row="0"
                                         Grid.Column="1"
                                         Margin="0,5,0,0"
                                         VerticalAlignment="Center"
+                                        Loaded="NameTextBox_OnLoaded"
                                         Text="{Binding Name,
                                                        Mode=TwoWay,
                                                        UpdateSourceTrigger=PropertyChanged,
@@ -89,6 +91,7 @@
                                VerticalAlignment="Center"
                                Text="Apply Settings for this Project:" />
                     <controls:ComboBoxEx Grid.Row="3"
+                                         Grid.Column="0"
                                          Grid.ColumnSpan="2"
                                          Margin="0,3,0,10"
                                          HorizontalContentAlignment="Stretch"

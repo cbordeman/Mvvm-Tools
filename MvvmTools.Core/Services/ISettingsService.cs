@@ -68,14 +68,12 @@ namespace MvvmTools.Core.Services
                 ViewModelSuffix = "ViewModel",
                 ViewModelLocation = new LocationDescriptor
                 {
-                    AppendViewType = true,
                     Namespace = ".ViewModels",
                     PathOffProject = "ViewModels",
                     ProjectIdentifier = null
                 },
                 ViewLocation = new LocationDescriptor
                 {
-                    AppendViewType = true,
                     Namespace = ".Views",
                     PathOffProject = "Views",
                     ProjectIdentifier = null
@@ -213,7 +211,8 @@ namespace MvvmTools.Core.Services
                             p.FullPath,
                             p.ProjectIdentifier, 
                             p.Kind,
-                            p.KindId);
+                            p.KindId,
+                            p.RootNamespace);
                         var projectOptions = GetProjectOptionsFromSettingsFile(projectModel, inherited);
                         projectOptionsCollection.Add(projectOptions);
 

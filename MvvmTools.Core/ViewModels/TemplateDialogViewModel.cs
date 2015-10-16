@@ -323,17 +323,17 @@ namespace MvvmTools.Core.ViewModels
 
             Fields = new ListCollectionView(new ObservableCollection<FieldDialogViewModel>());
 
-            View = T4UserControlViewModel.Create(Kernel, null, string.Empty);
+            View = T4UserControlViewModel.Create(Kernel, null, string.Empty, null, null);
             View.PropertyChanged += T4OnPropertyChanged;
 
-            ViewModelCSharp = T4UserControlViewModel.Create(Kernel, null, string.Empty);
+            ViewModelCSharp = T4UserControlViewModel.Create(Kernel, null, string.Empty, null, null);
             ViewModelCSharp.PropertyChanged += T4OnPropertyChanged;
-            CodeBehindCSharp = T4UserControlViewModel.Create(Kernel, null, string.Empty);
+            CodeBehindCSharp = T4UserControlViewModel.Create(Kernel, null, string.Empty, null, null);
             CodeBehindCSharp.PropertyChanged += T4OnPropertyChanged;
 
-            ViewModelVisualBasic = T4UserControlViewModel.Create(Kernel, null, string.Empty);
+            ViewModelVisualBasic = T4UserControlViewModel.Create(Kernel, null, string.Empty, null, null);
             ViewModelVisualBasic.PropertyChanged += T4OnPropertyChanged;
-            CodeBehindVisualBasic = T4UserControlViewModel.Create(Kernel, null, string.Empty);
+            CodeBehindVisualBasic = T4UserControlViewModel.Create(Kernel, null, string.Empty, null, null);
             CodeBehindVisualBasic.PropertyChanged += T4OnPropertyChanged;
         }
 
@@ -368,17 +368,17 @@ namespace MvvmTools.Core.ViewModels
             }
             Fields = new ListCollectionView(fieldVms);
             
-            View = T4UserControlViewModel.Create(Kernel, null, template.View);
+            View = T4UserControlViewModel.Create(Kernel, null, template.View, null, null);
             View.PropertyChanged += T4OnPropertyChanged;
 
-            ViewModelCSharp = T4UserControlViewModel.Create(Kernel, null, template.ViewModelCSharp);
+            ViewModelCSharp = T4UserControlViewModel.Create(Kernel, null, template.ViewModelCSharp, null, null);
             ViewModelCSharp.PropertyChanged += T4OnPropertyChanged;
-            CodeBehindCSharp = T4UserControlViewModel.Create(Kernel, null, template.CodeBehindCSharp);
+            CodeBehindCSharp = T4UserControlViewModel.Create(Kernel, null, template.CodeBehindCSharp, null, null);
             CodeBehindCSharp.PropertyChanged += T4OnPropertyChanged;
 
-            ViewModelVisualBasic = T4UserControlViewModel.Create(Kernel, null, template.ViewModelVisualBasic);
+            ViewModelVisualBasic = T4UserControlViewModel.Create(Kernel, null, template.ViewModelVisualBasic, null, null);
             ViewModelVisualBasic.PropertyChanged += T4OnPropertyChanged;
-            CodeBehindVisualBasic = T4UserControlViewModel.Create(Kernel, null, template.CodeBehindVisualBasic);
+            CodeBehindVisualBasic = T4UserControlViewModel.Create(Kernel, null, template.CodeBehindVisualBasic, null, null);
             CodeBehindVisualBasic.PropertyChanged += T4OnPropertyChanged;
         }
 
@@ -396,17 +396,17 @@ namespace MvvmTools.Core.ViewModels
             // Deep copy fields.
             Fields = new ListCollectionView(new ObservableCollection<FieldDialogViewModel>((ObservableCollection<FieldDialogViewModel>)template.Fields.SourceCollection));
 
-            View = T4UserControlViewModel.Create(Kernel, null, template.View.Buffer);
+            View = T4UserControlViewModel.Create(Kernel, null, template.View.Buffer, null, null);
             View.PropertyChanged += T4OnPropertyChanged;
 
-            ViewModelCSharp = T4UserControlViewModel.Create(Kernel, null, template.ViewModelCSharp.Buffer);
+            ViewModelCSharp = T4UserControlViewModel.Create(Kernel, null, template.ViewModelCSharp.Buffer, null, null);
             ViewModelCSharp.PropertyChanged += T4OnPropertyChanged;
-            CodeBehindCSharp = T4UserControlViewModel.Create(Kernel, null, template.CodeBehindCSharp.Buffer);
+            CodeBehindCSharp = T4UserControlViewModel.Create(Kernel, null, template.CodeBehindCSharp.Buffer, null, null);
             CodeBehindCSharp.PropertyChanged += T4OnPropertyChanged;
 
-            ViewModelVisualBasic = T4UserControlViewModel.Create(Kernel, null, template.ViewModelVisualBasic.Buffer);
+            ViewModelVisualBasic = T4UserControlViewModel.Create(Kernel, null, template.ViewModelVisualBasic.Buffer, null, null);
             ViewModelVisualBasic.PropertyChanged += T4OnPropertyChanged;
-            CodeBehindVisualBasic = T4UserControlViewModel.Create(Kernel, null, template.CodeBehindVisualBasic.Buffer);
+            CodeBehindVisualBasic = T4UserControlViewModel.Create(Kernel, null, template.CodeBehindVisualBasic.Buffer, null, null);
             CodeBehindVisualBasic.PropertyChanged += T4OnPropertyChanged;
         }
         

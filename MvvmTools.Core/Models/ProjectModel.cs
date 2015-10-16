@@ -16,14 +16,16 @@ namespace MvvmTools.Core.Models
         public ProjectKind Kind { get; }
         public string KindId { get; }
         public string TypeDescription { get; }
+        public string RootNamespace { get; }
 
-        public ProjectModel(string name, string fullPath, string projectIdentifier, ProjectKind kind, string projectKindId)
+        public ProjectModel(string name, string fullPath, string projectIdentifier, ProjectKind kind, string projectKindId, string rootNamespace)
         {
             Name = name;
             FullPath = fullPath;
             Kind = kind;
             KindId = projectKindId;
             ProjectIdentifier = projectIdentifier;
+            RootNamespace = rootNamespace;
 
             Children = new List<ProjectModel>();
 

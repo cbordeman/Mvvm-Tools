@@ -12,16 +12,11 @@
         // if starts with a dot.
         public string Namespace { get; set; }
 
-        // If true, automatically appends view type such as 'Pages' to namespace and 
-        // PathOffProject.  If view type is "View" then ignored.
-        public bool AppendViewType { get; set; }
-
         internal void ApplyInherited(LocationDescriptor inherited)
         {
             PathOffProject = inherited.PathOffProject;
             Namespace = inherited.Namespace;
             ProjectIdentifier = inherited.ProjectIdentifier;
-            AppendViewType = inherited.AppendViewType;
         }
 
         public bool InheritsFully(LocationDescriptor inherited)
@@ -32,9 +27,7 @@
                 return false;
             if (ProjectIdentifier != inherited.ProjectIdentifier)
                 return false;
-            if (AppendViewType != inherited.AppendViewType)
-                return false;
-
+            
             return true;
         }
     }
