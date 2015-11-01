@@ -17,7 +17,9 @@ namespace MvvmTools.Core.Models
         [EnumMember]
         ComboBox,
         [EnumMember]
-        ComboBoxOpen
+        ComboBoxOpen,
+        [EnumMember]
+        Class
     }
 
     [DataContract]
@@ -62,6 +64,8 @@ namespace MvvmTools.Core.Models
                     return "Combo Box";
                 case FieldType.ComboBoxOpen:
                     return "Combo Box (Free Form)";
+                case FieldType.Class:
+                    return "Class Selection";
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, "FieldType unknown.");
             }

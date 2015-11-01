@@ -1,11 +1,16 @@
-﻿using System.Windows;
+﻿using System.Threading.Tasks;
+using MvvmTools.Core.Services;
 using MvvmTools.Core.Utilities;
+using Ninject;
 
 namespace MvvmTools.Core.ViewModels
 {
     public abstract class BaseDialogViewModel : BaseViewModel
     {
         #region Properties
+
+        [Inject]
+        public IDialogService DialogService { get; set; }
 
         #region Title
         private string _title;
@@ -45,6 +50,16 @@ namespace MvvmTools.Core.ViewModels
 
         #endregion Commands
 
+        #region Protected Methods
+
+        protected async Task<bool> ConfirmDiscard()
+        {
+            return await DialogService.Ask("Discard Changes?", "Cancel dialog?  You will lose any changes.",
+                        AskButton.OKCancel) == AskResult.OK;
+        }
+
+        #endregion Protected Methods
+
         #region Virtuals
 
         private bool _inCancel;
@@ -54,6 +69,15 @@ namespace MvvmTools.Core.ViewModels
             _inCancel = true;
             DialogResult = false;
             _inCancel = false;
+        }
+
+        /// <summary>
+        /// Return true to cancel close.
+        /// </summary>
+        /// <returns></returns>
+        public virtual Task<bool> OnClosing()
+        {
+            return Task.FromResult(false);
         }
 
         #endregion Virtuals

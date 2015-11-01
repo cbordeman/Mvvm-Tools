@@ -14,5 +14,6 @@
     <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     <local:ProjectDisplayNameConverter x:Key="ProjectDisplayNameConverter" />
     <local:ZeroToCollapsedConverter x:Key="ZeroToCollapsedConverter" />
+    <local:EmptyToCollapsedConverter x:Key="EmptyToCollapsedConverter" />
 
 </ResourceDictionary>

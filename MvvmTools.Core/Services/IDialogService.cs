@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Forms.VisualStyles;
+using Microsoft.Internal.VisualStudio.PlatformUI;
 using MvvmTools.Core.ViewModels;
 using MvvmTools.Core.Views;
 using Ninject;
@@ -74,8 +76,7 @@ namespace MvvmTools.Core.Services
             var result = MessageBox.Show(message, title, b);
             return Task.FromResult((AskResult)Enum.Parse(typeof(AskResult), result.ToString()));
         }
-
-
+        
         public bool ShowDialog(BaseDialogViewModel vm)
         {
             var dialog = new DialogWindow
@@ -169,12 +170,13 @@ namespace MvvmTools.Core.Services
 
         private void VmOnPropertyChanged(object sender, PropertyChangedEventArgs args)
         {
-            if (args.PropertyName == "DialogResult")
+            if (args.PropertyName == nameof(BaseDialogViewModel.DialogResult))
             {
                 var vm = (BaseDialogViewModel) sender;
                 var dialog = _dialogs[vm];
-                _dialogs.Remove(vm);
+                //_dialogs.Remove(vm);
                 dialog.DialogResult = vm.DialogResult;
+                //dialog.Close();
             }
         }
     }

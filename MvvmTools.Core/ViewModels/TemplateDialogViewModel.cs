@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Data;
 using MvvmTools.Core.Models;
 using MvvmTools.Core.Services;
@@ -16,6 +17,7 @@ namespace MvvmTools.Core.ViewModels
         #region Data
 
         private TemplateDialogViewModel _unmodifiedValue;
+        private bool _okPressed;
         private bool _isAdd;
         private IEnumerable<string> _existingNames;
         
@@ -32,6 +34,19 @@ namespace MvvmTools.Core.ViewModels
 
         #region Properties
 
+        #region PredefinedFieldValues
+        public List<InsertFieldViewModel> PredefinedFieldValues { get; set; }
+        #endregion PredefinedFieldValues
+
+        #region CustomFieldValues
+        private List<InsertFieldViewModel> _customFieldValues;
+        public List<InsertFieldViewModel> CustomFieldValues
+        {
+            get { return _customFieldValues; }
+            set { SetProperty(ref _customFieldValues, value); }
+        }
+        #endregion CustomFieldValues
+
         #region BottomError
         private string _bottomError;
         public string BottomError
@@ -41,10 +56,10 @@ namespace MvvmTools.Core.ViewModels
         }
         #endregion BottomError
 
-        #region DialogService
+        #region SolutionService
         [Inject]
-        public IDialogService DialogService { get; set; }
-        #endregion DialogService
+        public ISolutionService SolutionService { get; set; }
+        #endregion SolutionService
 
         #region IsInternal
         private bool _isInternal;
@@ -178,8 +193,9 @@ namespace MvvmTools.Core.ViewModels
         {
             if (string.IsNullOrEmpty(Error))
             {
-                _unmodifiedValue = null;
+                _okPressed = true;
                 DialogResult = true;
+                _okPressed = false;
             }
         }
         #endregion OkCommand
@@ -196,13 +212,17 @@ namespace MvvmTools.Core.ViewModels
             if (DialogService.ShowDialog(vm))
             {
                 source.Add(vm);
+                Fields.Refresh();
                 Fields.MoveCurrentTo(vm);
                 _fieldsChanged = true;
                 OkCommand.RaiseCanExecuteChanged();
+
+                ResetFieldValuesForAllBuffers();
             }
         }
+
         #endregion
-        
+
         #region EditFieldCommand
         DelegateCommand _editFieldCommand;
         public DelegateCommand EditFieldCommand => _editFieldCommand ?? (_editFieldCommand = new DelegateCommand(ExecuteEditFieldCommand, CanEditFieldCommand));
@@ -224,6 +244,7 @@ namespace MvvmTools.Core.ViewModels
                 _fieldsChanged = true;
                 OkCommand.RaiseCanExecuteChanged();
                 Fields.Refresh();
+                ResetFieldValuesForAllBuffers();
             }
         }
         #endregion
@@ -244,6 +265,7 @@ namespace MvvmTools.Core.ViewModels
                     Fields.MoveCurrentTo(vm);
                     _fieldsChanged = true;
                     OkCommand.RaiseCanExecuteChanged();
+                    ResetFieldValuesForAllBuffers();
                 }
             }
         }
@@ -263,6 +285,7 @@ namespace MvvmTools.Core.ViewModels
                 Fields.MoveCurrentTo(vm);
                 _fieldsChanged = true;
                 OkCommand.RaiseCanExecuteChanged();
+                ResetFieldValuesForAllBuffers();
             }
         }
         #endregion
@@ -278,6 +301,12 @@ namespace MvvmTools.Core.ViewModels
 
             _fieldsChanged = false;
 
+            InitPredefinedFieldValues();
+            ResetFieldValuesForAllBuffers();
+
+            _unmodifiedValue = Kernel.Get<TemplateDialogViewModel>();
+            _unmodifiedValue.CopyFrom(this);
+
             _existingNames = existingNames;
         }
 
@@ -290,9 +319,36 @@ namespace MvvmTools.Core.ViewModels
 
             _fieldsChanged = false;
 
+            InitPredefinedFieldValues();
+            ResetFieldValuesForAllBuffers();
+
             // Save unmodified properties.
             _unmodifiedValue = Kernel.Get<TemplateDialogViewModel>();
             _unmodifiedValue.CopyFrom(this);
+        }
+
+        private void InitPredefinedFieldValues()
+        {
+            PredefinedFieldValues = new List<InsertFieldViewModel>
+            {
+                // Basic
+                InsertFieldViewModel.Create(Kernel, "Name", "System.String", "Bare name, without suffix.", "Sample"),
+                InsertFieldViewModel.Create(Kernel, "ViewSuffix", "System.String", "The view suffix.", "View"),
+                InsertFieldViewModel.Create(Kernel, "ViewModelSuffix", "System.String", "The view model suffix.", "ViewModel"),
+
+                // View
+                InsertFieldViewModel.Create(Kernel, "ViewName", "System.String", "The view class.", "SampleView"),
+                InsertFieldViewModel.Create(Kernel, "ViewNamespace", "System.String", "The view namespace.", "SampleProject.Views"),
+                InsertFieldViewModel.Create(Kernel, "ViewFullName", "System.String", "Full name of view class, including namespace.", "SampleProject.Views.SampleView"),
+                InsertFieldViewModel.Create(Kernel, "XamlFilePath", "System.String", "Full path of the xaml file.", "C:\\source\\SampleSolution\\SampleProject\\Views\\SampleView.xaml"),
+                InsertFieldViewModel.Create(Kernel, "CodeBehindFilePath", "System.String", "Full path of the xaml.cs file.", "C:\\source\\SampleSolution\\SampleProject\\Views\\SampleView.xaml.cs"),
+
+                // View Model
+                InsertFieldViewModel.Create(Kernel, "ViewModelName", "System.String", "The view model class.", "SampleViewModel"),
+                InsertFieldViewModel.Create(Kernel, "ViewModelNamespace", "System.String", "The view model namespace.", "SampleProject.ViewModels"),
+                InsertFieldViewModel.Create(Kernel, "ViewModelFullName", "System.String", "Full name of view model class, including namespace.", "SampleProject.ViewModels.SampleViewModel"),
+                InsertFieldViewModel.Create(Kernel, "ViewModelFilePath", "System.String", "Full path of the view model class file.", "C:\\source\\SampleSolution\\SampleProject\\Views\\SampleViewModel.cs"),
+            };
         }
 
         public static TemplateDialogViewModel CreateFrom(IKernel kernel)
@@ -323,17 +379,17 @@ namespace MvvmTools.Core.ViewModels
 
             Fields = new ListCollectionView(new ObservableCollection<FieldDialogViewModel>());
 
-            View = T4UserControlViewModel.Create(Kernel, null, string.Empty, null, null);
+            View = T4UserControlViewModel.Create(Kernel, null, null, null);
             View.PropertyChanged += T4OnPropertyChanged;
 
-            ViewModelCSharp = T4UserControlViewModel.Create(Kernel, null, string.Empty, null, null);
+            ViewModelCSharp = T4UserControlViewModel.Create(Kernel, null, null, null);
             ViewModelCSharp.PropertyChanged += T4OnPropertyChanged;
-            CodeBehindCSharp = T4UserControlViewModel.Create(Kernel, null, string.Empty, null, null);
+            CodeBehindCSharp = T4UserControlViewModel.Create(Kernel, null, null, null);
             CodeBehindCSharp.PropertyChanged += T4OnPropertyChanged;
 
-            ViewModelVisualBasic = T4UserControlViewModel.Create(Kernel, null, string.Empty, null, null);
+            ViewModelVisualBasic = T4UserControlViewModel.Create(Kernel, string.Empty, null, null);
             ViewModelVisualBasic.PropertyChanged += T4OnPropertyChanged;
-            CodeBehindVisualBasic = T4UserControlViewModel.Create(Kernel, null, string.Empty, null, null);
+            CodeBehindVisualBasic = T4UserControlViewModel.Create(Kernel, string.Empty, null, null);
             CodeBehindVisualBasic.PropertyChanged += T4OnPropertyChanged;
         }
 
@@ -368,17 +424,17 @@ namespace MvvmTools.Core.ViewModels
             }
             Fields = new ListCollectionView(fieldVms);
             
-            View = T4UserControlViewModel.Create(Kernel, null, template.View, null, null);
+            View = T4UserControlViewModel.Create(Kernel, template.View, null, null);
             View.PropertyChanged += T4OnPropertyChanged;
 
-            ViewModelCSharp = T4UserControlViewModel.Create(Kernel, null, template.ViewModelCSharp, null, null);
+            ViewModelCSharp = T4UserControlViewModel.Create(Kernel, template.ViewModelCSharp, null, null);
             ViewModelCSharp.PropertyChanged += T4OnPropertyChanged;
-            CodeBehindCSharp = T4UserControlViewModel.Create(Kernel, null, template.CodeBehindCSharp, null, null);
+            CodeBehindCSharp = T4UserControlViewModel.Create(Kernel, template.CodeBehindCSharp, null, null);
             CodeBehindCSharp.PropertyChanged += T4OnPropertyChanged;
 
-            ViewModelVisualBasic = T4UserControlViewModel.Create(Kernel, null, template.ViewModelVisualBasic, null, null);
+            ViewModelVisualBasic = T4UserControlViewModel.Create(Kernel, template.ViewModelVisualBasic, null, null);
             ViewModelVisualBasic.PropertyChanged += T4OnPropertyChanged;
-            CodeBehindVisualBasic = T4UserControlViewModel.Create(Kernel, null, template.CodeBehindVisualBasic, null, null);
+            CodeBehindVisualBasic = T4UserControlViewModel.Create(Kernel, template.CodeBehindVisualBasic, null, null);
             CodeBehindVisualBasic.PropertyChanged += T4OnPropertyChanged;
         }
 
@@ -396,17 +452,17 @@ namespace MvvmTools.Core.ViewModels
             // Deep copy fields.
             Fields = new ListCollectionView(new ObservableCollection<FieldDialogViewModel>((ObservableCollection<FieldDialogViewModel>)template.Fields.SourceCollection));
 
-            View = T4UserControlViewModel.Create(Kernel, null, template.View.Buffer, null, null);
+            View = T4UserControlViewModel.Create(Kernel, template.View.Buffer, null, null);
             View.PropertyChanged += T4OnPropertyChanged;
 
-            ViewModelCSharp = T4UserControlViewModel.Create(Kernel, null, template.ViewModelCSharp.Buffer, null, null);
+            ViewModelCSharp = T4UserControlViewModel.Create(Kernel, template.ViewModelCSharp.Buffer, null, null);
             ViewModelCSharp.PropertyChanged += T4OnPropertyChanged;
-            CodeBehindCSharp = T4UserControlViewModel.Create(Kernel, null, template.CodeBehindCSharp.Buffer, null, null);
+            CodeBehindCSharp = T4UserControlViewModel.Create(Kernel, template.CodeBehindCSharp.Buffer, null, null);
             CodeBehindCSharp.PropertyChanged += T4OnPropertyChanged;
 
-            ViewModelVisualBasic = T4UserControlViewModel.Create(Kernel, null, template.ViewModelVisualBasic.Buffer, null, null);
+            ViewModelVisualBasic = T4UserControlViewModel.Create(Kernel, template.ViewModelVisualBasic.Buffer, null, null);
             ViewModelVisualBasic.PropertyChanged += T4OnPropertyChanged;
-            CodeBehindVisualBasic = T4UserControlViewModel.Create(Kernel, null, template.CodeBehindVisualBasic.Buffer, null, null);
+            CodeBehindVisualBasic = T4UserControlViewModel.Create(Kernel, template.CodeBehindVisualBasic.Buffer, null, null);
             CodeBehindVisualBasic.PropertyChanged += T4OnPropertyChanged;
         }
         
@@ -419,10 +475,55 @@ namespace MvvmTools.Core.ViewModels
             if (propertyName != nameof(BottomError))
                 OkCommand.RaiseCanExecuteChanged();
         }
-        
+
+        public async override Task<bool> OnClosing()
+        {
+            // Return true to cancel close, false to allow the dialog to close.
+            if (_okPressed || IsUnchanged())
+                return false;
+            if ((await ConfirmDiscard()))
+                return false;
+            return true;
+        }
+
         #endregion Virtuals
 
         #region Private Helpers
+
+        private void ResetFieldValuesForAllBuffers()
+        {
+            CustomFieldValues = new List<InsertFieldViewModel>();
+            foreach (var f in (ObservableCollection<FieldDialogViewModel>)Fields.SourceCollection)
+            {
+                object val;
+                string type;
+                // ReSharper disable once PossibleInvalidOperationException
+                switch (f.SelectedFieldType.Value)
+                {
+                    case FieldType.TextBox:
+                    case FieldType.TextBoxMultiLine:
+                    case FieldType.ComboBox:
+                    case FieldType.ComboBoxOpen:
+                    case FieldType.Class:
+                        val = f.DefaultString;
+                        type = "System.String";
+                        break;
+                    case FieldType.CheckBox:
+                        val = f.DefaultBoolean;
+                        type = "System.Boolean";
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+                CustomFieldValues.Add(InsertFieldViewModel.Create(Kernel, f.Name, type, f.Description, val));
+            }
+
+            View.ResetFieldValues(PredefinedFieldValues, CustomFieldValues);
+            CodeBehindCSharp.ResetFieldValues(PredefinedFieldValues, CustomFieldValues);
+            ViewModelCSharp.ResetFieldValues(PredefinedFieldValues, CustomFieldValues);
+            CodeBehindVisualBasic.ResetFieldValues(PredefinedFieldValues, CustomFieldValues);
+            ViewModelVisualBasic.ResetFieldValues(PredefinedFieldValues, CustomFieldValues);
+        }
 
         #endregion Private Helpers
 

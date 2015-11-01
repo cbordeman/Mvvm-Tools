@@ -1,8 +1,11 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
+using MvvmTools.Core.Utilities;
+using MvvmTools.Core.ViewModels;
 
 namespace MvvmTools.Core.Views
 {
@@ -46,10 +49,18 @@ namespace MvvmTools.Core.Views
             SetWindowLong(_windowHandle, GWL_STYLE, GetWindowLong(_windowHandle, GWL_STYLE) & ~WS_MINIMIZEBOX);
         }
 
+        //private bool _pauseKeyCapture;
+
         private void DialogWindow_OnKeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Escape)
-                DialogResult = false;
+            //if (e.Key == Key.Escape)
+            //{
+            //    e.Handled = true;
+
+            //    var myLock = new AsyncLock();
+            //    using (await myLock.LockAsync())
+            //        DialogResult = false;
+            //}
         }
 
         private void DialogWindow_OnLoaded(object sender, RoutedEventArgs e)
@@ -69,6 +80,15 @@ namespace MvvmTools.Core.Views
                     MinHeight = ActualHeight;
                     break;
             }
+        }
+
+        private async void DialogWindow_OnClosing(object sender, CancelEventArgs e)
+        {
+            var vm = DataContext as BaseDialogViewModel;
+            if (vm == null) return;
+
+            var doNotClose = await vm.OnClosing();
+            e.Cancel = doNotClose;
         }
     }
 }

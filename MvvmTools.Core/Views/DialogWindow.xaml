@@ -6,6 +6,7 @@
         xmlns:viewModels="clr-namespace:MvvmTools.Core.ViewModels"
         Title="{Binding Title}"
         Background="#D8D8D8"
+        Closing="DialogWindow_OnClosing"
         KeyUp="DialogWindow_OnKeyUp"
         Loaded="DialogWindow_OnLoaded"
         ResizeMode="CanResizeWithGrip"

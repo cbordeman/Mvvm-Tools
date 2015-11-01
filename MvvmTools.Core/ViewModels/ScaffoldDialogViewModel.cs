@@ -5,7 +5,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using MvvmTools.Core.Extensions;
+using EnvDTE;
 using MvvmTools.Core.Models;
 using MvvmTools.Core.Services;
 using MvvmTools.Core.Utilities;
@@ -23,7 +23,13 @@ namespace MvvmTools.Core.ViewModels
 
         private MvvmToolsSettings _settings;
         private IList<ProjectOptions> _projOptions;
-        
+
+        private List<InsertFieldViewModel> _predefinedFields;
+        private List<InsertFieldViewModel> _customFields;
+
+        private Project _viewProject;
+        private Project _viewModelProject;
+
         #endregion Data
 
         #region Ctor and Init
@@ -84,7 +90,16 @@ namespace MvvmTools.Core.ViewModels
 
         [Inject]
         public ITemplateService TemplateService { get; set; }
-        
+
+        #region BottomError
+        private string _bottomError;
+        public string BottomError
+        {
+            get { return _bottomError; }
+            set { SetProperty(ref _bottomError, value); }
+        }
+        #endregion BottomError
+
         #region TemplateBrowseUserControl
         private TemplateBrowseUserControlViewModel _templateBrowse;
         public TemplateBrowseUserControlViewModel TemplateBrowse
@@ -273,7 +288,18 @@ namespace MvvmTools.Core.ViewModels
         }
         #endregion CodeBehindVisualBasic
 
+        #region FieldValues
         public FieldValuesUserControlViewModel FieldValues { get; set; }
+        #endregion FieldValues
+
+        #region SubLocation
+        private string _subLocation;
+        public string SubLocation
+        {
+            get { return _subLocation ?? string.Empty; }
+            set { SetProperty(ref _subLocation, value); }
+        }
+        #endregion SubLocation
 
         #endregion Properties
 
@@ -285,22 +311,38 @@ namespace MvvmTools.Core.ViewModels
         public bool CanSelectCommand(TemplateDialogViewModel t) => true;
         public void ExecuteSelectCommand(TemplateDialogViewModel t)
         {
-            SelectedTemplate = t;
-            
-            FieldValues.Init((ObservableCollection<FieldDialogViewModel>)t.Fields.SourceCollection);
             PageNumber++;
+
+            // Only do something if user changed the template.  The user
+            // might have simply pressed 'Back' and is now going forward
+            // without changing to another template.
+            if (SelectedTemplate != t)
+            {
+                SelectedTemplate = t;
+
+                // Template was selected.
+                View.Init(SelectedTemplate.View.Buffer);
+                CodeBehindCSharp.Init(SelectedTemplate.CodeBehindCSharp.Buffer);
+                ViewModelCSharp.Init(SelectedTemplate.ViewModelCSharp.Buffer);
+                CodeBehindVisualBasic.Init(SelectedTemplate.CodeBehindVisualBasic.Buffer);
+                ViewModelVisualBasic.Init(SelectedTemplate.ViewModelVisualBasic.Buffer);
+
+                FieldValues.Init((ObservableCollection<FieldDialogViewModel>) t.Fields.SourceCollection);
+            }
         }
 
-        private List<InsertFieldViewModel> GetPredefinedFieldValues()
+        private void GetFieldValues()
         {
-            var rval = new List<InsertFieldViewModel>();
+            _predefinedFields = new List<InsertFieldViewModel>();
 
-            rval.Add(InsertFieldViewModel.Create(Kernel, "Name", "Bare name, with suffix.", Name));
-            rval.Add(InsertFieldViewModel.Create(Kernel, "ViewSuffix", "The view suffix.", SelectedViewSuffix));
-            rval.Add(InsertFieldViewModel.Create(Kernel, "ViewModelSuffix", "The view suffix.", ViewModelSuffix));
+            // Basic
+            _predefinedFields.Add(InsertFieldViewModel.Create(Kernel, "Name", "System.String", "Bare name, without suffix.", Name));
+            _predefinedFields.Add(InsertFieldViewModel.Create(Kernel, "OrgSubfolfer", "System.String", "Organizational subfolder (optional).", SubLocation));
+            _predefinedFields.Add(InsertFieldViewModel.Create(Kernel, "ViewSuffix", "System.String", "The view suffix.", SelectedViewSuffix));
+            _predefinedFields.Add(InsertFieldViewModel.Create(Kernel, "ViewModelSuffix", "System.String", "The view model suffix.", ViewModelSuffix));
 
-            var proj = SolutionService.GetProject(LocationForView.ProjectIdentifier);
-            var projModel = SolutionService.GetFullProjectModel(proj);
+            _viewProject = SolutionService.GetProject(LocationForView.ProjectIdentifier);
+            var projModel = SolutionService.GetFullProjectModel(_viewProject);
 
             var name = Name + SelectedViewSuffix;
             string @namespace;
@@ -308,64 +350,77 @@ namespace MvvmTools.Core.ViewModels
                 @namespace = projModel.RootNamespace + LocationForView.Namespace;
             else
                 @namespace = LocationForView.Namespace;
-            var fullName = @namespace + '.' + name;
             var path = Path.GetDirectoryName(projModel.FullPath);
+            // ReSharper disable once AssignNullToNotNullAttribute
             path = Path.Combine(path, LocationForView.PathOffProject);
+            if (!string.IsNullOrEmpty(SubLocation))
+            {
+                path = Path.Combine(path, SubLocation);
+                @namespace += "." + SubLocation.Replace("/", ".");
+            }
+            var fullName = @namespace + '.' + name;
             path = path.Replace("/", "\\");
 
-            rval.Add(InsertFieldViewModel.Create(Kernel, "ViewName", "The view class.", name));
-            rval.Add(InsertFieldViewModel.Create(Kernel, "ViewNamespace", "The view namespace.", @namespace));
-            rval.Add(InsertFieldViewModel.Create(Kernel, "ViewFullName", "Full name of view class, including namespace.", fullName));
-            rval.Add(InsertFieldViewModel.Create(Kernel, "XamlFilePath", "Full path of the xaml file.", Path.Combine(path, name + ".xaml")));
-            rval.Add(InsertFieldViewModel.Create(Kernel, "CodeBehindFilePath", "Full path of the xaml.cs file.", Path.Combine(path, name + ".xaml.cs")));
+            // View
+            _predefinedFields.Add(InsertFieldViewModel.Create(Kernel, "ViewName", "System.String", "The view class.", name));
+            _predefinedFields.Add(InsertFieldViewModel.Create(Kernel, "ViewNamespace", "System.String", "The view namespace.", @namespace));
+            _predefinedFields.Add(InsertFieldViewModel.Create(Kernel, "ViewFullName", "System.String", "Full name of view class, including namespace.", fullName));
+            _predefinedFields.Add(InsertFieldViewModel.Create(Kernel, "XamlFilePath", "System.String", "Full path of the xaml file.", Path.Combine(path, name + ".xaml")));
+            _predefinedFields.Add(InsertFieldViewModel.Create(Kernel, "CodeBehindFilePath", "System.String", "Full path of the xaml.cs file.", Path.Combine(path, name + ".xaml.cs")));
 
-            proj = SolutionService.GetProject(LocationForViewModel.ProjectIdentifier);
-            projModel = SolutionService.GetFullProjectModel(proj);
+            _viewModelProject = SolutionService.GetProject(LocationForViewModel.ProjectIdentifier);
+            projModel = SolutionService.GetFullProjectModel(_viewModelProject);
 
             name = Name + ViewModelSuffix;
             if (LocationForView.Namespace.StartsWith("."))
                 @namespace = projModel.RootNamespace + LocationForViewModel.Namespace;
             else
                 @namespace = LocationForViewModel.Namespace;
-            fullName = @namespace + '.' + name;
             path = Path.GetDirectoryName(projModel.FullPath);
+            // ReSharper disable once AssignNullToNotNullAttribute
             path = Path.Combine(path, LocationForViewModel.PathOffProject);
+            if (!string.IsNullOrEmpty(SubLocation))
+            {
+                path = Path.Combine(path, SubLocation);
+                @namespace += "." + SubLocation.Replace("/", ".");
+            }
+            fullName = @namespace + '.' + name;
             path = path.Replace("/", "\\");
 
-            rval.Add(InsertFieldViewModel.Create(Kernel, "ViewModelName", "View model class.", name));
-            rval.Add(InsertFieldViewModel.Create(Kernel, "ViewModelNamespace", "View model namespace.", @namespace));
-            rval.Add(InsertFieldViewModel.Create(Kernel, "ViewModelFullName", "Full name of view model class, including namespace.", fullName));
-            rval.Add(InsertFieldViewModel.Create(Kernel, "ViewModelFilePath", "Full path of the view model class file.", Path.Combine(path, name + ".cs")));
-            
-            return rval;
-        }
-        
-        private List<InsertFieldViewModel> GetCustomFieldValues()
-        {
-            var rval = new List<InsertFieldViewModel>();
+            // View Model
+            _predefinedFields.Add(InsertFieldViewModel.Create(Kernel, "ViewModelName", "System.String", "View model class.", name));
+            _predefinedFields.Add(InsertFieldViewModel.Create(Kernel, "ViewModelNamespace", "System.String", "View model namespace.", @namespace));
+            _predefinedFields.Add(InsertFieldViewModel.Create(Kernel, "ViewModelFullName", "System.String", "Full name of view model class, including namespace.", fullName));
+            _predefinedFields.Add(InsertFieldViewModel.Create(Kernel, "ViewModelFilePath", "System.String", "Full path of the view model class file.", Path.Combine(path, name + ".cs")));
+
+            // Custom fields
+            _customFields = new List<InsertFieldViewModel>();
             foreach (var f in FieldValues.Fields)
             {
-                string val = null;
-                if (f.SelectedFieldType != null)
-                    switch (f.SelectedFieldType.Value)
-                    {
-                        case FieldType.TextBox:
-                        case FieldType.TextBoxMultiLine:
-                        case FieldType.ComboBox:
-                        case FieldType.ComboBoxOpen:
-                            val = f.DefaultString;
-                            break;
-                        case FieldType.CheckBox:
-                            val = f.DefaultBoolean.ToString();
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-                rval.Add(InsertFieldViewModel.Create(Kernel, f.Name, f.Description, val));
+                object val;
+                string type;
+                // ReSharper disable once PossibleInvalidOperationException
+                switch (f.SelectedFieldType.Value)
+                {
+                    case FieldType.TextBox:
+                    case FieldType.TextBoxMultiLine:
+                    case FieldType.ComboBox:
+                    case FieldType.ComboBoxOpen:
+                    case FieldType.Class:
+                        val = f.DefaultString;
+                        type = "System.String";
+                        break;
+                    case FieldType.CheckBox:
+                        val = f.DefaultBoolean;
+                        type = "System.Boolean";
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+                _customFields.Add(InsertFieldViewModel.Create(Kernel, f.Name, type, f.Description, val));
             }
-            return rval;
         }
-
+        
         #endregion TemplateCommand
 
         #region BackCommand
@@ -382,24 +437,27 @@ namespace MvvmTools.Core.ViewModels
         #endregion BackCommand
 
         #region OkCommand
-
         private DelegateCommand _okCommand;
         public DelegateCommand OkCommand => _okCommand ?? (_okCommand = new DelegateCommand(ExecuteOkCommand, CanOkCommand));
-        public bool CanOkCommand() => Error == null && PageNumber != 1;
-
+        public bool CanOkCommand() => Error == null && PageNumber != 1 && (PageNumber < 3 || BottomError == null);
         public void ExecuteOkCommand()
         {
             PageNumber++;
-            if (PageNumber == 3)
+            switch (PageNumber)
             {
-                var predefinedFields = GetPredefinedFieldValues();
-                var customFields = GetCustomFieldValues();
+                case 3:
+                    // Field values were entered.
+                    GetFieldValues();
+                    
+                    View.ResetFieldValues(_predefinedFields, _customFields);
+                    CodeBehindCSharp.ResetFieldValues(_predefinedFields, _customFields);
+                    ViewModelCSharp.ResetFieldValues(_predefinedFields, _customFields);
+                    CodeBehindVisualBasic.ResetFieldValues(_predefinedFields, _customFields);
+                    ViewModelVisualBasic.ResetFieldValues(_predefinedFields, _customFields);
+                    break;
+                case 4:
 
-                View.Init(null, SelectedTemplate.View.Buffer, predefinedFields, customFields);
-                CodeBehindCSharp.Init(null, SelectedTemplate.CodeBehindCSharp.Buffer, predefinedFields, customFields);
-                ViewModelCSharp.Init(null, SelectedTemplate.ViewModelCSharp.Buffer, predefinedFields, customFields);
-                CodeBehindVisualBasic.Init(null, SelectedTemplate.CodeBehindVisualBasic.Buffer, predefinedFields, customFields);
-                ViewModelVisualBasic.Init(null, SelectedTemplate.ViewModelVisualBasic.Buffer, predefinedFields, customFields);
+                    break;
             }
         }
 
@@ -415,9 +473,41 @@ namespace MvvmTools.Core.ViewModels
             OkCommand.RaiseCanExecuteChanged();
         }
 
+        private void SetBottomError()
+        {
+            if (string.IsNullOrWhiteSpace(View.Buffer))
+            {
+                BottomError = "View is required.";
+                return;
+            }
+
+            var csSatisfied = !string.IsNullOrWhiteSpace(CodeBehindCSharp.Buffer) &&
+                              !string.IsNullOrWhiteSpace(ViewModelCSharp.Buffer);
+            var vbSatisfied = !string.IsNullOrWhiteSpace(CodeBehindVisualBasic.Buffer) &&
+                              !string.IsNullOrWhiteSpace(ViewModelVisualBasic.Buffer);
+            if (!csSatisfied && !vbSatisfied)
+            {
+                BottomError = "Both the C# blocks OR both the VB blocks must be set.";
+                return;
+            }
+
+            BottomError = null;
+
+            OkCommand.RaiseCanExecuteChanged();
+        }
+
         #endregion Private Methods
 
         #region Virtuals
+
+        protected override void TakePropertyChanged(string propertyName)
+        {
+            if (propertyName.EndsWith(nameof(View.Buffer)))
+            {
+                SetBottomError();
+                OkCommand.RaiseCanExecuteChanged();
+            }
+        }
 
         #endregion Virtuals
 
@@ -437,6 +527,21 @@ namespace MvvmTools.Core.ViewModels
                         return SettingsProject == null ? "Required" : null;
                     case nameof(SelectedViewSuffix):
                         return string.IsNullOrWhiteSpace(SelectedViewSuffix) ? "Required" : null;
+                    case nameof(SubLocation):
+                        if (!string.IsNullOrEmpty(SubLocation))
+                        {
+                            var e = ValidationUtilities.ValidatePathOffProject(SubLocation);
+                            if (e != null)
+                                return e;
+                            var split = SubLocation.Split('/');
+                            foreach (var s in split)
+                            {
+                                e = ValidationUtilities.ValidateName(s);
+                                if (e != null)
+                                    return e;
+                            }
+                        }
+                        return null;
                 }
                 return null;
             }

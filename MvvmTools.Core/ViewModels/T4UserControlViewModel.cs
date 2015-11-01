@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Text;
+using System.Windows.Threading;
+using MvvmTools.Core.Extensions;
 using MvvmTools.Core.Services;
 using Ninject;
 
@@ -11,46 +13,99 @@ namespace MvvmTools.Core.ViewModels
         #region Data
 
         private string _initialBuffer;
-
+        private readonly DispatcherTimer _transformTimer;
+        
         #endregion Data
 
         #region Ctor and Init
+
+        public T4UserControlViewModel()
+        {
+            // Transforms only happen at most every interval.
+            _transformTimer = new DispatcherTimer {Interval = TimeSpan.FromMilliseconds(600)};
+            _transformTimer.Tick += TransformTimerOnTick;
+        }
+
+        private void TransformTimerOnTick(object sender, EventArgs eventArgs)
+        {
+            _transformTimer.Stop();
+            Transform();
+        }
 
         #endregion Ctor and Init
 
         #region Properties
 
+        public string HeaderFirstPart
+        {
+            get
+            {
+                var sb = new StringBuilder();
+
+                sb.AppendLine("<#@ template debug=\"false\" hostspecific=\"false\" language=\"C#\" #>");
+                
+                sb.AppendLine("<#@ assembly name=\"System.Core\" #>");
+                sb.AppendLine("<#@ assembly name=\"System.Data\" #>");
+                sb.AppendLine("<#@ assembly name=\"System.Data.DataSetExtensions\" #>");
+                sb.AppendLine("<#@ assembly name=\"System.IO\" #>");
+                sb.AppendLine("<#@ assembly name=\"System.Net.Http\" #>");
+                sb.AppendLine("<#@ assembly name=\"System.Runtime\" #>");
+                sb.AppendLine("<#@ assembly name=\"System.Text.Encoding\" #>");
+                sb.AppendLine("<#@ assembly name=\"System.Threading.Tasks\" #>");
+                sb.AppendLine("<#@ assembly name=\"Microsoft.CSharp\" #>");
+                sb.AppendLine("<#@ assembly name=\"Microsoft.CodeAnalysis.dll\" #>");
+                sb.AppendLine("<#@ assembly name=\"Microsoft.CodeAnalysis.CSharp.dll\" #>");
+                sb.AppendLine("<#@ assembly name=\"System.Collections.Immutable.dll\" #>");
+                sb.AppendLine("<#@ assembly name=\"PresentationCore\" #>");
+                sb.AppendLine("<#@ assembly name=\"PresentationFramework\" #>");
+                sb.AppendLine("<#@ assembly name=\"WindowsBase\" #>");
+                sb.AppendLine("<#@ assembly name=\"System.Xaml\" #>");
+                sb.AppendLine("<#@ assembly name=\"System.Xml\" #>");
+                sb.AppendLine("<#@ assembly name=\"System.Xml.Linq\" #>");
+                sb.AppendLine("<#@ assembly name=\"MvvmTools.Core.dll\" #>");
+
+                sb.AppendLine("<#@ import namespace=\"System.Linq\" #>");
+                sb.AppendLine("<#@ import namespace=\"System.Text\" #>");
+                sb.AppendLine("<#@ import namespace=\"System.Collections.Generic\" #>");
+                sb.AppendLine("<#@ import namespace=\"System.IO\" #>");
+                sb.AppendLine("<#@ import namespace=\"Microsoft.CodeAnalysis\" #>");
+                sb.AppendLine("<#@ import namespace=\"Microsoft.CodeAnalysis.CSharp\" #>");
+                sb.AppendLine("<#@ import namespace=\"Microsoft.CodeAnalysis.CSharp.Syntax\" #>");
+                sb.AppendLine("<#@ import namespace=\"MvvmTools.Core\" #>");
+                sb.AppendLine("<#@ import namespace=\"MvvmTools.Core.Extensions\" #>");
+
+                return sb.ToString().TrimEnd();
+            }
+        }
+
+        public string Header
+        {
+            get
+            {
+                var sb = new StringBuilder(HeaderFirstPart, HeaderFirstPart.Length + 1000);
+                
+                foreach (var f in PredefinedFields)
+                    sb.AppendLine($"<#@ parameter name=\"{f.Name}\" type=\"{f.Type}\" #>");
+                foreach (var f in CustomFields)
+                    sb.AppendLine($"<#@ parameter name=\"{f.Name}\" type=\"{f.Type}\" #>");
+
+                return sb.ToString().TrimEnd();
+            }
+        }
+        
         #region TemplateService
         [Inject]
         public ITemplateService TemplateService { get; set; }
         #endregion TemplateService
 
         #region ShowErrors
-        private bool _showErrors = false;
+        private bool _showErrors;
         public bool ShowErrors
         {
             get { return _showErrors; }
             set { SetProperty(ref _showErrors, value); }
         }
         #endregion ShowErrors
-
-        #region IsEnabledText
-        private string _isEnabledText;
-        public string IsEnabledText
-        {
-            get { return _isEnabledText; }
-            set { SetProperty(ref _isEnabledText, value); }
-        }
-        #endregion IsEnabledText
-
-        #region IsEnabled
-        private bool _isEnabled;
-        public bool IsEnabled
-        {
-            get { return _isEnabled; }
-            set { SetProperty(ref _isEnabled, value); }
-        }
-        #endregion IsEnabled
 
         #region Name
         private string _name;
@@ -71,7 +126,9 @@ namespace MvvmTools.Core.ViewModels
                 if (SetProperty(ref _buffer, value))
                 {
                     NotifyPropertyChanged(nameof(IsModified));
-                    Transform();
+
+                    _transformTimer.Stop();
+                    _transformTimer.Start();
                 }
             }
         }
@@ -88,8 +145,8 @@ namespace MvvmTools.Core.ViewModels
         #endregion Preview
 
         #region Errors
-        private List<string> _errors;
-        public List<string> Errors
+        private List<T4Error> _errors;
+        public List<T4Error> Errors
         {
             get { return _errors; }
             set
@@ -130,25 +187,28 @@ namespace MvvmTools.Core.ViewModels
 
         #region Public Methods
 
-        public static T4UserControlViewModel Create(IKernel kernel, string isEnabledText, string buffer, List<InsertFieldViewModel> predefinedFields, List<InsertFieldViewModel> customFields)
+        public static T4UserControlViewModel Create(IKernel kernel, string buffer, List<InsertFieldViewModel> predefinedFields, List<InsertFieldViewModel> customFields)
         {
             var rval = kernel.Get<T4UserControlViewModel>();
-            rval.Init(isEnabledText, buffer, predefinedFields, customFields);
+            rval.Init(buffer);
             return rval;
         }
 
-        public void Init(string isEnabledText, string buffer, List<InsertFieldViewModel> predefinedFields, List<InsertFieldViewModel> customFields)
+        public void Init(string buffer)
         {
-            _isEnabledText = isEnabledText;
             _initialBuffer = buffer;
             Buffer = buffer;
+        }
 
+        public void ResetFieldValues(List<InsertFieldViewModel> predefinedFields, List<InsertFieldViewModel> customFields)
+        {
             PredefinedFields = predefinedFields;
             CustomFields = customFields;
+            Transform();
         }
 
         #endregion Public Methods
-
+        
         #region Virtuals
 
         #endregion Virtuals
@@ -157,15 +217,26 @@ namespace MvvmTools.Core.ViewModels
 
         private void Transform()
         {
+            if (PredefinedFields == null || CustomFields == null)
+                return;
+
             try
             {
                 string preview;
-                Errors = TemplateService.Transform(Buffer, out preview);
+                Errors = TemplateService.Transform(Header + Buffer, PredefinedFields, CustomFields, out preview);
+                var lc = Header.LineCount();
+                foreach (var r in Errors)
+                {
+                    r.Line -= lc;
+                    if (r.Line < 1)
+                        r.Line = 1;
+                }
                 Preview = preview;
             }
             catch (Exception ex)
             {
-                throw;
+                Errors = new List<T4Error> { new T4Error(ex.ToString(), 0, 0) };
+                Preview = null;
             }
         }
 

@@ -1,4 +1,7 @@
-﻿namespace MvvmTools.Core.Views
+﻿using System;
+using System.Windows;
+
+namespace MvvmTools.Core.Views
 {
     /// <summary>
     /// Interaction logic for FieldValueUserControl.xaml

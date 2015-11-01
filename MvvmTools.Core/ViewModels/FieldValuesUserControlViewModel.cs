@@ -1,14 +1,19 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using MvvmTools.Core.ViewModels;
+using MvvmTools.Core.Models;
 
-namespace MvvmTools.Core.Views
+namespace MvvmTools.Core.ViewModels
 {
     public class FieldValuesUserControlViewModel : BaseViewModel
     {
         public void Init(IEnumerable<FieldDialogViewModel> fields)
         {
-            Fields = new List<FieldValueUserControlViewModel>(fields.Select(f => FieldValueUserControlViewModel.CreateFrom(Kernel, f)));
+            var fields2 = new List<FieldValueUserControlViewModel>();
+            foreach (var f in fields)
+            {
+                var nf = FieldValueUserControlViewModel.CreateFrom(Kernel, f);
+                fields2.Add(nf);
+            }
+            Fields = fields2;
         }
         
         #region FieldValues

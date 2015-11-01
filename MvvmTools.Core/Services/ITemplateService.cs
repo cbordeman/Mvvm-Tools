@@ -9,6 +9,7 @@ using System.Xml;
 using Microsoft.VisualStudio.TextTemplating;
 using Microsoft.VisualStudio.TextTemplating.VSHost;
 using MvvmTools.Core.Models;
+using MvvmTools.Core.ViewModels;
 using Ninject;
 
 namespace MvvmTools.Core.Services
@@ -17,7 +18,8 @@ namespace MvvmTools.Core.Services
     {
         List<Template> LoadTemplates(string localTemplateFolder);
         void SaveTemplates(string localTemplateFolder, IEnumerable<Template> templates);
-        List<string> Transform(string contents, out string output);
+        List<T4Error> Transform(string contents, List<InsertFieldViewModel> predefinedFieldValues,
+            List<InsertFieldViewModel> customFieldValues, out string output);
     }
 
     public enum Section
@@ -122,10 +124,12 @@ namespace MvvmTools.Core.Services
             var rval = new List<Template>();
             try
             {
+#if !DEBUG
                 // Factory templates.
                 var factoryTemplatesText = GetFromResources("MvvmTools.Core.InternalTemplates.xml");
                 var tmp1 = ParseTemplates(true, factoryTemplatesText);
                 rval.AddRange(tmp1);
+#endif
 
                 // Local templates folder.
                 var fn = Path.Combine(localTemplateFolder, LocalTemplatesFilename);
@@ -180,14 +184,17 @@ namespace MvvmTools.Core.Services
             }
         }
 
-        public List<string> Transform(string contents, out string output)
+        public List<T4Error> Transform(string contents, List<InsertFieldViewModel> predefinedFieldValues,
+            List<InsertFieldViewModel> customFieldValues, out string output)
         {
             try
             {
                 // Create a Session in which to pass parameters:
                 TextTemplatingSessionHost.Session = TextTemplatingSessionHost.CreateSession();
-                TextTemplatingSessionHost.Session["parameter1"] = "Hello";
-                TextTemplatingSessionHost.Session["parameter2"] = DateTime.Now;
+                foreach (var f in predefinedFieldValues)
+                    TextTemplatingSessionHost.Session[f.Name] = f.Value;
+                foreach (var f in customFieldValues)
+                    TextTemplatingSessionHost.Session[f.Name] = f.Value;
 
                 // Process T4.
                 var cb = new T4Callback();
@@ -202,15 +209,30 @@ namespace MvvmTools.Core.Services
         }
     }
 
+    public class T4Error
+    {
+        public T4Error(string message, int line, int column)
+        {
+            Message = message;
+            Line = line + 1;
+            Column = column + 1;
+        }
+
+        public string Message { get; set; }
+        public int Line { get; set; }
+        public int Column { get; set; }
+    }
+
     public class T4Callback : ITextTemplatingCallback
     {
-        public List<string> ErrorMessages { get; } = new List<string>();
+        public List<T4Error> ErrorMessages { get; } = new List<T4Error>();
         public string FileExtension { get; private set; } = ".txt";
         public Encoding OutputEncoding { get; private set; } = Encoding.UTF8;
 
         public void ErrorCallback(bool warning, string message, int line, int column)
         {
-            ErrorMessages.Add(message);
+            if (!warning)
+                ErrorMessages.Add(new T4Error(message, line, column));
         }
 
         public void SetFileExtension(string extension)

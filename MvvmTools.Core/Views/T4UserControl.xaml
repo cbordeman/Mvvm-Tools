@@ -4,9 +4,12 @@
              xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:services="clr-namespace:MvvmTools.Core.Services"
              xmlns:viewModels="clr-namespace:MvvmTools.Core.ViewModels"
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              x:Name="Root"
+             FontSize="{Binding RelativeSource={RelativeSource Self},
+                                Path=MyFontSize}"
              d:DataContext="{d:DesignInstance {x:Type viewModels:T4UserControlViewModel}}"
              d:DesignHeight="300"
              d:DesignWidth="300"
@@ -36,104 +39,121 @@
         </Grid.RowDefinitions>
 
         <!--  Toolbar  -->
-        <xctk:DropDownButton x:Name="InsertFieldSplitButton"
-                             Grid.Row="0"
-                             Grid.Column="0"
-                             Margin="0,2,0,5"
-                             HorizontalAlignment="Right"
-                             Content="Insert"
-                             Grid.IsSharedSizeScope="True"
-                             IsTabStop="False"
-                             Padding="5,3">
-            <xctk:DropDownButton.DropDownContent>
-                <ScrollViewer Margin="8,3,0,3" HorizontalScrollBarVisibility="Disabled">
-                    <Grid>
-                        <Grid.Resources>
-                            <DataTemplate x:Key="FieldTemplate" DataType="viewModels:InsertFieldViewModel">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <!--  Insertion Button  -->
-                                        <ColumnDefinition Width="Auto" />
-                                        <!--  Field Name  -->
-                                        <ColumnDefinition Width="Auto" SharedSizeGroup="A" />
-                                        <!--  Field Current Value  -->
-                                        <ColumnDefinition Width="Auto" SharedSizeGroup="B" />
-                                    </Grid.ColumnDefinitions>
-                                    <Button x:Name="InsertFieldButton"
-                                            Margin="0,0,0,3"
-                                            VerticalAlignment="Top"
-                                            Click="InsertFieldButton_OnClick"
-                                            Content="Insert Field"
-                                            IsTabStop="False"
-                                            Padding="5,2"
-                                            ToolTip="{Binding Description}" />
-                                    <TextBlock Grid.Column="1"
-                                               Margin="10,4,0,3"
-                                               VerticalAlignment="Top"
-                                               FontWeight="SemiBold"
-                                               Text="{Binding Name}"
-                                               TextWrapping="Wrap"
-                                               ToolTip="{Binding Description}" />
-                                    <TextBlock Grid.Column="2"
-                                               Margin="10,4,5,3"
-                                               VerticalAlignment="Top"
-                                               Text="{Binding Value}"
-                                               TextWrapping="Wrap"
-                                               ToolTip="{Binding Description}" />
-                                </Grid>
-                            </DataTemplate>
-                        </Grid.Resources>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <TextBlock Margin="0,5,0,2"
-                                   FontWeight="Bold"
-                                   Text="Predefined Fields" />
-                        <ItemsControl Grid.Row="1"
-                                      ItemTemplate="{StaticResource FieldTemplate}"
-                                      ItemsSource="{Binding PredefinedFields}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
-                        <TextBlock Grid.Row="2"
-                                   Margin="0,5,0,2"
-                                   FontWeight="Bold"
-                                   Text="Custom Fields" />
-                        <ItemsControl Grid.Row="3"
-                                      Margin="0,0,0,0"
-                                      ItemTemplate="{StaticResource FieldTemplate}"
-                                      ItemsSource="{Binding CustomFields}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
-                    </Grid>
-                </ScrollViewer>
-            </xctk:DropDownButton.DropDownContent>
-        </xctk:DropDownButton>
+        <StackPanel Grid.Row="0"
+                    Grid.Column="0"
+                    Margin="5,2,2,5"
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal">
+            <ComboBox x:Name="FontSizeComboBox" SelectedValue="{Binding ElementName=Root, Path=MyFontSize, Mode=TwoWay}" />
+            <Button x:Name="ViewHeaderButton"
+                    Margin="5,0,0,0"
+                    Click="ViewHeaderButton_OnClick"
+                    Content="View Default Tags"
+                    Padding="4,2" />
+            <xctk:DropDownButton x:Name="InsertFieldSplitButton"
+                                 Margin="5,0,0,0"
+                                 Content="Insert Field"
+                                 Grid.IsSharedSizeScope="True"
+                                 IsTabStop="False"
+                                 Padding="4,2,3,2">
+                <xctk:DropDownButton.DropDownContent>
+                    <ScrollViewer Margin="8,3,0,3" HorizontalScrollBarVisibility="Disabled">
+                        <Grid>
+                            <Grid.Resources>
+                                <DataTemplate x:Key="FieldTemplate" DataType="viewModels:InsertFieldViewModel">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <!--  Insert Button  -->
+                                            <ColumnDefinition Width="Auto" SharedSizeGroup="A" />
+                                            <!--  <#= Insert #> Button  -->
+                                            <ColumnDefinition Width="Auto" SharedSizeGroup="B" />
+                                            <!--  Type Desc  -->
+                                            <ColumnDefinition Width="Auto" SharedSizeGroup="C" />
+                                            <!--  Field Name  -->
+                                            <ColumnDefinition Width="Auto" SharedSizeGroup="D" />
+                                            <!--  Field Current Value  -->
+                                            <ColumnDefinition Width="Auto" SharedSizeGroup="E" />
+                                        </Grid.ColumnDefinitions>
+                                        <Button x:Name="InsertFieldButton"
+                                                Margin="0,0,0,3"
+                                                VerticalAlignment="Top"
+                                                Click="InsertFieldButton_OnClick"
+                                                Content="Insert"
+                                                IsTabStop="False"
+                                                Padding="5,2"
+                                                ToolTip="{Binding Description}" />
+                                        <Button x:Name="InsertFieldWithBracketsButton"
+                                                Grid.Column="1"
+                                                Margin="5,0,0,3"
+                                                VerticalAlignment="Top"
+                                                Click="InsertFieldWithBracketsButton_OnClick"
+                                                Content="&lt;#= Insert #&gt;"
+                                                IsTabStop="False"
+                                                Padding="5,2"
+                                                ToolTip="{Binding Description}" />
+                                        <TextBlock Grid.Column="2"
+                                                   Margin="10,4,0,3"
+                                                   VerticalAlignment="Top"
+                                                   FontWeight="SemiBold"
+                                                   Text="{Binding Name}"
+                                                   TextWrapping="Wrap"
+                                                   ToolTip="{Binding Description}" />
+                                        <TextBlock Grid.Column="3"
+                                                   Margin="10,4,0,3"
+                                                   VerticalAlignment="Top"
+                                                   Text="{Binding TypeDesc}"
+                                                   TextWrapping="Wrap"
+                                                   ToolTip="{Binding Type}" />
+                                        <TextBlock Grid.Column="4"
+                                                   Margin="10,4,5,3"
+                                                   VerticalAlignment="Top"
+                                                   Text="{Binding Value}"
+                                                   TextWrapping="Wrap"
+                                                   ToolTip="{Binding Description}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </Grid.Resources>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Margin="0,5,0,2"
+                                       FontWeight="Bold"
+                                       Text="Predefined Fields" />
+                            <ItemsControl Grid.Row="1"
+                                          ItemTemplate="{StaticResource FieldTemplate}"
+                                          ItemsSource="{Binding PredefinedFields}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                            <TextBlock Grid.Row="2"
+                                       Margin="0,5,0,2"
+                                       FontWeight="Bold"
+                                       Text="Custom Fields" />
+                            <ItemsControl Grid.Row="3"
+                                          Margin="0,0,0,0"
+                                          ItemTemplate="{StaticResource FieldTemplate}"
+                                          ItemsSource="{Binding CustomFields}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                        </Grid>
+                    </ScrollViewer>
+                </xctk:DropDownButton.DropDownContent>
+            </xctk:DropDownButton>
+        </StackPanel>
 
         <Separator Grid.Row="0"
                    Grid.Column="0"
                    VerticalAlignment="Bottom" />
-
-        <!--  Row 0: Enabled Checkbox  -->
-        <CheckBox Grid.Row="0"
-                  Grid.Column="0"
-                  Grid.ColumnSpan="2"
-                  Margin="0,0,2,5"
-                  HorizontalAlignment="Left"
-                  Content="{Binding IsEnabledText}"
-                  IsChecked="{Binding IsEnabled}"
-                  Visibility="{Binding IsEnabledText,
-                                       Converter={StaticResource NullToCollapsedConverter}}" />
 
         <!--  Row 1: Buffer  -->
         <avalonEdit:TextEditor x:Name="TextEditor"
@@ -151,15 +171,19 @@
                       Height="8"
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch"
-                      Background="DarkBlue" />
+                      Background="DarkBlue"
+                      Focusable="False"
+                      IsTabStop="False" />
 
         <!--  Row 3: Preview or Error  -->
         <avalonEdit:TextEditor x:Name="PreviewTextEditor"
                                Grid.Row="3"
                                Grid.Column="0"
                                Grid.ColumnSpan="2"
+                               Focusable="False"
                                FontFamily="Consolas"
                                IsReadOnly="True"
+                               IsTabStop="False"
                                SyntaxHighlighting="C#"
                                VerticalScrollBarVisibility="Visible"
                                Visibility="{Binding ShowErrors,
@@ -176,25 +200,47 @@
                   CanUserResizeRows="False"
                   CanUserSortColumns="False"
                   CellStyle="{StaticResource NoFocusDataGridCell}"
+                  Focusable="False"
                   GridLinesVisibility="None"
                   HeadersVisibility="None"
+                  IsTabStop="False"
                   ItemsSource="{Binding Errors}"
+                  SelectionChanged="ErrorsDataGrid_OnSelectionChanged"
                   SelectionUnit="FullRow"
                   Visibility="{Binding ShowErrors,
                                        Converter={StaticResource BoolToVisibilityConverter}}">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Width="*">
                     <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
+                        <DataTemplate DataType="services:T4Error">
                             <Grid>
-                                <TextBlock MaxHeight="32"
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Width="30"
+                                           HorizontalAlignment="Center"
                                            Padding="3,0"
-                                           Text="{Binding}"
+                                           Text="{Binding Line}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Grid.Column="1"
+                                           Width="30"
+                                           HorizontalAlignment="Center"
+                                           Padding="3,0"
+                                           Text="{Binding Column}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Grid.Column="2"
+                                           MaxHeight="52"
+                                           Padding="3,0"
+                                           Text="{Binding Message}"
                                            TextWrapping="Wrap"
-                                           ToolTip="{Binding}" />
-                                <Border Height="1"
+                                           ToolTip="{Binding Message}" />
+                                <Border Grid.Column="0"
+                                        Grid.ColumnSpan="3"
+                                        Height="1"
                                         VerticalAlignment="Bottom"
-                                        Background="DarkGray" />
+                                        Background="#D2D2D2" />
                             </Grid>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

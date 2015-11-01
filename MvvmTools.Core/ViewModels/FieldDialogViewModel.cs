@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Data;
 using MvvmTools.Core.Models;
 using MvvmTools.Core.Services;
@@ -20,12 +21,13 @@ namespace MvvmTools.Core.ViewModels
         private FieldDialogViewModel _unmodified;
         private bool _choicesChanged;
         private bool _isAdd;
+        private bool _okPressed;
 
         #endregion Data
 
-        #region Ctor and Init
+        #region Ctor
 
-        #endregion Ctor and Init
+        #endregion Ctor
 
         #region Properties
         
@@ -47,6 +49,7 @@ namespace MvvmTools.Core.ViewModels
         }
         #endregion Default
 
+        #region DefaultConditional
         public string DefaultConditional
         {
             get
@@ -56,6 +59,7 @@ namespace MvvmTools.Core.ViewModels
                 return DefaultString;
             }
         }
+        #endregion DefaultConditional
 
         #region DefaultBoolean
         private bool _defaultBoolean;
@@ -173,11 +177,6 @@ namespace MvvmTools.Core.ViewModels
         }
         #endregion IsInternal
 
-        #region DialogService
-        [Inject]
-        public IDialogService DialogService { get; set; }
-        #endregion DialogService
-
         #endregion Properties
 
         #region Commands
@@ -193,8 +192,9 @@ namespace MvvmTools.Core.ViewModels
                 if (SelectedFieldType != FieldType.ComboBox && SelectedFieldType != FieldType.ComboBoxOpen)
                     Choices = null;
 
-                _unmodified = null;
+                _okPressed = true;
                 DialogResult = true;
+                _okPressed = false;
             }
         }
         #endregion OkCommand
@@ -211,6 +211,11 @@ namespace MvvmTools.Core.ViewModels
             if (DialogService.ShowDialog(vm))
             {
                 var newItem = StringViewModel.CreateFromString(Kernel, vm.Value);
+                if (Choices == null)
+                {
+                    _choicesSource = new ObservableCollection<StringViewModel>();
+                    Choices = new ListCollectionView(_choicesSource);
+                }
                 _choicesSource.Add(newItem);
                 // ReSharper disable once PossibleNullReferenceException
                 Choices.MoveCurrentTo(newItem);
@@ -275,6 +280,17 @@ namespace MvvmTools.Core.ViewModels
             }
         }
 
+        public override async Task<bool> OnClosing()
+        {
+            // Return true to cancel close.
+            if (_okPressed || IsUnchanged())
+                return false;
+            if (await ConfirmDiscard())
+                return false;
+            return true;
+
+        }
+
         #endregion Virtuals
 
         #region Public Methods
@@ -301,7 +317,7 @@ namespace MvvmTools.Core.ViewModels
             _selectedFieldType = field.FieldType;
         }
 
-        public void CopyFrom(FieldDialogViewModel field)
+        public virtual void CopyFrom(FieldDialogViewModel field)
         {
             _name = field.Name;
             _defaultString = field._defaultString;
@@ -322,6 +338,8 @@ namespace MvvmTools.Core.ViewModels
             IsInternal = isInternal;
             InitAddEditCommon();
             _existingNames = existingNames;
+
+            SaveUnmodifiedValues();
         }
 
         public void Edit(bool isInternal, IEnumerable<string> existingNames)
@@ -332,9 +350,7 @@ namespace MvvmTools.Core.ViewModels
 
             _existingNames = existingNames.Where(t => !string.Equals(t, Name, StringComparison.OrdinalIgnoreCase)).ToList();
 
-            // Save unmodified property values.
-            _unmodified = Kernel.Get<FieldDialogViewModel>();
-            _unmodified.CopyFrom(this);
+            SaveUnmodifiedValues();
         }
 
         public static FieldDialogViewModel CreateFrom(IKernel kernel, FieldDialogViewModel vm)
@@ -358,12 +374,19 @@ namespace MvvmTools.Core.ViewModels
                 {
                     new ValueDescriptor<FieldType?>(null, ""),
                     new ValueDescriptor<FieldType?>(FieldType.CheckBox, Enums.GetDescription(FieldType.CheckBox)),
-                    new ValueDescriptor<FieldType?>(FieldType.TextBox, Enums.GetDescription(FieldType.TextBox)),
-                    new ValueDescriptor<FieldType?>(FieldType.TextBoxMultiLine, Enums.GetDescription(FieldType.TextBoxMultiLine)),
+                    new ValueDescriptor<FieldType?>(FieldType.Class, Enums.GetDescription(FieldType.Class)),
                     new ValueDescriptor<FieldType?>(FieldType.ComboBox, Enums.GetDescription(FieldType.ComboBox)),
-                    new ValueDescriptor<FieldType?>(FieldType.ComboBoxOpen, Enums.GetDescription(FieldType.ComboBoxOpen))
+                    new ValueDescriptor<FieldType?>(FieldType.ComboBoxOpen, Enums.GetDescription(FieldType.ComboBoxOpen)),
+                    new ValueDescriptor<FieldType?>(FieldType.TextBox, Enums.GetDescription(FieldType.TextBox)),
+                    new ValueDescriptor<FieldType?>(FieldType.TextBoxMultiLine, Enums.GetDescription(FieldType.TextBoxMultiLine))
                 };
             }
+        }
+
+        private void SaveUnmodifiedValues()
+        {
+            _unmodified = Kernel.Get<FieldDialogViewModel>();
+            _unmodified.CopyFrom(this);
         }
 
         #endregion Private Helpers

@@ -9,7 +9,7 @@
              xmlns:views="clr-namespace:MvvmTools.Core.Views"
              x:Name="Root"
              Width="700"
-             Height="400"
+             Height="460"
              d:DataContext="{d:DesignInstance viewModels:ScaffoldDialogViewModel}"
              mc:Ignorable="d">
     <UserControl.Resources>
@@ -42,6 +42,8 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
@@ -68,13 +70,33 @@
                                                        ValidatesOnDataErrors=True,
                                                        NotifyOnValidationError=True}" />
 
-                    <!--  Row 2: View Suffix  -->
+                    <!--  Row 1: Sub Location  -->
                     <TextBlock Grid.Row="1"
                                Grid.Column="0"
                                Margin="0,5,5,0"
                                VerticalAlignment="Center"
+                               Text="Organizational Subfolder:" />
+                    <controls:TextBoxEx Grid.Row="1"
+                                        Grid.Column="1"
+                                        Margin="0,5,0,0"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding SubLocation,
+                                                       UpdateSourceTrigger=PropertyChanged,
+                                                       ValidatesOnDataErrors=True,
+                                                       NotifyOnValidationError=True}" />
+                    <TextBlock Grid.Row="2"
+                               Grid.Column="1"
+                               Margin="0,2,0,0"
+                               Text="Strongly Recommended.  This is a subfolder or set of subfolders to create under ./Views and ./ViewModels, rather than lumping everything in the same place.  For example: 'Customers' or 'Dialogs/Customers/Edit'."
+                               TextWrapping="WrapWithOverflow" />
+
+                    <!--  Row 3: View Suffix  -->
+                    <TextBlock Grid.Row="3"
+                               Grid.Column="0"
+                               Margin="0,5,5,0"
+                               VerticalAlignment="Center"
                                Text="View Type:" />
-                    <controls:ComboBoxEx Grid.Row="1"
+                    <controls:ComboBoxEx Grid.Row="3"
                                          Grid.Column="1"
                                          Margin="0,5,0,0"
                                          VerticalAlignment="Center"
@@ -84,13 +106,13 @@
                                                                 ValidatesOnDataErrors=True,
                                                                 NotifyOnValidationError=True}" />
 
-                    <TextBlock Grid.Row="2"
+                    <TextBlock Grid.Row="4"
                                Grid.Column="0"
                                Grid.ColumnSpan="2"
                                Margin="0,5,0,0"
                                VerticalAlignment="Center"
                                Text="Apply Settings for this Project:" />
-                    <controls:ComboBoxEx Grid.Row="3"
+                    <controls:ComboBoxEx Grid.Row="5"
                                          Grid.Column="0"
                                          Grid.ColumnSpan="2"
                                          Margin="0,3,0,10"
@@ -122,13 +144,13 @@
                         </ComboBox.ItemTemplate>
                     </controls:ComboBoxEx>
 
-                    <!--  Row 4: View Model Suffix  -->
-                    <TextBlock Grid.Row="4"
+                    <!--  Row 6: View Model Suffix  -->
+                    <TextBlock Grid.Row="6"
                                Grid.Column="0"
                                Margin="0,5,5,0"
                                VerticalAlignment="Center"
                                Text="View Model Suffix:" />
-                    <TextBox Grid.Row="4"
+                    <TextBox Grid.Row="6"
                              Grid.Column="1"
                              Margin="0,5,0,0"
                              VerticalAlignment="Center"
@@ -138,7 +160,8 @@
                                             ValidatesOnDataErrors=True,
                                             NotifyOnValidationError=True}" />
 
-                    <Grid Grid.Row="5"
+                    <!--  Row 7: Locations  -->
+                    <Grid Grid.Row="7"
                           Grid.Column="0"
                           Grid.ColumnSpan="2"
                           Margin="0,5,0,0">
@@ -181,7 +204,7 @@
                 <views:FieldValuesUserControl DataContext="{Binding FieldValues}" />
             </TabItem>
 
-            <!--  Final page - let user modify buffers  -->
+            <!--  Final page - let user modify buffers and see results with real data  -->
             <TabItem Header="3" Visibility="Collapsed">
                 <TabControl>
                     <TabItem Header="View">
@@ -202,6 +225,13 @@
                 </TabControl>
             </TabItem>
         </TabControl>
+
+        <TextBlock Grid.Row="1"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Center"
+                   FontWeight="SemiBold"
+                   Foreground="#DB0000"
+                   Text="{Binding BottomError}" />
 
         <!--  Back, Next, and Cancel  -->
         <StackPanel Grid.Row="1"

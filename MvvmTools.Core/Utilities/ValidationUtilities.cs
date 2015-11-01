@@ -53,7 +53,7 @@ namespace MvvmTools.Core.Utilities
                 return null;
 
             if (pathOffProject.StartsWith(" "))
-                return "Starts with a space";
+                return "Contains a space";
 
             if (pathOffProject.EndsWith(" "))
                 return "Ends with a space";
@@ -68,7 +68,7 @@ namespace MvvmTools.Core.Utilities
                 return "Contains '..'";
 
             if (pathOffProject.EndsWith("."))
-                return "End with '.'";
+                return "Ends with '.'";
 
             if (pathOffProject.StartsWith("."))
                 return "Starts with '.'";
@@ -91,7 +91,7 @@ namespace MvvmTools.Core.Utilities
             var reservedNames = new[] {"CON", "AUX", "PRN", "COM1", "COM2", "LPT1", "LPT2"};
 
             foreach (var rn in reservedNames)
-                if (String.Equals(pathOffProject, rn, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(pathOffProject, rn, StringComparison.OrdinalIgnoreCase))
                     return "Reserved name";
 
             // Unicode surrogate characters are not allowed in solution folder names.
@@ -116,7 +116,7 @@ namespace MvvmTools.Core.Utilities
                 }
 
             if (containsInvalidChars)
-                return "Bad: *?\"|<>:&#%";
+                return "Bad: '*?\"|<>:&#%";
 
             return null;
         }

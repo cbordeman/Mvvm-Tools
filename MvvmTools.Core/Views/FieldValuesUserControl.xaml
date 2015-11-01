@@ -4,9 +4,11 @@
              xmlns:controls="clr-namespace:MvvmTools.Core.Controls"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:MvvmTools.Core.Models"
              xmlns:viewModels="clr-namespace:MvvmTools.Core.ViewModels"
-             xmlns:views="clr-namespace:MvvmTools.Core.Views"
-             d:DataContext="{d:DesignInstance views:FieldValuesUserControlViewModel}"
+             x:Name="Root"
+             d:DataContext="{d:DesignInstance viewModels:FieldValuesUserControlViewModel,
+                                              d:IsDesignTimeCreatable=False}"
              d:DesignHeight="300"
              d:DesignWidth="300"
              mc:Ignorable="d">
@@ -30,24 +32,29 @@
                    FontWeight="SemiBold"
                    Text="Please enter the following template field values:" />
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <ItemsControl Grid.IsSharedSizeScope="True" ItemsSource="{Binding Fields}">
+        <ScrollViewer Grid.Row="1"
+                      IsTabStop="False"
+                      VerticalScrollBarVisibility="Auto">
+            <ItemsControl Grid.IsSharedSizeScope="True"
+                          IsTabStop="False"
+                          ItemsSource="{Binding Fields}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <StackPanel />
+                        <VirtualizingStackPanel />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="viewModels:FieldValueUserControlViewModel">
                         <Grid>
-                            <!--<Separator VerticalAlignment="Top" />-->
-
                             <Grid Margin="0,2,0,0" Background="#ECECEC">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="A" />
                                     <ColumnDefinition />
-                                    <ColumnDefinition />
                                 </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
 
                                 <!--  Prompt  -->
                                 <TextBlock Grid.Column="0"
@@ -59,7 +66,7 @@
                                 <!--  TextBox  -->
                                 <controls:TextBoxEx Grid.Row="0"
                                                     Grid.Column="1"
-                                                    Margin="0,7,0,5"
+                                                    Margin="0,7,5,5"
                                                     VerticalAlignment="Top"
                                                     AcceptsReturn="{Binding ShowTextBoxMultiline}"
                                                     Text="{Binding DefaultString,
@@ -73,7 +80,7 @@
                                 <!--  CheckBox  -->
                                 <CheckBox Grid.Row="0"
                                           Grid.Column="1"
-                                          Margin="0,9,0,5"
+                                          Margin="0,9,5,5"
                                           VerticalAlignment="Top"
                                           IsChecked="{Binding DefaultBoolean}"
                                           Visibility="{Binding ShowDefaultCheckBox,
@@ -82,7 +89,7 @@
                                 <!--  ComboBox  -->
                                 <ComboBox Grid.Row="0"
                                           Grid.Column="1"
-                                          Margin="0,5,0,5"
+                                          Margin="0,5,5,5"
                                           VerticalAlignment="Top"
                                           IsEditable="{Binding ShowComboBoxOpen}"
                                           ItemsSource="{Binding ChoicesAsString}"
@@ -90,10 +97,42 @@
                                           Visibility="{Binding ShowComboBox,
                                                                Converter={StaticResource BoolToVisibilityConverter}}" />
 
+                                <!--  Class  -->
+                                <controls:TextBoxEx x:Name="ClassTextBoxEx"
+                                                    Grid.Row="0"
+                                                    Grid.Column="1"
+                                                    Margin="0,5,5,5"
+                                                    VerticalAlignment="Top"
+                                                    DisplayMemberPath="ClassAndAssembly"
+                                                    SuggestionsProvider="{Binding}"
+                                                    Text="{Binding DefaultString,
+                                                                   UpdateSourceTrigger=PropertyChanged}"
+                                                    Visibility="{Binding ShowClass,
+                                                                         Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <controls:TextBoxEx.ItemTemplate>
+                                        <DataTemplate DataType="models:AssemblyQualifiedType">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+
+                                                <TextBlock FontWeight="SemiBold"
+                                                           Text="{Binding Class}"
+                                                           TextWrapping="WrapWithOverflow" />
+
+                                                <TextBlock Grid.Row="1"
+                                                           Text="{Binding Assembly}"
+                                                           TextWrapping="WrapWithOverflow" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </controls:TextBoxEx.ItemTemplate>
+                                </controls:TextBoxEx>
+
                                 <!--  Description  -->
-                                <controls:TextBoxEx Grid.Row="0"
-                                                    Grid.Column="2"
-                                                    Margin="5,3,0,2"
+                                <controls:TextBoxEx Grid.Row="1"
+                                                    Grid.Column="1"
+                                                    Margin="0,0,0,5"
                                                     VerticalAlignment="Center"
                                                     AcceptsReturn="True"
                                                     Background="Transparent"
@@ -105,7 +144,9 @@
                                                                    ValidatesOnDataErrors=True,
                                                                    NotifyOnValidationError=True}"
                                                     TextWrapping="WrapWithOverflow"
-                                                    VerticalScrollBarVisibility="Auto" />
+                                                    VerticalScrollBarVisibility="Auto"
+                                                    Visibility="{Binding Description,
+                                                                         Converter={StaticResource EmptyToCollapsedConverter}}" />
                             </Grid>
                         </Grid>
                     </DataTemplate>
