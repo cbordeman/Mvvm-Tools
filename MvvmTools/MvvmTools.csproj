@@ -406,6 +406,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="Readme.txt" />
     <Content Include="Resources\GoToViewOrViewModelCommand.png" />
     <Content Include="Resources\MvvmToolsPackage.ico" />
   </ItemGroup>
