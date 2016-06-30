@@ -154,14 +154,11 @@ namespace MvvmTools.Core.Services
             var rval = new MvvmToolsSettings();
 
             // Get any saved settings
-            if (_userSettingsStore.CollectionExists(SettingsPropName))
-            {
-                rval.GoToViewOrViewModelOption = GetEnum(GoToViewOrViewModelPropName, GoToViewOrViewModelOption.ShowUi);
-                rval.GoToViewOrViewModelSearchSolution = GetBool(GoToViewOrViewModelSearchSolutionPropName, true);
-                rval.ViewSuffixes = GetStringCollection(ViewSuffixesPropName, DefaultViewSuffixes);
-                rval.LocalTemplateFolder = GetString(LocalTemplateFolderPropName, DefaultLocalTemplateFolder);
-            }
-
+            rval.GoToViewOrViewModelOption = GetEnum(GoToViewOrViewModelPropName, GoToViewOrViewModelOption.ShowUi);
+            rval.GoToViewOrViewModelSearchSolution = GetBool(GoToViewOrViewModelSearchSolutionPropName, true);
+            rval.ViewSuffixes = GetStringCollection(ViewSuffixesPropName, DefaultViewSuffixes);
+            rval.LocalTemplateFolder = GetString(LocalTemplateFolderPropName, DefaultLocalTemplateFolder);
+            
             // Make sure the LocalTemplateFolder setting exists in our saved values.  It might not
             // because the setting is being introduced in version 0.5 of MVVM Tools.
             if (string.IsNullOrWhiteSpace(rval.LocalTemplateFolder))

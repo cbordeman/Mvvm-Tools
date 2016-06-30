@@ -79,7 +79,7 @@
                                        Grid.ColumnSpan="2"
                                        Margin="0,2,0,0"
                                        FontSize="10"
-                                       Text="If checked, you&apos;ll get false positives.  If unchecked, follows &quot;Solution and Project&quot; settings."
+                                       Text="If checked, you might get false positives but more likely to find your views and view models.  If unchecked, follows &quot;Solution and Projects&quot; settings strictly."
                                        TextWrapping="WrapWithOverflow" />
                         </Grid>
                     </GroupBox>
@@ -152,6 +152,6 @@
             </ScrollViewer>
         </Grid>
 
-        <views:BusyUserControl Grid.RowSpan="2" />
+        <views:BusyUserControl Grid.RowSpan="2"/>
     </Grid>
 </UserControl>

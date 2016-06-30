@@ -28,6 +28,15 @@ namespace MvvmTools.Core.Services
     public interface ISolutionService : IVsSolutionLoadEvents, IVsSolutionEvents3, IVsSolutionEvents4, IVsSolutionEvents5
     {
         /// <summary>
+        /// Gets the root namespace (&apos;default&apos; namespace set in project properties.  Important
+        /// when a class is not in a namespace or when doing VB where namespaces are relative to the project
+        /// and often not present.
+        /// </summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        string GetProjectRootNamespace(Project p);
+
+        /// <summary>
         /// Given a source or XAML file, extracts all the public, non-abstract classes.
         /// </summary>
         /// <param name="pi">A ProjectItem containing the source or markup to be scanned.  If markup, the code behind will scanned instead.</param>
@@ -280,6 +289,30 @@ namespace MvvmTools.Core.Services
             return null;
         }
 
+        public string GetProjectRootNamespace(Project p)
+        {
+            string rval = null;
+            if (p?.Properties != null)
+            {
+                foreach (Property property in p.Properties)
+                {
+                    try
+                    {
+                        if (property.Name == "RootNamespace")
+                        {
+                            rval = property.Value.ToString();
+                            break;
+                        }
+                    }
+                    catch
+                    {
+                        // You can't read some property's values.
+                    }
+                }
+            }
+            return rval;
+        }
+
 
         public List<NamespaceClass> GetClassesInProjectItem(ProjectItem pi)
         {
@@ -305,12 +338,17 @@ namespace MvvmTools.Core.Services
 
             var isXaml = pi.Name.EndsWith(".xaml.cs", StringComparison.OrdinalIgnoreCase) ||
                          pi.Name.EndsWith(".xaml.vb", StringComparison.OrdinalIgnoreCase);
+
+            // If no namespace in file, then the project's default namespace is used.  This is
+            // common in VB projects but rare in C#.
+            var rootNamespace = GetProjectRootNamespace(pi?.ContainingProject);
+
             var fileCm = (FileCodeModel2)pi.FileCodeModel;
             if (fileCm?.CodeElements != null)
             {
                 foreach (CodeElement2 ce in fileCm.CodeElements)
                 {
-                    FindClassesRecursive(rval, ce, isXaml);
+                    FindClassesRecursive(rval, ce, isXaml, rootNamespace);
 
                     // If a xaml.cs or xaml.vb code behind file, the first class must be the view type, so we can stop early.
                     if (isXaml && rval.Count > 0)
@@ -558,20 +596,20 @@ namespace MvvmTools.Core.Services
         }
 
         // Recursively examine code elements.
-        private void FindClassesRecursive(List<NamespaceClass> classes, CodeElement2 codeElement, bool isXaml)
+        private void FindClassesRecursive(List<NamespaceClass> classes, CodeElement2 codeElement, bool isXaml, string rootNamespace)
         {
             try
             {
                 if (codeElement.Kind == vsCMElement.vsCMElementClass)
                 {
                     var ct = (CodeClass2)codeElement;
-                    classes.Add(new NamespaceClass(ct.Namespace.Name, ct.Name));
+                    classes.Add(new NamespaceClass(ct.Namespace?.Name ?? rootNamespace, ct.Name));
                 }
                 else if (codeElement.Kind == vsCMElement.vsCMElementNamespace)
                 {
                     foreach (CodeElement2 childElement in codeElement.Children)
                     {
-                        FindClassesRecursive(classes, childElement, isXaml);
+                        FindClassesRecursive(classes, childElement, isXaml, rootNamespace);
 
                         // If a xaml.cs or xaml.vb code behind file, the first class must be the view type, so we can stop early.
                         if (isXaml && classes.Count > 0)
