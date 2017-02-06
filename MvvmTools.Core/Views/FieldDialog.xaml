@@ -153,6 +153,8 @@
                                            MouseLeftButtonDown="StringItem_OnMouseLeftButtonDown"
                                            Padding="3,1"
                                            Text="{Binding Value,
+                                                          Converter={StaticResource EmptyStringConverter},
+                                      ConverterParameter='(none)',
                                                           Mode=OneWay}" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>

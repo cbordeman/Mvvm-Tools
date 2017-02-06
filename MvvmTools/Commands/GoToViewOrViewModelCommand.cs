@@ -53,7 +53,10 @@ namespace MvvmTools.Commands
                 }
 
                 var settings = await SettingsService.LoadSettings();
-                Debug.Assert(settings?.SolutionOptions != null, "settings were null or solution settings were null.");
+
+                // Solution not fully loaded so settings not loaded either.
+                if (settings?.SolutionOptions == null)
+                    return;
 
                 List<ProjectItemAndType> docs;
 
@@ -63,6 +66,7 @@ namespace MvvmTools.Commands
                     var settingsPm =
                         settings.ProjectOptions.FirstOrDefault(
                             p => p.ProjectModel.ProjectIdentifier == pi.ContainingProject.UniqueName);
+
                     // This shouldn't be null unless the user adds a new project and then
                     // quickly invokes this command, but better to check it.
                     if (settingsPm == null)

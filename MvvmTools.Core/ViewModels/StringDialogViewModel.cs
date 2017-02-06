@@ -13,6 +13,7 @@ namespace MvvmTools.Core.ViewModels
         #region Data
 
         private string _unmodifiedValue;
+        private bool _allowEmpty;
         private bool _isAdd;
         private IEnumerable<string> _existingValues;
         private Regex _regexValidator;
@@ -81,19 +82,21 @@ namespace MvvmTools.Core.ViewModels
 
         #region Public Methods
 
-        public void Add(string title, string label, IEnumerable<string> existingValues = null, Regex regexValidator = null, string regexErrorMessage = null)
+        public void Add(bool allowEmpty, string title, string label, IEnumerable<string> existingValues = null, Regex regexValidator = null, string regexErrorMessage = null)
         {
+            _allowEmpty = allowEmpty;
             _isAdd = true;
             Title = title;
             Label = label;
-            Value = null;
+            Value = string.Empty;
             _existingValues = existingValues;
             _regexValidator = regexValidator;
             _regexErrorMessage = regexErrorMessage;
         }
 
-        public void Edit(string title, string label, string value, IEnumerable<string> existingValues = null, Regex regexValidator = null, string regexErrorMessage = null)
+        public void Edit(bool allowEmpty, string title, string label, string value, IEnumerable<string> existingValues = null, Regex regexValidator = null, string regexErrorMessage = null)
         {
+            _allowEmpty = allowEmpty;
             _isAdd = false;
             Title = title;
             Label = label;
@@ -114,7 +117,7 @@ namespace MvvmTools.Core.ViewModels
             {
                 if (columnName == "Value")
                 {
-                    if (string.IsNullOrWhiteSpace(Value))
+                    if (!_allowEmpty && string.IsNullOrWhiteSpace(Value))
                         return "Can't be empty";
 
                     if (_existingValues != null && _existingValues.Any(s => string.Equals(s, Value, StringComparison.OrdinalIgnoreCase)))

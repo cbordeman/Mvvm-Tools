@@ -620,7 +620,7 @@ namespace MvvmTools.Core.ViewModels
             try
             {
                 var vm = Kernel.Get<StringDialogViewModel>();
-                vm.Add("Add View Suffix", "View Suffix:", ViewSuffixes?.Select(s => s.Value),
+                vm.Add(true, "Add View Suffix", "View Suffix:", ViewSuffixes?.Select(s => s.Value),
                     SuffixRegex, SuffixRegexErrorMessage);
 
                 if (DialogService.ShowDialog(vm))
@@ -650,7 +650,7 @@ namespace MvvmTools.Core.ViewModels
                 Debug.Assert(cur != null);
 
                 var vm = Kernel.Get<StringDialogViewModel>();
-                vm.Edit("Edit View Suffix", "View Suffix:", cur.Value, ViewSuffixes.Select(s => s.Value),
+                vm.Edit(true, "Edit View Suffix", "View Suffix:", cur.Value, ViewSuffixes.Select(s => s.Value),
                     SuffixRegex, SuffixRegexErrorMessage);
                 if (DialogService.ShowDialog(vm))
                     cur.Value = vm.Value;

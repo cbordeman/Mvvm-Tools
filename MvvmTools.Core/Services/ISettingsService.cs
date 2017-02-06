@@ -61,7 +61,7 @@ namespace MvvmTools.Core.Services
 
         static SettingsService()
         {
-            DefaultViewSuffixes = new [] { "View", "Flyout", "UserControl", "Page", "Window", "Dialog" };
+            DefaultViewSuffixes = new [] { "", "View", "Flyout", "UserControl", "Page", "Window", "Dialog" };
             
             SolutionDefaultProjectOptions = new ProjectOptions
             {
@@ -386,7 +386,7 @@ namespace MvvmTools.Core.Services
                 return defaultValue;
 
             var setting = _userSettingsStore.GetString(SettingsPropName, settingName);
-            return setting.Split(new [] { "," }, StringSplitOptions.RemoveEmptyEntries).Select(s=>s.Trim()).ToArray();
+            return setting.Split(',').Select(s=>s.Trim()).ToArray();
         }
 
         private void SetEnum<T>(string settingName, T val)

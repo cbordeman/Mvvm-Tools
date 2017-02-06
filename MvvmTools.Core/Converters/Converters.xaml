@@ -15,5 +15,6 @@
     <local:ProjectDisplayNameConverter x:Key="ProjectDisplayNameConverter" />
     <local:ZeroToCollapsedConverter x:Key="ZeroToCollapsedConverter" />
     <local:EmptyToCollapsedConverter x:Key="EmptyToCollapsedConverter" />
+    <local:EmptyStringConverter x:Key="EmptyStringConverter"/>
 
 </ResourceDictionary>

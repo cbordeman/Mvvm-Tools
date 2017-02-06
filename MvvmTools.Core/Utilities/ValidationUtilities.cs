@@ -15,8 +15,11 @@ namespace MvvmTools.Core.Utilities
 
         public static string ValidateViewModelSuffix(string viewModelSuffix)
         {
+            if (string.IsNullOrEmpty(viewModelSuffix))
+                return null;
+
             if (string.IsNullOrWhiteSpace(viewModelSuffix))
-                return "Empty";
+                return "Contains spaces";
 
             if (!SuffixRegex.IsMatch(viewModelSuffix))
                 return "Invalid";
@@ -26,11 +29,11 @@ namespace MvvmTools.Core.Utilities
 
         public static string ValidateNamespace(string @namespace)
         {
-            if (string.IsNullOrWhiteSpace(@namespace))
-                return "Empty";
+            if (string.IsNullOrEmpty(@namespace))
+                return null;
 
-            if (@namespace.Contains(" "))
-                return "Contains spaces.";
+            if (string.IsNullOrWhiteSpace(@namespace))
+                return "Contains spaces";
 
             if (@namespace == ".")
                 return "Invalid";

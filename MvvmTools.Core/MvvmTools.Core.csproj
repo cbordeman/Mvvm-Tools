@@ -350,6 +350,7 @@
     <Compile Include="Controls\UIElementDialogPage.cs" />
     <Compile Include="Converters\BoolInvertedConverter.cs" />
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
+    <Compile Include="Converters\EmptyStringConverter.cs" />
     <Compile Include="Converters\EmptyToCollapsedConverter.cs" />
     <Compile Include="Converters\FalseToVisibleConverter.cs" />
     <Compile Include="Converters\NullToCollapsedConverter.cs" />

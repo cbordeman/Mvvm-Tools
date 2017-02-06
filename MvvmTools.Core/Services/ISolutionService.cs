@@ -420,10 +420,10 @@ namespace MvvmTools.Core.Services
             foreach (var typeName in typeNamesInFile)
             {
                 // If a view model...
-                if (typeName.EndsWith(viewModelSuffix, StringComparison.OrdinalIgnoreCase))
+                if (viewModelSuffix == string.Empty || typeName.EndsWith(viewModelSuffix, StringComparison.OrdinalIgnoreCase))
                 {
                     // Remove ViewModel from end and add all the possible suffixes.
-                    var baseName = typeName.Substring(0, typeName.Length - 9);
+                    var baseName = typeName.Substring(0, typeName.Length - (viewModelSuffix?.Length ?? 0));
                     foreach (var suffix in viewSuffixes)
                     {
                         var candidate = baseName + suffix;
@@ -432,25 +432,29 @@ namespace MvvmTools.Core.Services
 
                     // Add base if it ends in one of the view suffixes.
                     foreach (var suffix in viewSuffixes)
-                        if (baseName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+                        if (string.IsNullOrEmpty(suffix) || baseName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
                         {
-                            viewModelsTypeCandidates.Add(baseName);
+                            if (!viewModelsTypeCandidates.Any(c => string.Equals(c, baseName, StringComparison.InvariantCultureIgnoreCase)))
+                                viewModelsTypeCandidates.Add(baseName);
                             break;
                         }
                 }
 
                 foreach (var suffix in viewSuffixes)
                 {
-                    if (typeName.EndsWith(suffix))
+                    if (suffix == string.Empty || typeName.EndsWith(suffix))
                     {
                         // Remove suffix and add ViewModel.
                         var baseName = typeName.Substring(0, typeName.Length - suffix.Length);
                         var candidate = baseName + viewModelSuffix;
                         viewsTypeCandidates.Add(candidate);
 
-                        // Just add ViewModel
-                        candidate = typeName + viewModelSuffix;
-                        viewsTypeCandidates.Add(candidate);
+                        if (viewModelSuffix != string.Empty)
+                        {
+                            // Just add ViewModel
+                            candidate = typeName + viewModelSuffix;
+                            viewsTypeCandidates.Add(candidate);
+                        }
                     }
                 }
             }
@@ -482,6 +486,9 @@ namespace MvvmTools.Core.Services
         // Used by FindDocumentsContainingTypes().
         private IEnumerable<ProjectItem> LocateProjectItemsWithinFolders(Project project, string pathOffProject)
         {
+            if (pathOffProject == string.Empty)
+                return project.ProjectItems.Cast<ProjectItem>();
+
             // Get the ProjectItems for the folder specified (usually 
             // ViewModels, but could be several levels deep).
             var folders = pathOffProject.Split('/').ToList();

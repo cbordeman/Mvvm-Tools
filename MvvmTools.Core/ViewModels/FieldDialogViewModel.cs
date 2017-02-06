@@ -206,7 +206,7 @@ namespace MvvmTools.Core.ViewModels
         public void ExecuteAddChoiceCommand()
         {
             var vm = Kernel.Get<StringDialogViewModel>();
-            vm.Add("Add Choice", "Choice:");
+            vm.Add(true, "Add Choice", "Choice:");
 
             if (DialogService.ShowDialog(vm))
             {
@@ -236,7 +236,7 @@ namespace MvvmTools.Core.ViewModels
             Debug.Assert(cur != null);
 
             var vm = Kernel.Get<StringDialogViewModel>();
-            vm.Edit("Edit Choice", "Choice:", cur.Value);
+            vm.Edit(true, "Edit Choice", "Choice:", cur.Value);
             if (DialogService.ShowDialog(vm))
             {
                 cur.Value = vm.Value;
