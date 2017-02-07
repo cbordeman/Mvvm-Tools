@@ -1,17 +1,15 @@
-﻿using System;
+﻿using EnvDTE;
+using EnvDTE80;
+using Microsoft.VisualStudio.Shell.Interop;
+using MvvmTools.Core.Models;
+using MvvmTools.Core.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using EnvDTE;
-using EnvDTE80;
-using Microsoft.VisualStudio.Shell.Interop;
-using MvvmTools.Core.Models;
-using MvvmTools.Core.Utilities;
-using VSLangProj2;
-using VSLangProj80;
 
 // ReSharper disable SuspiciousTypeConversion.Global
 
@@ -434,7 +432,7 @@ namespace MvvmTools.Core.Services
                     foreach (var suffix in viewSuffixes)
                         if (string.IsNullOrEmpty(suffix) || baseName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
                         {
-                            if (!viewModelsTypeCandidates.Any(c => string.Equals(c, baseName, StringComparison.InvariantCultureIgnoreCase)))
+                            if (!viewModelsTypeCandidates.Any(c => c == baseName))
                                 viewModelsTypeCandidates.Add(baseName);
                             break;
                         }

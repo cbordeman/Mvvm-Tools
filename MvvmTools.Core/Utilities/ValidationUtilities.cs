@@ -18,7 +18,7 @@ namespace MvvmTools.Core.Utilities
             if (string.IsNullOrEmpty(viewModelSuffix))
                 return null;
 
-            if (string.IsNullOrWhiteSpace(viewModelSuffix))
+            if (viewModelSuffix.Contains(" "))
                 return "Contains spaces";
 
             if (!SuffixRegex.IsMatch(viewModelSuffix))
@@ -32,7 +32,7 @@ namespace MvvmTools.Core.Utilities
             if (string.IsNullOrEmpty(@namespace))
                 return null;
 
-            if (string.IsNullOrWhiteSpace(@namespace))
+            if (@namespace.Contains(" "))
                 return "Contains spaces";
 
             if (@namespace == ".")
@@ -56,10 +56,10 @@ namespace MvvmTools.Core.Utilities
                 return null;
 
             if (pathOffProject.StartsWith(" "))
-                return "Contains a space";
+                return "Starts with space";
 
             if (pathOffProject.EndsWith(" "))
-                return "Ends with a space";
+                return "Ends with space";
 
             if (pathOffProject.Contains(" ."))
                 return "Contains ' .'";
