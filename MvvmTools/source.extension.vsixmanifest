@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
-  <Metadata>
-    <Identity Id="MvvmTools.Chris Bordeman.14a68ffd-3571-40a1-a56b-cf35813ba33c" Version="0.2.0.4" Language="en-US" Publisher="Chris Bordeman" />
-    <DisplayName>Mvvm Tools</DisplayName>
-    <Description xml:space="preserve">Switch between View and ViewModel with Ctrl+E, Ctrl+V, and other MVVM tools for XAML developers.  By Chris Bordeman.</Description>
-    <MoreInfo>https://github.com/cbordeman/Mvvm-Tools</MoreInfo>
-    <License>License.txt</License>
-  </Metadata>
-  <Installation>
-    <InstallationTarget Version="[14.0, 15.0]" Id="Microsoft.VisualStudio.Community" />
-  </Installation>
-  <Dependencies>
-    <Dependency d:Source="Manual" DisplayName="Microsoft .NET Framework" Id="Microsoft.Framework.NDP" Version="[4.5,)" />
-    <Dependency d:Source="Installed" Id="Microsoft.VisualStudio.MPF.14.0" DisplayName="Visual Studio MPF 14.0" Version="[14.0,15.0)" />
-  </Dependencies>
-  <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0.25904.2,16.0)" DisplayName="Visual Studio core editor" />
-  </Prerequisites>
-  <Assets>
-    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
-  </Assets>
+    <Metadata>
+        <Identity Id="MvvmTools.Chris Bordeman.14a68ffd-3571-40a1-a56b-cf35813ba33c" Version="0.2.0.5" Language="en-US" Publisher="Chris Bordeman" />
+        <DisplayName>Mvvm Tools</DisplayName>
+        <Description xml:space="preserve">Switch between View and ViewModel with Ctrl+E, Ctrl+V, and other MVVM tools for XAML developers.  By Chris Bordeman.</Description>
+        <MoreInfo>https://github.com/cbordeman/Mvvm-Tools</MoreInfo>
+        <License>License.txt</License>
+    </Metadata>
+    <Installation>
+        <InstallationTarget Version="[14.0, 15.0]" Id="Microsoft.VisualStudio.Community" />
+    </Installation>
+    <Dependencies>
+        <Dependency d:Source="Manual" DisplayName="Microsoft .NET Framework" Id="Microsoft.Framework.NDP" Version="[4.5,)" />
+        <Dependency d:Source="Installed" Id="Microsoft.VisualStudio.MPF.14.0" DisplayName="Visual Studio MPF 14.0" Version="[14.0,15.0)" />
+    </Dependencies>
+    <Prerequisites>
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0.25904.2,16.0)" DisplayName="Visual Studio core editor" />
+    </Prerequisites>
+    <Assets>
+        <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+    </Assets>
 </PackageManifest>

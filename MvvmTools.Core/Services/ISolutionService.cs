@@ -10,6 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 // ReSharper disable SuspiciousTypeConversion.Global
 
@@ -51,17 +52,18 @@ namespace MvvmTools.Core.Services
         /// <param name="pi">The project item containing the types for which corresponding views or view models will be located.</param>
         /// <param name="typeNamesInFile">The type names in the 'pi' parameter's source file.  A set of candidate types will be
         /// compiled corresponding to views or viewmodels according to the 'viewSuffixes' and 'viewModelSuffix' parameters.</param>
-        /// <param name="viewSuffixes">A set of view suffixes to append to the types in the 'typeNamesInFile' parameters
-        /// to aid in locating potential corresponding view types.</param>
+        /// <param name="viewPrefixes">A set of view prefixes to remove from the types in the 'typeNamesInFile' values.</param>
+        /// <param name="viewSuffixes">A set of view suffixes to append to the types in the 'typeNamesInFile' values.</param>
         /// <param name="viewModelSuffix">The view model suffix such as 'ViewModel' or 'PresentationModel' to append to the 
         /// types in the 'typeNamesInFile' parameters to aid in locating potential corresponding view model types.</param>
         /// <returns>A list of potential types with their ProjectItem containers.</returns>
         List<ProjectItemAndType> GetRelatedDocuments(
-            LocationDescriptor viewModelsLocation, 
-            LocationDescriptor viewsLocation, 
-            ProjectItem pi, 
-            IEnumerable<string> typeNamesInFile, 
-            string[] viewSuffixes, 
+            LocationDescriptor viewModelsLocation,
+            LocationDescriptor viewsLocation,
+            ProjectItem pi,
+            IEnumerable<string> typeNamesInFile,
+            string[] viewPrefixes,
+            string[] viewSuffixes,
             string viewModelSuffix);
 
         /// <summary>
@@ -103,7 +105,7 @@ namespace MvvmTools.Core.Services
         private readonly IMvvmToolsPackage _mvvmToolsPackage;
         private readonly object _solutionLock = new object();
         private ProjectModel _solution;
-        
+
         #endregion Data
 
         #region Ctor and Init
@@ -212,7 +214,7 @@ namespace MvvmTools.Core.Services
                     string.Concat(prefix, p.Name, "/"));
             }
         }
-    
+
         public Project GetProject(string uniqueId)
         {
             var solution = _mvvmToolsPackage.Ide.Solution;
@@ -242,15 +244,16 @@ namespace MvvmTools.Core.Services
         // Used by GetProjectModel().  Gets project items and folders.
         private ProjectModel GetProjectItemsModelsRecursive(ProjectItem projectItem)
         {
-            ProjectModel rval = new ProjectModel(projectItem.Name, projectItem.Name, null, 
-                projectItem.Kind == VsConstants.VsProjectItemKindPhysicalFolder ? ProjectKind.ProjectFolder : ProjectKind.Item, 
+            var rval = new ProjectModel(projectItem.Name, projectItem.Name, null,
+                projectItem.Kind == VsConstants.VsProjectItemKindPhysicalFolder ? ProjectKind.ProjectFolder : ProjectKind.Item,
                 projectItem.Kind, null);
 
             if (projectItem.ProjectItems == null)
                 return rval;
 
             if (projectItem.SubProject != null)
-                ;
+            {
+            }
 
             // Look through all this project's items.
             foreach (ProjectItem pi in projectItem.ProjectItems)
@@ -260,7 +263,8 @@ namespace MvvmTools.Core.Services
                 rval.Children.Add(child);
 
                 if (pi.SubProject != null)
-                    ;
+                {
+                }
             }
 
             return rval;
@@ -311,12 +315,11 @@ namespace MvvmTools.Core.Services
             return rval;
         }
 
-
-        public List<NamespaceClass> GetClassesInProjectItem(ProjectItem pi)
+        public List<NamespaceClass> GetClassesInProjectItem([CanBeNull] ProjectItem pi)
         {
             var rval = new List<NamespaceClass>();
 
-            if (pi.Name == null)
+            if (pi?.Name == null)
                 return rval;
 
             if (!pi.Name.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) &&
@@ -331,7 +334,7 @@ namespace MvvmTools.Core.Services
 
             // If not a part of a project or not compiled, code model will be empty 
             // and there's nothing we can do.
-            if (pi?.FileCodeModel == null)
+            if (pi.FileCodeModel == null)
                 return rval;
 
             var isXaml = pi.Name.EndsWith(".xaml.cs", StringComparison.OrdinalIgnoreCase) ||
@@ -339,37 +342,36 @@ namespace MvvmTools.Core.Services
 
             // If no namespace in file, then the project's default namespace is used.  This is
             // common in VB projects but rare in C#.
-            var rootNamespace = GetProjectRootNamespace(pi?.ContainingProject);
+            var rootNamespace = GetProjectRootNamespace(pi.ContainingProject);
 
             var fileCm = (FileCodeModel2)pi.FileCodeModel;
-            if (fileCm?.CodeElements != null)
-            {
-                foreach (CodeElement2 ce in fileCm.CodeElements)
-                {
-                    FindClassesRecursive(rval, ce, isXaml, rootNamespace);
 
-                    // If a xaml.cs or xaml.vb code behind file, the first class must be the view type, so we can stop early.
-                    if (isXaml && rval.Count > 0)
-                        break;
-                }
+            if (fileCm?.CodeElements == null) return rval;
+
+            foreach (CodeElement2 ce in fileCm.CodeElements)
+            {
+                FindClassesRecursive(rval, ce, isXaml, rootNamespace);
+
+                // If a xaml.cs or xaml.vb code behind file, the first class must be the view type, so we can stop early.
+                if (isXaml && rval.Count > 0)
+                    break;
             }
 
             return rval;
         }
-        
+
         public List<ProjectItemAndType> GetRelatedDocuments(
             LocationDescriptor viewModelsLocation,
             LocationDescriptor viewsLocation,
-            ProjectItem pi, 
-            IEnumerable<string> typeNamesInFile, 
-            string[] viewSuffixes, 
+            ProjectItem pi,
+            IEnumerable<string> typeNamesInFile,
+            string[] viewPrefixes,
+            string[] viewSuffixes,
             string viewModelSuffix)
         {
-            List<string> viewModelCandidateTypeNames;
-            List<string> viewCandidateTypeNames;
-            GetTypeCandidates(typeNamesInFile, viewSuffixes, viewModelSuffix,
-                out viewCandidateTypeNames,
-                out viewModelCandidateTypeNames);
+            GetTypeCandidates(typeNamesInFile, viewPrefixes, viewSuffixes, viewModelSuffix,
+                out var viewCandidateTypeNames,
+                out var viewModelCandidateTypeNames);
 
             List<ProjectItemAndType> rval;
 
@@ -383,23 +385,21 @@ namespace MvvmTools.Core.Services
 
                 // Then add candidates from the rest of the solution.
                 var solution = pi.DTE?.Solution;
-                if (solution != null)
+                if (solution == null) return rval;
+                foreach (Project project in solution.Projects)
                 {
-                    foreach (Project project in solution.Projects)
-                    {
-                        if (project == pi.ContainingProject)
-                            continue;
+                    if (project == pi.ContainingProject)
+                        continue;
 
-                        var docs = FindDocumentsContainingTypes(null, project, pi.ContainingProject, pi, allCandidateTypes);
-                        rval.AddRange(docs);
-                    }
+                    var docs = FindDocumentsContainingTypes(null, project, pi.ContainingProject, pi, allCandidateTypes);
+                    rval.AddRange(docs);
                 }
                 return rval;
             }
 
-            Project viewModelsProject = GetProject(viewModelsLocation.ProjectIdentifier);
-            Project viewsProject = GetProject(viewsLocation.ProjectIdentifier);
-            
+            var viewModelsProject = GetProject(viewModelsLocation.ProjectIdentifier);
+            var viewsProject = GetProject(viewsLocation.ProjectIdentifier);
+
             // Search views project first.
             rval = FindDocumentsContainingTypes(viewsLocation, viewsProject, null, pi, viewCandidateTypeNames);
             // Then, search view models project, excluding any xaml files.
@@ -408,8 +408,8 @@ namespace MvvmTools.Core.Services
 
             return rval;
         }
-        
-        public void GetTypeCandidates(IEnumerable<string> typeNamesInFile, string[] viewSuffixes, string viewModelSuffix, out List<string> viewModelsTypeCandidates, out List<string> viewsTypeCandidates)
+
+        public void GetTypeCandidates(IEnumerable<string> typeNamesInFile, string[] viewPrefixes, string[] viewSuffixes, string viewModelSuffix, out List<string> viewModelsTypeCandidates, out List<string> viewsTypeCandidates)
         {
             viewModelsTypeCandidates = new List<string>();
             viewsTypeCandidates = new List<string>();
@@ -421,36 +421,58 @@ namespace MvvmTools.Core.Services
                 if (viewModelSuffix == string.Empty || typeName.EndsWith(viewModelSuffix, StringComparison.OrdinalIgnoreCase))
                 {
                     // Remove ViewModel from end and add all the possible suffixes.
-                    var baseName = typeName.Substring(0, typeName.Length - (viewModelSuffix?.Length ?? 0));
+                    var baseName = typeName.Substring(0, typeName.Length - viewModelSuffix.Length);
                     foreach (var suffix in viewSuffixes)
                     {
                         var candidate = baseName + suffix;
                         viewModelsTypeCandidates.Add(candidate);
+
+                        if (viewPrefixes == null) continue;
+
+                        foreach (var viewPrefix in viewPrefixes)
+                        {
+                            candidate = viewPrefix + baseName + suffix;
+                            viewModelsTypeCandidates.Add(candidate);
+                        }
                     }
 
                     // Add base if it ends in one of the view suffixes.
                     foreach (var suffix in viewSuffixes)
                         if (string.IsNullOrEmpty(suffix) || baseName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
                         {
-                            if (!viewModelsTypeCandidates.Any(c => c == baseName))
+                            if (viewModelsTypeCandidates.All(c => c != baseName))
+                            {
                                 viewModelsTypeCandidates.Add(baseName);
+
+                                if (viewPrefixes == null) continue;
+
+                                foreach (var viewPrefix in viewPrefixes)
+                                {
+                                    var candidate = viewPrefix + baseName;
+                                    viewModelsTypeCandidates.Add(candidate);
+                                }
+                            }
                             break;
                         }
                 }
 
-                foreach (var suffix in viewSuffixes)
+                foreach (var viewSuffix in viewSuffixes.Union(new[] { string.Empty }))
                 {
-                    if (suffix == string.Empty || typeName.EndsWith(suffix))
+                    // Remove prefixes and suffix and add ViewModel.
+                    var prefixes = viewPrefixes ?? new string[] { };
+                    foreach (var viewPrefix in prefixes.Union(new[] { string.Empty }))
                     {
-                        // Remove suffix and add ViewModel.
-                        var baseName = typeName.Substring(0, typeName.Length - suffix.Length);
-                        var candidate = baseName + viewModelSuffix;
-                        viewsTypeCandidates.Add(candidate);
+                        // Remove prefix and suffix and add ViewModel.
+                        var baseName = typeName;
+                        if (viewPrefix != string.Empty &&
+                            typeName.StartsWith(viewPrefix, StringComparison.OrdinalIgnoreCase))
+                            baseName = baseName.Substring(viewPrefix.Length);
+                        if (viewSuffix != string.Empty && baseName.EndsWith(viewSuffix))
+                            baseName = baseName.Substring(0, baseName.Length - viewSuffix.Length);
 
-                        if (viewModelSuffix != string.Empty)
+                        if (baseName != typeName)
                         {
-                            // Just add ViewModel
-                            candidate = typeName + viewModelSuffix;
+                            var candidate = baseName + viewModelSuffix;
                             viewsTypeCandidates.Add(candidate);
                         }
                     }
@@ -460,9 +482,9 @@ namespace MvvmTools.Core.Services
 
         private List<ProjectItemAndType> FindDocumentsContainingTypes(
             LocationDescriptor options,
-            Project project, 
-            Project excludeProject, 
-            ProjectItem excludeProjectItem, 
+            Project project,
+            Project excludeProject,
+            ProjectItem excludeProjectItem,
             List<string> typesToFind)
         {
             var results = new List<ProjectItemAndType>();
@@ -475,9 +497,9 @@ namespace MvvmTools.Core.Services
                 itemsToSearch = LocateProjectItemsWithinFolders(project, options.PathOffProject);
             else
                 itemsToSearch = project.ProjectItems.Cast<ProjectItem>();
-            
+
             FindDocumentsContainingTypesRecursive(excludeProjectItem, excludeProject, itemsToSearch, typesToFind, null, results);
-            
+
             return results;
         }
 
@@ -536,7 +558,7 @@ namespace MvvmTools.Core.Services
             {
                 // ignored
             }
-            
+
             // Sometimes projects throw on .FullName.
             string fullName = null;
             try
@@ -629,10 +651,10 @@ namespace MvvmTools.Core.Services
         }
 
         private void FindDocumentsContainingTypesRecursive(
-            ProjectItem excludeProjectItem, 
-            Project excludeProject, 
-            IEnumerable<ProjectItem> projectItems, 
-            List<string> typesToFind, 
+            ProjectItem excludeProjectItem,
+            Project excludeProject,
+            IEnumerable<ProjectItem> projectItems,
+            List<string> typesToFind,
             ProjectItem parentProjectItem, List<ProjectItemAndType> results)
         {
             if (typesToFind.Count == 0 || projectItems == null)

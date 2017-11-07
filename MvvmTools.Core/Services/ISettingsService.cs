@@ -151,14 +151,16 @@ namespace MvvmTools.Core.Services
         {
             // rval starts out containing default values, exceptLocalTemplateFolder, which is null
             // so we use our DefaultLocalTemplateFolder, which is a subfolder off My Docs.
-            var rval = new MvvmToolsSettings();
+            var rval = new MvvmToolsSettings
+            {
+                GoToViewOrViewModelOption = GetEnum(GoToViewOrViewModelPropName, GoToViewOrViewModelOption.ShowUi),
+                GoToViewOrViewModelSearchSolution = GetBool(GoToViewOrViewModelSearchSolutionPropName, true),
+                ViewSuffixes = GetStringCollection(ViewSuffixesPropName, DefaultViewSuffixes),
+                LocalTemplateFolder = GetString(LocalTemplateFolderPropName, DefaultLocalTemplateFolder)
+            };
 
             // Get any saved settings
-            rval.GoToViewOrViewModelOption = GetEnum(GoToViewOrViewModelPropName, GoToViewOrViewModelOption.ShowUi);
-            rval.GoToViewOrViewModelSearchSolution = GetBool(GoToViewOrViewModelSearchSolutionPropName, true);
-            rval.ViewSuffixes = GetStringCollection(ViewSuffixesPropName, DefaultViewSuffixes);
-            rval.LocalTemplateFolder = GetString(LocalTemplateFolderPropName, DefaultLocalTemplateFolder);
-            
+
             // Make sure the LocalTemplateFolder setting exists in our saved values.  It might not
             // because the setting is being introduced in version 0.5 of MVVM Tools.
             if (string.IsNullOrWhiteSpace(rval.LocalTemplateFolder))
@@ -364,6 +366,7 @@ namespace MvvmTools.Core.Services
             return setting;
         }
 
+        // ReSharper disable once UnusedMember.Local
         private int GetInt32(string settingName, int defaultValue)
         {
             if (!_userSettingsStore.PropertyExists(SettingsPropName, settingName))
@@ -404,6 +407,7 @@ namespace MvvmTools.Core.Services
             _userSettingsStore.SetString(SettingsPropName, settingName, val ?? String.Empty);
         }
 
+        // ReSharper disable once UnusedMember.Local
         private void SetInt32(string settingName, int val)
         {
             _userSettingsStore.SetString(SettingsPropName, settingName, val.ToString());
