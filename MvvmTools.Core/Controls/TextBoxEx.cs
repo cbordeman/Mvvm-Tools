@@ -87,16 +87,7 @@ namespace MvvmTools.Core.Controls
                     _popup.IsOpen = false;
             }
         }
-
-        protected override void OnLostKeyboardFocus(KeyboardFocusChangedEventArgs e)
-        {
-            base.OnLostKeyboardFocus(e);
-
-            //if (_popup != null)
-            //    _popup.IsOpen = string.IsNullOrEmpty(Text)
-
-        }
-
+        
         protected override void OnPreviewKeyDown(KeyEventArgs e)
         {
             if (SuggestionsProvider == null || _popup == null || _selector == null)
