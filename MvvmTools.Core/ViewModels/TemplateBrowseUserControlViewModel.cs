@@ -15,7 +15,7 @@ namespace MvvmTools.Core.ViewModels
     {
         #region Data
 
-        private readonly ISettingsService _settingsService;
+        //private readonly ISettingsService _settingsService;
         private readonly ITemplateService _templateService;
 
         private ObservableCollection<TemplateDialogViewModel> _templatesSource;
@@ -355,7 +355,7 @@ namespace MvvmTools.Core.ViewModels
 
                 RefreshFrameworksFilter();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
 
                 throw;

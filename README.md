@@ -1,6 +1,6 @@
 # MVVM Tools
 
-A Visual Studio extension to help move between view/viewmodel and other for XAML developers, for any project type using Ctrl+E,V.  It is available in the Tools > Extension Manager and at: https://visualstudiogallery.msdn.microsoft.com/978ed555-9f0d-44a2-884c-9084844ac469
+A Visual Studio extension to automatically move between view/viewmodel and other for XAML developers, for any project type.
 
 MVVM Tools is NOT an MVVM library.  It works with any MVVM implementation.
 

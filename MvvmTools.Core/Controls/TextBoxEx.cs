@@ -39,15 +39,10 @@ namespace MvvmTools.Core.Controls
              };
             _timer.Tick += TimerOnTick;
 
-            var pd = DependencyPropertyDescriptor.FromProperty(IsKeyboardFocusWithinProperty, typeof (TextBoxEx));
-            pd.AddValueChanged(this, IsKeyboardFocusWithinChanged);
+            //var pd = DependencyPropertyDescriptor.FromProperty(IsKeyboardFocusWithinProperty, typeof (TextBoxEx));
+            //pd.AddValueChanged(this, IsKeyboardFocusWithinChanged);
         }
         
-        private void IsKeyboardFocusWithinChanged(object obj, EventArgs e)
-        {
-            
-        }
-
         #endregion Ctor
 
         #region Virtuals

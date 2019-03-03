@@ -202,7 +202,7 @@ namespace MvvmTools.Core.Services
 
                 return cb.ErrorMessages;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw;
             }
