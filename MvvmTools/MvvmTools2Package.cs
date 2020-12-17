@@ -1,5 +1,6 @@
 ﻿using EnvDTE;
 using EnvDTE80;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -18,13 +19,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using Microsoft.VisualStudio;
 using Unity;
 using Unity.Lifetime;
-using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.Interop.IAsyncServiceProvider;
 using Task = System.Threading.Tasks.Task;
 
 namespace MvvmTools
@@ -57,7 +55,7 @@ namespace MvvmTools
     [Guid(Constants.GuidPackage)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     //[ProvideAutoLoad(UIContextGuids.SolutionExists)]
-    [InstalledProductRegistration("MVVM Tools", "Provides access to your corresponding View/ViewModel via Ctrl+E,Q.", "0.2.0.9")]
+    [InstalledProductRegistration("MVVM Tools", "Provides access to your corresponding View/ViewModel via Ctrl+E,Q.", "0.2.0.10")]
     [ProvideAutoLoad(VSConstants.UICONTEXT.ShellInitialized_string, PackageAutoLoadFlags.BackgroundLoad)]
     //[Guid(MvvmToolsPackage.PackageGuidString)]
     [Export(typeof(IMvvmToolsPackage))]
