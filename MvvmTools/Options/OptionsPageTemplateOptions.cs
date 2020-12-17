@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Windows;
-using Microsoft.VisualStudio.Shell;
-using MvvmTools.Core.Services;
-using MvvmTools.Core.ViewModels;
-using MvvmTools.Core.Views;
-using Ninject;
+using MvvmTools;
+using MvvmTools.Controls;
+using MvvmTools.Services;
+using MvvmTools.ViewModels;
+using MvvmTools.Views;
+using Unity;
 
 namespace MvvmTools.Options
 {
@@ -17,7 +18,7 @@ namespace MvvmTools.Options
     // persistence through the Visual Studio settings mechanism.
     /// </summary>
     [Guid(Constants.GuidOptionsPageTemplateOptions)]
-    internal class OptionsPageTemplateOptions : Core.Controls.UIElementDialogPage
+    internal class OptionsPageTemplateOptions : UIElementDialogPage
     {
         #region Fields
         
@@ -30,14 +31,14 @@ namespace MvvmTools.Options
 
         public OptionsPageTemplateOptions()
         {
-            _settingsService = MvvmToolsPackage.Kernel.Get<ISettingsService>();
+            _settingsService = MvvmToolsPackage.Container.Resolve<ISettingsService>();
 
             // Create a WinForms container for our WPF General Options page.
-            _dialog = MvvmToolsPackage.Kernel.Get<OptionsTemplateOptionsUserControl>();
+            _dialog = MvvmToolsPackage.Container.Resolve<OptionsTemplateOptionsUserControl>();
 
             // Create, initialize, and bind a view model to our user control.
             // This is a singleton.
-            _viewModel = MvvmToolsPackage.Kernel.Get<OptionsViewModel>();
+            _viewModel = MvvmToolsPackage.Container.Resolve<OptionsViewModel>();
             _dialog.DataContext = _viewModel;
             _viewModel.Init();
         }

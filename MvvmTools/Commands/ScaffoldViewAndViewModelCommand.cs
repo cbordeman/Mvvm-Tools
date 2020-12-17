@@ -4,10 +4,9 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
-using MvvmTools.Core.Services;
-using MvvmTools.Core.ViewModels;
-using MvvmTools.Core.Views;
-using Ninject;
+using MvvmTools.Services;
+using MvvmTools.ViewModels;
+using Unity;
 
 namespace MvvmTools.Commands
 {
@@ -20,22 +19,21 @@ namespace MvvmTools.Commands
         /// Initializes a new instance of the <see cref="ExtractViewModelFromViewCommand"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
-        public ScaffoldViewAndViewModelCommand()
-            : base(Constants.ScaffoldViewAndViewModelCommandId)
+        public ScaffoldViewAndViewModelCommand(IUnityContainer container)
+            : base(Constants.ScaffoldViewAndViewModelCommandId, container)
         {
+            SolutionService = container.Resolve<ISolutionService>();
+            DialogService = container.Resolve<DialogService>();
         }
 
-        [Inject]
         public ISolutionService SolutionService { get; set; }
-
-        [Inject]
         public DialogService DialogService { get; set; }
 
-        protected async override void OnExecute()
+        protected override async void OnExecute()
         {
             base.OnExecute();
 
-            var vm = Kernel.Get<ScaffoldDialogViewModel>();
+            var vm = Container.Resolve<ScaffoldDialogViewModel>();
             await vm.Init();
             DialogService.ShowDialog(vm);
         }

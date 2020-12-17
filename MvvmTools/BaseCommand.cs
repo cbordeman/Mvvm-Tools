@@ -2,8 +2,8 @@
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Shell;
-using MvvmTools.Core.Services;
-using Ninject;
+using MvvmTools.Services;
+using Unity;
 
 namespace MvvmTools
 {
@@ -18,9 +18,12 @@ namespace MvvmTools
         /// Initializes a new instance of the <see cref="BaseCommand" /> class.
         /// </summary>
         /// <param name="id">The id for the command.</param>
-        protected BaseCommand(CommandID id)
+        protected BaseCommand(CommandID id, IUnityContainer container)
             : base(BaseCommand_Execute, id)
         {
+            Container = container;
+            Package = container.Resolve<IMvvmToolsPackage>();
+            SettingsService = container.Resolve<ISettingsService>();
             BeforeQueryStatus += BaseCommand_BeforeQueryStatus;
         }
 
@@ -28,14 +31,9 @@ namespace MvvmTools
 
         #region Properties
 
-        [Inject]
         public IMvvmToolsPackage Package { get; set; }
-
-        [Inject]
         public ISettingsService SettingsService { get; set; }
-
-        [Inject]
-        public IKernel Kernel { get; set; }
+        public IUnityContainer Container { get; }
 
         /// <summary>
         /// Gets the service provider from the owner package.

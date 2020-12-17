@@ -1,0 +1,81 @@
+﻿<UserControl x:Class="MvvmTools.Views.ProjectOptionsUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:MvvmTools.Views"
+             d:DataContext="{d:DesignInstance viewModels:ProjectOptionsUserControlViewModel}"
+             d:DesignHeight="300"
+             d:DesignWidth="300"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/GroupBox.xaml" />
+                <ResourceDictionary Source="../Converters/Converters.xaml" />
+                <ResourceDictionary Source="../Styles/TextBoxEx.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <!--  Row 0: View Model Suffix  -->
+        <TextBlock Grid.Row="0"
+                   Grid.Column="0"
+                   Margin="0,5,5,0"
+                   VerticalAlignment="Center"
+                   Text="View Model Suffix:" />
+        <TextBox Grid.Row="0"
+                 Grid.Column="1"
+                 Margin="0,5,0,0"
+                 VerticalAlignment="Center"
+                 Text="{Binding ViewModelSuffix,
+                                Mode=TwoWay,
+                                UpdateSourceTrigger=PropertyChanged,
+                                ValidatesOnDataErrors=True,
+                                NotifyOnValidationError=True}" />
+        <Button Grid.Row="0"
+                Grid.Column="2"
+                Margin="5,5,0,0"
+                VerticalAlignment="Center"
+                Command="{Binding ResetViewModelSuffixCommand}"
+                Content="Default"
+                Padding="3,0" />
+
+        <!--  Row 1 contains the view model and view location data.  -->
+        <Grid Grid.Row="1"
+              Grid.Column="0"
+              Grid.ColumnSpan="3"
+              Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+
+            <!--  View Model  -->
+            <GroupBox Margin="0,0,2,0"
+                      BorderBrush="{StaticResource GroupLvl2AccentBrush}"
+                      Header="View Model Location">
+                <views:LocationDescriptorUserControl DataContext="{Binding LocationDescriptorForViewModel}" />
+            </GroupBox>
+
+            <!--  View  -->
+            <GroupBox Grid.Column="1"
+                      Margin="2,0,0,0"
+                      BorderBrush="{StaticResource GroupLvl2AccentBrush}"
+                      Header="View Location">
+                <views:LocationDescriptorUserControl DataContext="{Binding LocationDescriptorForView}" />
+            </GroupBox>
+        </Grid>
+    </Grid>
+</UserControl>

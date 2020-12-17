@@ -2,10 +2,11 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
-using MvvmTools.Core.Services;
-using MvvmTools.Core.ViewModels;
-using MvvmTools.Core.Views;
-using Ninject;
+using MvvmTools;
+using MvvmTools.Services;
+using MvvmTools.ViewModels;
+using MvvmTools.Views;
+using Unity;
 
 namespace MvvmTools.Options
 {
@@ -23,14 +24,14 @@ namespace MvvmTools.Options
 
         public OptionsPageTemplateMaintenance()
         {
-            _settingsService = MvvmToolsPackage.Kernel.Get<ISettingsService>();
+            _settingsService = MvvmToolsPackage.Container.Resolve<ISettingsService>();
 
             // Create a WinForms container for our WPF General Options page.
-            _dialog = MvvmToolsPackage.Kernel.Get<OptionsTemplateMaintenanceUserControl>();
+            _dialog = MvvmToolsPackage.Container.Resolve<OptionsTemplateMaintenanceUserControl>();
 
             // Create, initialize, and bind a view model to our user control.
             // This is a singleton.
-            _viewModel = MvvmToolsPackage.Kernel.Get<OptionsViewModel>();
+            _viewModel = MvvmToolsPackage.Container.Resolve<OptionsViewModel>();
             _dialog.DataContext = _viewModel;
             _viewModel.Init();
         }

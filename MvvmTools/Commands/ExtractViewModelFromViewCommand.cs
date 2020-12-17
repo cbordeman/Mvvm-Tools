@@ -6,6 +6,8 @@
 
 // ReSharper disable HeapView.BoxingAllocation
 
+using Unity;
+
 namespace MvvmTools.Commands
 {
     /// <summary>
@@ -17,8 +19,8 @@ namespace MvvmTools.Commands
         /// Initializes a new instance of the <see cref="ExtractViewModelFromViewCommand"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
-        public ExtractViewModelFromViewCommand()
-            : base(Constants.ExtractViewModelFromViewCommandId)
+        public ExtractViewModelFromViewCommand(IUnityContainer container)
+            : base(Constants.ExtractViewModelFromViewCommandId, container)
         {
         }
         

@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="MvvmTools.Chris Bordeman.14a68ffd-3571-40a1-a56b-cf35813ba33c" Version="0.2.0.7" Language="en-US" Publisher="Chris Bordeman" />
+        <Identity Id="MvvmTools.Chris Bordeman.14a68ffd-3571-40a1-a56b-cf35813ba33c" Version="0.2.0.10" Language="en-US" Publisher="Christopher Bordeman" />
         <DisplayName>Mvvm Tools</DisplayName>
-        <Description xml:space="preserve">Switch between View and ViewModel, for XAML developers.  By Chris Bordeman.</Description>
+        <Description xml:space="preserve">Switch between View and ViewModel with Ctrl+E,Q, for XAML developers.</Description>
         <MoreInfo>https://github.com/cbordeman/Mvvm-Tools</MoreInfo>
         <License>License.txt</License>
     </Metadata>
-    <Installation InstalledByMsi="false">
-        <InstallationTarget Version="[14.0)" Id="Microsoft.VisualStudio.Community" />
+    <Installation>
+        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.0, 17.0)" />
     </Installation>
     <Dependencies>
-        <Dependency d:Source="Manual" DisplayName="Microsoft .NET Framework" Id="Microsoft.Framework.NDP" Version="[4.6.1,)" />
+        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.7.2,)" />
     </Dependencies>
     <Prerequisites>
-        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,)" DisplayName="Visual Studio core editor" />
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[16.0,17.0)" DisplayName="Visual Studio core editor" />
     </Prerequisites>
     <Assets>
         <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />

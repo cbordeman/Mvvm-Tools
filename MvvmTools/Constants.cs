@@ -4,7 +4,7 @@ using System.ComponentModel.Design;
 namespace MvvmTools
 {
     internal static class Constants
-    {
+    {                                    //6e8a3b1d-0f93-4749-b3e8-39e83c15c82e
         public const string GuidPackage = "e4370a0b-2a09-437a-9d02-04b2d52dc044";
         public const string GuidMvvmToolsTopLevelMenuGroup = "a244c5bf-b5d1-471b-9189-507dd1c78957";
         public const string GuidOptionsPageGeneral = "719F6FA2-A486-4A8E-A84D-0D7F1DB45448";

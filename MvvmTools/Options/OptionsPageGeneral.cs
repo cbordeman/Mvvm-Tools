@@ -1,14 +1,11 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Forms;
-using System.Windows.Forms.Integration;
-using Microsoft.VisualStudio.Shell;
-using MvvmTools.Core.Services;
-using MvvmTools.Core.ViewModels;
-using MvvmTools.Core.Views;
-using Ninject;
+using MvvmTools.Controls;
+using MvvmTools.Services;
+using MvvmTools.ViewModels;
+using MvvmTools.Views;
+using Unity;
 
 namespace MvvmTools.Options
 {
@@ -20,7 +17,7 @@ namespace MvvmTools.Options
     // persistence through the Visual Studio settings mechanism.
     /// </summary>
     [Guid(Constants.GuidOptionsPageGeneral)]
-    internal class OptionsPageGeneral : Core.Controls.UIElementDialogPage
+    internal class OptionsPageGeneral : UIElementDialogPage
     {
         #region Fields
 
@@ -33,13 +30,13 @@ namespace MvvmTools.Options
 
         public OptionsPageGeneral()
         {
-            _settingsService = MvvmToolsPackage.Kernel.Get<ISettingsService>();
+            _settingsService = MvvmToolsPackage.Container.Resolve<ISettingsService>();
 
-            _child = MvvmToolsPackage.Kernel.Get<OptionsGeneralUserControl>();
+            _child = MvvmToolsPackage.Container.Resolve<OptionsGeneralUserControl>();
 
             // Create, initialize, and bind a view model to our user control.
             // This is a singleton.
-            _viewModel = MvvmToolsPackage.Kernel.Get<OptionsViewModel>();
+            _viewModel = MvvmToolsPackage.Container.Resolve<OptionsViewModel>();
             _child.DataContext = _viewModel;
 
             _viewModel.Init();

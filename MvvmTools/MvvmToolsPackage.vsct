@@ -36,8 +36,8 @@
       <Menu guid="GuidMvvmToolsTopLevelMenuGroup" id="MvvmToolsMenu" priority="0x0700" type="Menu">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_MM_TOOLSADDINS" />
         <Strings>
-          <ButtonText>MVVM Too&amp;ls</ButtonText>
-          <CommandName>MVVM Too&amp;ls</CommandName>
+          <ButtonText>MVVM Tools</ButtonText>
+          <CommandName>MVVM Tools</CommandName>
         </Strings>
       </Menu>
     </Menus>
@@ -126,6 +126,6 @@
 
   <KeyBindings>
     <KeyBinding guid="GuidMvvmToolsTopLevelMenuGroup" id="GoToViewOrViewModelCommandId"
-        mod1="CONTROL" key1="E" mod2="CONTROL" key2="V" editor="guidVSStd97" />
+        mod1="CONTROL" key1="E" mod2="CONTROL" key2="Q" editor="guidVSStd97" />
   </KeyBindings>
 </CommandTable>
