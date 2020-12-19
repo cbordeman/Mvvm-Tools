@@ -2,21 +2,16 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
+using CommonServiceLocator;
 using EnvDTE;
-using Microsoft.Build.Evaluation;
-using Microsoft.Practices.ServiceLocation;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using VsWebSite; //using VSLangProj;
-using MsBuildProject = Microsoft.Build.Evaluation.Project;
 using Project = EnvDTE.Project;
 using ProjectItem = EnvDTE.ProjectItem;
-using VsMenus = Microsoft.VisualStudio.Project.VsMenus;
 
 namespace MvvmTools.Utilities
 {
@@ -699,26 +694,26 @@ namespace MvvmTools.Utilities
         //    return projects;
         //}
 
-        private static IList<Project> GetWebsiteReferencedProjects(Project project)
-        {
-            var projects = new List<Project>();
-            var p = (VSWebSite)project.Object;
-            AssemblyReferences references = p.References;
-            foreach (VsWebSite.AssemblyReference reference in references)
-            {
-                if (reference.ReferencedProject != null)
-                {
-                    projects.Add(reference.ReferencedProject);
-                }
-            }
-            return projects;
-        }
+        //private static IList<Project> GetWebsiteReferencedProjects(Project project)
+        //{
+        //    var projects = new List<Project>();
+        //    var p = (VSWebSite)project.Object;
+        //    AssemblyReferences references = p.References;
+        //    foreach (VsWebSite.AssemblyReference reference in references)
+        //    {
+        //        if (reference.ReferencedProject != null)
+        //        {
+        //            projects.Add(reference.ReferencedProject);
+        //        }
+        //    }
+        //    return projects;
+        //}
 
-        public static MsBuildProject AsMSBuildProject(this Project project)
-        {
-            return ProjectCollection.GlobalProjectCollection.GetLoadedProjects(project.FullName).FirstOrDefault() ??
-                   ProjectCollection.GlobalProjectCollection.LoadProject(project.FullName);
-        }
+        //public static MsBuildProject AsMSBuildProject(this Project project)
+        //{
+        //    return ProjectCollection.GlobalProjectCollection.GetLoadedProjects(project.FullName).FirstOrDefault() ??
+        //           ProjectCollection.GlobalProjectCollection.LoadProject(project.FullName);
+        //}
 
         /// <summary>
         /// Returns the unique name of the specified project including all solution folder names containing it.
@@ -750,37 +745,37 @@ namespace MvvmTools.Utilities
 
 
 
-        // This method should only be called in VS 2012 or above
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void DoWorkInWriterLock(this Project project, Action<MsBuildProject> action)
-        {
-            IVsBrowseObjectContext context = project.Object as IVsBrowseObjectContext;
-            if (context == null)
-            {
-                IVsHierarchy hierarchy = project.ToVsHierarchy();
-                context = hierarchy as IVsBrowseObjectContext;
-            }
+        //// This method should only be called in VS 2012 or above
+        //[MethodImpl(MethodImplOptions.NoInlining)]
+        //public static void DoWorkInWriterLock(this Project project, Action<MsBuildProject> action)
+        //{
+        //    IVsBrowseObjectContext context = project.Object as IVsBrowseObjectContext;
+        //    if (context == null)
+        //    {
+        //        IVsHierarchy hierarchy = project.ToVsHierarchy();
+        //        context = hierarchy as IVsBrowseObjectContext;
+        //    }
 
-            if (context != null)
-            {
-                var service = context.UnconfiguredProject.ProjectService.Services.DirectAccessService;
-                if (service != null)
-                {
-                    // This has to run on Main thread, otherwise it will dead-lock (for C++ projects at least)
-                    ThreadHelper.Generic.Invoke(() =>
-                        service.Write(
-                            context.UnconfiguredProject.FullPath,
-                            dwa =>
-                            {
-                                MsBuildProject buildProject =
-                                    dwa.GetProject(context.UnconfiguredProject.Services.SuggestedConfiguredProject);
-                                action(buildProject);
-                            },
-                            ProjectAccess.Read | ProjectAccess.Write)
-                        );
-                }
-            }
-        }
+        //    if (context != null)
+        //    {
+        //        var service = context.UnconfiguredProject.ProjectService.Services.DirectAccessService;
+        //        if (service != null)
+        //        {
+        //            // This has to run on Main thread, otherwise it will dead-lock (for C++ projects at least)
+        //            ThreadHelper.Generic.Invoke(() =>
+        //                service.Write(
+        //                    context.UnconfiguredProject.FullPath,
+        //                    dwa =>
+        //                    {
+        //                        MsBuildProject buildProject =
+        //                            dwa.GetProject(context.UnconfiguredProject.Services.SuggestedConfiguredProject);
+        //                        action(buildProject);
+        //                    },
+        //                    ProjectAccess.Read | ProjectAccess.Write)
+        //                );
+        //        }
+        //    }
+        //}
 
         public static bool IsParentProjectExplicitlyUnsupported(this Project project)
         {
@@ -828,52 +823,52 @@ namespace MvvmTools.Utilities
         }
     }
 
-    public interface IVsBrowseObjectContext
-    {
-        ConfiguredProject ConfiguredProject { get; }
-        UnconfiguredProject UnconfiguredProject { get; }
-    }
+    //public interface IVsBrowseObjectContext
+    //{
+    //    ConfiguredProject ConfiguredProject { get; }
+    //    UnconfiguredProject UnconfiguredProject { get; }
+    //}
 
-    public interface ConfiguredProject
-    {
-    }
+    //public interface ConfiguredProject
+    //{
+    //}
 
-    public interface UnconfiguredProject
-    {
-        ProjectService ProjectService { get; }
-        string FullPath { get; set; }
-        IUnconfiguredProjectServices Services { get; set; }
-    }
+    //public interface UnconfiguredProject
+    //{
+    //    ProjectService ProjectService { get; }
+    //    string FullPath { get; set; }
+    //    IUnconfiguredProjectServices Services { get; set; }
+    //}
 
-    public interface ProjectService
-    {
-        IProjectServices Services { get; }
-    }
+    //public interface ProjectService
+    //{
+    //    IProjectServices Services { get; }
+    //}
 
-    public interface IProjectServices
-    {
-        IDirectAccessService DirectAccessService { get; }
-    }
+    //public interface IProjectServices
+    //{
+    //    IDirectAccessService DirectAccessService { get; }
+    //}
 
-    public interface IUnconfiguredProjectServices
-    {
-        ConfiguredProject SuggestedConfiguredProject { get; }
-    }
+    //public interface IUnconfiguredProjectServices
+    //{
+    //    ConfiguredProject SuggestedConfiguredProject { get; }
+    //}
 
-    public interface IDirectAccessService
-    {
-        void Write(string fileToWrite, Action<IDirectWriteAccess> action, ProjectAccess flags = ProjectAccess.None);
-    }
+    //public interface IDirectAccessService
+    //{
+    //    void Write(string fileToWrite, Action<IDirectWriteAccess> action, ProjectAccess flags = ProjectAccess.None);
+    //}
 
-    public interface IDirectWriteAccess : IDirectAccess
-    {
-    }
+    //public interface IDirectWriteAccess : IDirectAccess
+    //{
+    //}
 
-    public interface IDirectAccess
-    {
-        ProjectAccess ProjectAccess { get; }
-        MsBuildProject GetProject(ConfiguredProject configuredProject);
-    }
+    //public interface IDirectAccess
+    //{
+    //    ProjectAccess ProjectAccess { get; }
+    //    MsBuildProject GetProject(ConfiguredProject configuredProject);
+    //}
 
     [Flags]
     public enum ProjectAccess

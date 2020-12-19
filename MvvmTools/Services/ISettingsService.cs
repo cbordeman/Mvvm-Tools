@@ -304,10 +304,10 @@ namespace MvvmTools.Services
                 "# Please DO NOT modify this file directly.  Instead, open a solution and open\r\n" +
                 "# Tools => Options => MVVM Tools, where all these MVVM settings files are manipulated.\r\n" +
                 "# \r\n" +
-                "# The MVVM Tools extension (by Chris Bordeman cbordeman@outlook.com) is available via\r\n" +
+                "# The MVVM Tools extension is available via\r\n" +
                 "# Tools => Extensions and Updates, or at\r\n" +
                 "# https://visualstudiogallery.msdn.microsoft.com/978ed555-9f0d-44a2-884c-9084844ac469\r\n" +
-                "# The source is available on GitHub at https://github.com/cbordeman/Mvvm-Tools if\r\n" +
+                "# The source is available on GitHub at https://github.com/cbordeman/Mvvm-Tools/issues  if\r\n" +
                 "# you'd like to contribute!\r\n" +
                 "# \r\n" +
                 "# Enjoy!\r\n" +

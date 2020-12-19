@@ -16,7 +16,7 @@ namespace MvvmTools.Views
 
         private void Hyperlink_OnClick(object sender, RoutedEventArgs e)
         {
-            Process.Start("mailto://mvvmtools@outlook.com");
+            Process.Start("https://github.com/cbordeman/Mvvm-Tools/issues");
         }
     }
 }

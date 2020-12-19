@@ -1,5 +1,6 @@
 ﻿using EnvDTE;
 using EnvDTE80;
+using Microsoft;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
@@ -12,7 +13,7 @@ using MvvmTools.Services;
 using MvvmTools.ViewModels;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
+//using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -47,18 +48,16 @@ namespace MvvmTools
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideOptionPage(typeof(OptionsPageGeneral), "MVVM Tools", "General", 101, 107, true)]
     [ProvideOptionPage(typeof(OptionsPageSolutionAndProjects), "MVVM Tools", "Solution and Projects", 101, 113, true)]
-    //[ProvideOptionPage(typeof(OptionsPageTemplateOptions), "MVVM Tools", "Template Options", 101, 114, true)]
-    //[ProvideOptionPage(typeof(OptionsPageTemplateMaintenance), "MVVM Tools", "Template Maintenance", 101, 115, true)]
-    //[InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
+    ////[ProvideOptionPage(typeof(OptionsPageTemplateOptions), "MVVM Tools", "Template Options", 101, 114, true)]
+    ////[ProvideOptionPage(typeof(OptionsPageTemplateMaintenance), "MVVM Tools", "Template Maintenance", 101, 115, true)]
+    ////[InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
     [ProvideBindingPath] // This is the magic attribute required so VS can find any 3rd party dlls.
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(Constants.GuidPackage)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
-    //[ProvideAutoLoad(UIContextGuids.SolutionExists)]
+    ////[ProvideAutoLoad(UIContextGuids.SolutionExists)]
     [InstalledProductRegistration("MVVM Tools", "Provides access to your corresponding View/ViewModel via Ctrl+E,Q.", "0.2.0.10")]
     [ProvideAutoLoad(VSConstants.UICONTEXT.ShellInitialized_string, PackageAutoLoadFlags.BackgroundLoad)]
-    //[Guid(MvvmToolsPackage.PackageGuidString)]
-    [Export(typeof(IMvvmToolsPackage))]
     public sealed class MvvmToolsPackage : AsyncPackage, IMvvmToolsPackage
         //, IAsyncLoadablePackageInitialize
     {
@@ -163,9 +162,7 @@ namespace MvvmTools
         {
             try
             {
-                await JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                // Add package and package specific services.
+                                // Add package and package specific services.
                 Container.RegisterInstance<IMvvmToolsPackage>(this, new ContainerControlledLifetimeManager());
                 Container.RegisterInstance(GetGlobalService(typeof(SComponentModel)) as IComponentModel, new ContainerControlledLifetimeManager());
                 Container.RegisterInstance(await GetServiceAsync(typeof(IMenuCommandService)) as IMenuCommandService, new ContainerControlledLifetimeManager());
@@ -187,10 +184,12 @@ namespace MvvmTools
 
                 Container.RegisterType<ITemplateService, TemplateService>(new ContainerControlledLifetimeManager());
 
+                await JoinableTaskFactory.SwitchToMainThreadAsync();
+
                 // Commands, which are singletons.
                 Container.RegisterType<GoToViewOrViewModelCommand>(new ContainerControlledLifetimeManager());
-                Container.RegisterType<ScaffoldViewAndViewModelCommand>(new ContainerControlledLifetimeManager());
-                Container.RegisterType<ExtractViewModelFromViewCommand>(new ContainerControlledLifetimeManager());
+                //Container.RegisterType<ScaffoldViewAndViewModelCommand>(new ContainerControlledLifetimeManager());
+                //Container.RegisterType<ExtractViewModelFromViewCommand>(new ContainerControlledLifetimeManager());
 
                 //ServiceLocator.SetLocatorProvider(() => new NinjectServiceLocator(Container));
                 
@@ -199,6 +198,7 @@ namespace MvvmTools
                 Container.RegisterType<ISolutionService, SolutionService>(new ContainerControlledLifetimeManager());
                 _vsSolution = await GetServiceAsync(typeof(SVsSolution))
                     as IVsSolution;
+                Assumes.Present(_vsSolution);
                 Container.RegisterInstance(_vsSolution, new ContainerControlledLifetimeManager());
                 var ss = Container.Resolve<ISolutionService>();
                 await ss.Init();
@@ -210,12 +210,12 @@ namespace MvvmTools
             }
             catch (Exception ex)
             {
-                //os.WriteLine($"MVVM Tools service startup failed: {ex.Message}.");
+                Debug.WriteLine($"MVVM Tools service startup failed: {ex}.");
             }
 
             // When initialized asynchronously, the current thread may be a background thread at this point.
             // Do any initialization that requires the UI thread after switching to the UI thread.
-            await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);            
         }
         
         /// <summary>
@@ -229,8 +229,8 @@ namespace MvvmTools
                 // Create the individual commands, which internally register for command events.
                 var gc = Container.Resolve<GoToViewOrViewModelCommand>();
                 _commands.Add(gc);
-                _commands.Add(Container.Resolve<ScaffoldViewAndViewModelCommand>());
-                _commands.Add(Container.Resolve<ExtractViewModelFromViewCommand>());
+                //_commands.Add(Container.Resolve<ScaffoldViewAndViewModelCommand>());
+               // _commands.Add(Container.Resolve<ExtractViewModelFromViewCommand>());
 
                 // Add all commands to the menu command service.
                 foreach (var command in _commands)

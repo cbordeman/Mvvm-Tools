@@ -16,8 +16,7 @@
                    HorizontalAlignment="Right"
                    VerticalAlignment="Bottom"
                    FontSize="10">
-            By
-            <Hyperlink Click="Hyperlink_OnClick" NavigateUri="mailto://mvvmtools@outlook.com">Chris Bordeman</Hyperlink>
+            <Hyperlink Click="Hyperlink_OnClick">Issues and Suggestions</Hyperlink>
         </TextBlock>
         <Rectangle Grid.Row="0"
                    Height="1"

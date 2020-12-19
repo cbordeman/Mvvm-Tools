@@ -1,9 +1,4 @@
 ﻿//------------------------------------------------------------------------------
-// <copyright file="ExtractViewModelFromViewCommand.cs" company="Chris Bordeman">
-//     Copyright (c) 2015 Chris Bordeman.  All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
-
 using MvvmTools.Services;
 using MvvmTools.ViewModels;
 using Unity;

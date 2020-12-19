@@ -1,6 +1,6 @@
-﻿using System;
+﻿using CommonServiceLocator;
+using System;
 using System.Collections.Generic;
-using Microsoft.Practices.ServiceLocation;
 using Unity;
 
 namespace MvvmTools.Utilities
