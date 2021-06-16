@@ -1,23 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="MvvmTools.Chris Bordeman.14a68ffd-3571-40a1-a56b-cf35813ba33c" Version="0.2.0.10" Language="en-US" Publisher="Chris Bordeman" />
+        <Identity Id="MvvmTools.Chris Bordeman.24a68ffd-3571-40a1-a56b-cf35813ba322" Version="0.3.0.0" Language="en-US" Publisher="Chris Bordeman" />
         <DisplayName>MVVM Tools</DisplayName>
         <Description xml:space="preserve">Switch between View and ViewModel with Ctrl+E,Q, for XAML developers.</Description>
         <MoreInfo>https://github.com/cbordeman/Mvvm-Tools</MoreInfo>
         <License>License.txt</License>
     </Metadata>
     <Installation>
-        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0, 16.0)" />
+		<InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0, 18.0)">
+			<ProductArchitecture>amd64</ProductArchitecture>
+		</InstallationTarget>
+	    <!--<InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0, 17.0)">
+		    <ProductArchitecture>x86</ProductArchitecture>
+	    </InstallationTarget>-->
     </Installation>
-    <Dependencies>
-        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
-      <Dependency Id="Microsoft.VisualStudio.MPF.15.0" DisplayName="Visual Studio MPF 15.0" d:Source="Installed" Version="[15.0]" />
-  </Dependencies>
     <Prerequisites>
-        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,)" DisplayName="Visual Studio core editor" />
     </Prerequisites>
-  <Assets>
-    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
-  </Assets>
 </PackageManifest>

@@ -5,6 +5,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:MvvmTools.Controls"
              xmlns:views="clr-namespace:MvvmTools.Views"
+             xmlns:viewModels="clr-namespace:MvvmTools.ViewModels"
+             xmlns:models="clr-namespace:MvvmTools.Models"
              x:Name="Root"
              Width="700"
              Height="460"

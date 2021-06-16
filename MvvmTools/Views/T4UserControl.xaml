@@ -6,6 +6,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              xmlns:viewModels="clr-namespace:MvvmTools.ViewModels"
+             xmlns:services="clr-namespace:MvvmTools.Services"
              x:Name="Root"
              FontSize="{Binding RelativeSource={RelativeSource Self},
                                 Path=MyFontSize}"

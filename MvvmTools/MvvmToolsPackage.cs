@@ -13,7 +13,6 @@ using MvvmTools.Services;
 using MvvmTools.ViewModels;
 using System;
 using System.Collections.Generic;
-//using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -61,7 +60,7 @@ namespace MvvmTools
     public sealed class MvvmToolsPackage : AsyncPackage, IMvvmToolsPackage
         //, IAsyncLoadablePackageInitialize
     {
-        internal static readonly IUnityContainer Container;
+        public static readonly IUnityContainer Container;
 
         #region Fields
 

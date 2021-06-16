@@ -11,11 +11,6 @@ namespace MvvmTools.Options
 {
     // Note: The Visual Studio designer for this file (WinForms) won't work.
 
-    /// <summary>
-    // Extends a standard dialog functionality for implementing ToolsOptions pages, 
-    // with support for the Visual Studio automation model, Windows Forms, and state 
-    // persistence through the Visual Studio settings mechanism.
-    /// </summary>
     [Guid(Constants.GuidOptionsPageSolutionAndProjects)]
     internal class OptionsPageSolutionAndProjects : UIElementDialogPage
     {
