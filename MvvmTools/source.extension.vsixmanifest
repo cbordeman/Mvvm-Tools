@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="MvvmTools.Chris Bordeman.24a68ffd-3571-40a1-a56b-cf35813ba322" Version="0.3.0.0" Language="en-US" Publisher="Chris Bordeman" />
+	    <Identity Id="MvvmTools.Chris Bordeman.14a68ffd-3571-40a1-a56b-cf35813ba33c" Version="0.3.0.0" Language="en-US" Publisher="Chris Bordeman" />
         <DisplayName>MVVM Tools</DisplayName>
         <Description xml:space="preserve">Switch between View and ViewModel with Ctrl+E,Q, for XAML developers.</Description>
         <MoreInfo>https://github.com/cbordeman/Mvvm-Tools</MoreInfo>
@@ -11,9 +11,9 @@
 		<InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0, 18.0)">
 			<ProductArchitecture>amd64</ProductArchitecture>
 		</InstallationTarget>
-	    <!--<InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0, 17.0)">
+	    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0, 17.0)">
 		    <ProductArchitecture>x86</ProductArchitecture>
-	    </InstallationTarget>-->
+	    </InstallationTarget>
     </Installation>
     <Prerequisites>
         <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,)" DisplayName="Visual Studio core editor" />
