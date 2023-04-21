@@ -53,7 +53,7 @@ namespace MvvmTools
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(Constants.GuidPackage)]
     ////[ProvideAutoLoad(UIContextGuids.SolutionExists)]
-    [InstalledProductRegistration("MVVM Tools", "Provides access to your corresponding View/ViewModel via Ctrl+E,Q.", "0.4.0.0")]
+    [InstalledProductRegistration("MVVM Tools", "Provides access to your corresponding View/ViewModel via Ctrl+E,Q.", "0.4.0.1")]
     [ProvideAutoLoad(VSConstants.UICONTEXT.ShellInitialized_string, PackageAutoLoadFlags.BackgroundLoad)]
     public sealed class MvvmToolsPackage : AsyncPackage, IMvvmToolsPackage
         //, IAsyncLoadablePackageInitialize
