@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using MvvmTools.Models;
 using MvvmTools.Services;
@@ -30,11 +31,11 @@ namespace MvvmTools.Commands
 
         public ISolutionService SolutionService { get; set; }
 
-        protected override async void OnExecute()
+        protected override async Task OnExecuteAsync()
         {
             try
             {
-                base.OnExecute();
+                await base.OnExecuteAsync().ConfigureAwait(false);
 
                 var pi = Package.ActiveDocument?.ProjectItem;
 

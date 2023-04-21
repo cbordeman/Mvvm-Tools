@@ -17,6 +17,7 @@ using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
@@ -123,6 +124,35 @@ namespace MvvmTools
 
         #endregion Ctor and Init
 
+        //protected override object GetAutomationObject(string name)
+        //{
+        //    try
+        //    {
+        //        Trace.WriteLine($"Getting Automation object: {name}");
+        //        return base.GetAutomationObject(name);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Trace.WriteLine(e);
+        //        throw;
+        //    }
+        //}
+
+        //protected override object GetService(Type serviceType)
+        //{
+        //    try
+        //    {
+        //        Trace.WriteLine($"Getting service type: {serviceType.Name}");
+        //        return base.GetService(serviceType);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Trace.WriteLine(e);
+        //        throw;
+        //    }
+            
+        //}
+
         #region Private Helpers
 
         /// <summary>
@@ -197,10 +227,10 @@ namespace MvvmTools
                 Assumes.Present(_vsSolution);
                 Container.RegisterInstance(_vsSolution, new ContainerControlledLifetimeManager());
                 var ss = Container.Resolve<ISolutionService>();
-                await ss.Init();
+                await ss.Init().ConfigureAwait(false);
                 var result = _vsSolution?.AdviseSolutionEvents(ss, out _solutionEventsCookie);
 
-                await base.InitializeAsync(cancellationToken, progress);
+                await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(false);
 
                 RegisterCommands();
             }

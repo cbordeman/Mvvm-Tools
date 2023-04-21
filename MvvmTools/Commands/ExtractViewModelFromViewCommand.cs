@@ -1,6 +1,7 @@
 ﻿//------------------------------------------------------------------------------
 // ReSharper disable HeapView.BoxingAllocation
 
+using System.Threading.Tasks;
 using Unity;
 
 namespace MvvmTools.Commands
@@ -19,11 +20,9 @@ namespace MvvmTools.Commands
         {
         }
         
-        protected override void OnExecute()
+        protected override Task OnExecuteAsync()
         {
-            base.OnExecute();
-
-            
+            return base.OnExecuteAsync();
         }
     }
 }

@@ -1,4 +1,6 @@
 ﻿//------------------------------------------------------------------------------
+
+using System.Threading.Tasks;
 using MvvmTools.Services;
 using MvvmTools.ViewModels;
 using Unity;
@@ -24,9 +26,9 @@ namespace MvvmTools.Commands
         public ISolutionService SolutionService { get; set; }
         public DialogService DialogService { get; set; }
 
-        protected override async void OnExecute()
+        protected override async Task OnExecuteAsync()
         {
-            base.OnExecute();
+            await base.OnExecuteAsync().ConfigureAwait(false);
 
             var vm = Container.Resolve<ScaffoldDialogViewModel>();
             await vm.Init();

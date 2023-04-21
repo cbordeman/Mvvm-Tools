@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.Design;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using MvvmTools.Services;
 using Unity;
@@ -63,7 +64,7 @@ namespace MvvmTools
         private static void BaseCommand_Execute(object sender, EventArgs e)
         {
             var command = sender as BaseCommand;
-            command?.OnExecute();
+            command.OnExecuteAsync().Wait();
         }
 
         #endregion Event Handlers
@@ -82,7 +83,7 @@ namespace MvvmTools
         /// <summary>
         /// Called to execute the command.
         /// </summary>
-        protected virtual void OnExecute()
+        protected virtual async Task OnExecuteAsync()
         {
             Trace.WriteLine($"{GetType().Name}.OnExecute() invoked");
         }
