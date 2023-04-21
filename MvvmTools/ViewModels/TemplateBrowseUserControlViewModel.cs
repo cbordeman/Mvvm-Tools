@@ -1,11 +1,11 @@
-﻿using System;
+﻿using MvvmTools.Models;
+using MvvmTools.Services;
+using MvvmTools.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Data;
-using MvvmTools.Models;
-using MvvmTools.Services;
-using MvvmTools.Utilities;
 using Unity;
 
 namespace MvvmTools.ViewModels

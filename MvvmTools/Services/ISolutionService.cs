@@ -3,7 +3,14 @@ using Microsoft.VisualStudio.Shell.Interop;
 using MvvmTools.Models;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
+using EnvDTE80;
+using JetBrains.Annotations;
+using Microsoft.VisualStudio;
+using MvvmTools.Utilities;
 
 // ReSharper disable SuspiciousTypeConversion.Global
 
@@ -19,6 +26,10 @@ namespace MvvmTools.Services
 
     public interface ISolutionService : IVsSolutionLoadEvents, IVsSolutionEvents3, IVsSolutionEvents4, IVsSolutionEvents5
     {
+        /// <summary>
+        /// Called when solution is loaded.
+        /// </summary>
+        /// <returns></returns>
         Task Init();
         
         /// <summary>
@@ -92,4 +103,5 @@ namespace MvvmTools.Services
         /// <returns></returns>
         ProjectModel GetFullProjectModel(Project project);
     }
+
 }
