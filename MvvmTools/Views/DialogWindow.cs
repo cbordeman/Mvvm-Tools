@@ -21,12 +21,12 @@ namespace MvvmTools.Views
             SourceInitialized += OnSourceInitialized;
 
             SetBinding(TitleProperty, new Binding("Title"));
-            Background = new SolidColorBrush(Color.FromArgb(255, 216, 216, 216));
+            //Background = new SolidColorBrush(Color.FromRgb(65, 65, 65));
             Closing += DialogWindow_OnClosing;
             KeyUp += DialogWindow_OnKeyUp;
             Loaded += DialogWindow_OnLoaded;
             ResizeMode = ResizeMode.CanResizeWithGrip;
-            SizeToContent = SizeToContent.Manual;
+            SizeToContent = SizeToContent.WidthAndHeight;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
         }
 

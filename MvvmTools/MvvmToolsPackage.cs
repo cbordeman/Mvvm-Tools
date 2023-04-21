@@ -47,15 +47,12 @@ namespace MvvmTools
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideOptionPage(typeof(OptionsPageGeneral), "MVVM Tools", "General", 101, 107, true)]
     [ProvideOptionPage(typeof(OptionsPageSolutionAndProjects), "MVVM Tools", "Solution and Projects", 101, 113, true)]
-    ////[ProvideOptionPage(typeof(OptionsPageTemplateOptions), "MVVM Tools", "Template Options", 101, 114, true)]
-    ////[ProvideOptionPage(typeof(OptionsPageTemplateMaintenance), "MVVM Tools", "Template Maintenance", 101, 115, true)]
-    ////[InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
-    [ProvideBindingPath] // This is the magic attribute required so VS can find any 3rd party dlls.
+    // This is the magic attribute required so VS can find 3rd party dlls.
+    [ProvideBindingPath]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(Constants.GuidPackage)]
-    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     ////[ProvideAutoLoad(UIContextGuids.SolutionExists)]
-    [InstalledProductRegistration("MVVM Tools", "Provides access to your corresponding View/ViewModel via Ctrl+E,Q.", "0.2.0.10")]
+    [InstalledProductRegistration("MVVM Tools", "Provides access to your corresponding View/ViewModel via Ctrl+E,Q.", "0.4.0.0")]
     [ProvideAutoLoad(VSConstants.UICONTEXT.ShellInitialized_string, PackageAutoLoadFlags.BackgroundLoad)]
     public sealed class MvvmToolsPackage : AsyncPackage, IMvvmToolsPackage
         //, IAsyncLoadablePackageInitialize

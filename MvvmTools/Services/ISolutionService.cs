@@ -1049,6 +1049,8 @@ namespace MvvmTools.Services
         {
             get
             {
+                if (Type.Namespace == ProjectItem?.ContainingProject?.Name)
+                    return "(same)";
                 if (Type.Namespace.StartsWith(ProjectItem.ContainingProject.Name))
                     return Type.Namespace.Substring(ProjectItem.ContainingProject.Name.Length);
                 return Type.Namespace;

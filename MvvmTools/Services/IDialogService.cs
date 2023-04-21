@@ -30,10 +30,8 @@ namespace MvvmTools.Services
 
     public enum AskButton
     {
-        // ReSharper disable once InconsistentNaming
-        OK = 0,
-        // ReSharper disable once InconsistentNaming
-        OKCancel = 1,
+        Ok = 0,
+        OkCancel = 1,
         YesNoCancel = 3,
         YesNo = 4,
     }
@@ -41,8 +39,7 @@ namespace MvvmTools.Services
     public enum AskResult
     {
         None = 0,
-        // ReSharper disable once InconsistentNaming
-        OK = 1,
+        Ok = 1,
         Cancel = 2,
         Yes = 6,
         No = 7,

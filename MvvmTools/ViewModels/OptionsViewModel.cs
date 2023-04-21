@@ -607,7 +607,7 @@ namespace MvvmTools.ViewModels
             try
             {
                 var vs = (StringViewModel) ViewSuffixesView?.CurrentItem;
-                if ((await DialogService.Ask("Delete View Suffix?", $"Delete view suffix \"{vs?.Value}?\"", AskButton.OKCancel)) == AskResult.OK)
+                if ((await DialogService.Ask("Delete View Suffix?", $"Delete view suffix \"{vs?.Value}?\"", AskButton.OkCancel)) == AskResult.Ok)
                     ViewSuffixesView?.Remove(ViewSuffixesView.CurrentItem);
             }
             catch (Exception)

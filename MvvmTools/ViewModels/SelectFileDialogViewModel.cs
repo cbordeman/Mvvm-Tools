@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using MvvmTools.Services;
+﻿using MvvmTools.Services;
+using System.Collections.Generic;
 using Unity;
 
 namespace MvvmTools.ViewModels
@@ -21,6 +21,5 @@ namespace MvvmTools.ViewModels
             set { SetProperty(ref _selectedDocument, value); }
         }
         #endregion SelectedDocument
-
     }
 }
