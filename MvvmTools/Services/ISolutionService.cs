@@ -29,6 +29,10 @@ namespace MvvmTools.Services
 
     public interface ISolutionService : IVsSolutionLoadEvents, IVsSolutionEvents3, IVsSolutionEvents4, IVsSolutionEvents5
     {
+        /// <summary>
+        /// Called when solution is loaded.
+        /// </summary>
+        /// <returns></returns>
         Task Init();
         
         /// <summary>
@@ -125,8 +129,8 @@ namespace MvvmTools.Services
 
         public async Task Init()
         {
-            ErrorHandler.ThrowOnFailure(_vsSolution.GetProperty((int)__VSPROPID.VSPROPID_IsSolutionOpen, out object value));
-            _solutionLoadState = value is bool isOpen && isOpen ? SolutionLoadState.Loaded : SolutionLoadState.NoSolution;
+            ErrorHandler.ThrowOnFailure(_vsSolution.GetProperty((int)__VSPROPID.VSPROPID_IsSolutionOpen, out object val));
+            _solutionLoadState = val is bool isOpen && isOpen ? SolutionLoadState.Loaded : SolutionLoadState.NoSolution;
             if (_solutionLoadState == SolutionLoadState.Loaded)
                 ReloadSolution();
         }
@@ -178,7 +182,7 @@ namespace MvvmTools.Services
                         // We are receiving load events and updating our internal state in the 
                         // background.  So we wait a bit longer for SolutionLoadState to
                         // change.
-                        await Task.Delay(500);
+                        await Task.Delay(500).ConfigureAwait(true);
                         break;
                 }
             }

@@ -62,8 +62,8 @@ namespace MvvmTools
 
         #region Fields
 
-        private IVsSolution _vsSolution;
-        private uint _solutionEventsCookie;
+        private IVsSolution vsSolution;
+        private uint solutionEventsCookie;
 
         #endregion Fields
         
@@ -72,10 +72,10 @@ namespace MvvmTools
         /// <summary>
         /// An internal collection of the commands registered by this package.
         /// </summary>
-        private readonly ICollection<BaseCommand> _commands = new List<BaseCommand>();
+        private readonly ICollection<BaseCommand> commands = new List<BaseCommand>();
 
-        private DTE2 _ide;
-        public DTE2 Ide => _ide ?? (_ide = (DTE2)GetService(typeof(DTE)));
+        private DTE2 ide;
+        public DTE2 Ide => ide ?? (ide = (DTE2)GetService(typeof(DTE)));
 
         /// <summary>
         /// Gets the currently active document, otherwise null.
@@ -96,9 +96,9 @@ namespace MvvmTools
             }
         }
 
-        private double _ideVersion;
+        private double ideVersion;
 
-        public double IdeVersion => _ideVersion != 0 ? _ideVersion : (_ideVersion = Convert.ToDouble(Ide.Version, CultureInfo.InvariantCulture));
+        public double IdeVersion => ideVersion != 0 ? ideVersion : (ideVersion = Convert.ToDouble(Ide.Version, CultureInfo.InvariantCulture));
 
         #endregion Properties
 
@@ -191,10 +191,10 @@ namespace MvvmTools
                                 // Add package and package specific services.
                 Container.RegisterInstance<IMvvmToolsPackage>(this, new ContainerControlledLifetimeManager());
                 Container.RegisterInstance(GetGlobalService(typeof(SComponentModel)) as IComponentModel, new ContainerControlledLifetimeManager());
-                Container.RegisterInstance(await GetServiceAsync(typeof(IMenuCommandService)) as IMenuCommandService, new ContainerControlledLifetimeManager());
+                Container.RegisterInstance(await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(false) as IMenuCommandService, new ContainerControlledLifetimeManager());
 
                 // Templating services.
-                var tt = await GetServiceAsync(typeof(STextTemplating)) as STextTemplating;
+                var tt = await GetServiceAsync(typeof(STextTemplating)).ConfigureAwait(false) as STextTemplating;
                 Container.RegisterInstance((ITextTemplating)tt, new ContainerControlledLifetimeManager());
                 Container.RegisterInstance((ITextTemplatingEngineHost)tt, new ContainerControlledLifetimeManager());
                 Container.RegisterInstance((ITextTemplatingSessionHost)tt, new ContainerControlledLifetimeManager());
@@ -222,13 +222,15 @@ namespace MvvmTools
                 // Add solution services.
                 Container.RegisterInstance(Ide, new ContainerControlledLifetimeManager());
                 Container.RegisterType<ISolutionService, SolutionService>(new ContainerControlledLifetimeManager());
-                _vsSolution = await GetServiceAsync(typeof(SVsSolution))
+                vsSolution = await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(false)
                     as IVsSolution;
-                Assumes.Present(_vsSolution);
-                Container.RegisterInstance(_vsSolution, new ContainerControlledLifetimeManager());
+                Assumes.Present(vsSolution);
+                Container.RegisterInstance(vsSolution, new ContainerControlledLifetimeManager());
                 var ss = Container.Resolve<ISolutionService>();
                 await ss.Init().ConfigureAwait(false);
-                var result = _vsSolution?.AdviseSolutionEvents(ss, out _solutionEventsCookie);
+                int? result = vsSolution?.AdviseSolutionEvents(ss, out solutionEventsCookie);
+                
+                Trace.WriteLine($"Solution loaded.  Result: {(result.HasValue ? result.Value.ToString() : "null")}");
 
                 await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(false);
 
@@ -254,12 +256,12 @@ namespace MvvmTools
             {
                 // Create the individual commands, which internally register for command events.
                 var gc = Container.Resolve<GoToViewOrViewModelCommand>();
-                _commands.Add(gc);
+                commands.Add(gc);
                 //_commands.Add(Container.Resolve<ScaffoldViewAndViewModelCommand>());
                // _commands.Add(Container.Resolve<ExtractViewModelFromViewCommand>());
 
                 // Add all commands to the menu command service.
-                foreach (var command in _commands)
+                foreach (var command in commands)
                     menuCommandService.AddCommand(command);
                 
                 //menuCommandService.FindCommand(_commands)
@@ -271,10 +273,10 @@ namespace MvvmTools
             try
             {
                 await JoinableTaskFactory.SwitchToMainThreadAsync();
-                if (_solutionEventsCookie != 0)
+                if (solutionEventsCookie != 0)
                 {
-                    _vsSolution.UnadviseSolutionEvents(_solutionEventsCookie);
-                    _solutionEventsCookie = 0;
+                    vsSolution.UnadviseSolutionEvents(solutionEventsCookie);
+                    solutionEventsCookie = 0;
                 }
 
                 base.Dispose(disposing);
