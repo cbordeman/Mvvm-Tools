@@ -118,6 +118,9 @@
     <Compile Include="Services\ISolutionService.cs" />
     <Compile Include="Services\ITemplateService.cs" />
     <Compile Include="Services\IViewFactory.cs" />
+    <Compile Include="Services\NamespaceClass.cs" />
+    <Compile Include="Services\ProjectItemAndType.cs" />
+    <Compile Include="Services\SolutionService.cs" />
     <Compile Include="Utilities\Async.cs" />
     <Compile Include="Utilities\DelegateCommand.cs" />
     <Compile Include="Utilities\DllImports.cs" />
