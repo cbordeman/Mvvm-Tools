@@ -1,17 +1,24 @@
-﻿using System;
+﻿using EnvDTE;
+using EnvDTE80;
+using JetBrains.Annotations;
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
+using MvvmTools.Commands.GoToVM;
+using MvvmTools.Models;
+using MvvmTools.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using EnvDTE;
-using EnvDTE80;
-using JetBrains.Annotations;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
-using MvvmTools.Models;
-using MvvmTools.Utilities;
+using Project = EnvDTE.Project;
 
 namespace MvvmTools.Services
 {
@@ -19,10 +26,10 @@ namespace MvvmTools.Services
     {
         #region Data
 
-        private readonly IMvvmToolsPackage _mvvmToolsPackage;
-        private readonly IVsSolution _vsSolution;
-        private readonly object _solutionLock = new object();
-        private ProjectModel _solutionModel;
+        private readonly IMvvmToolsPackage mvvmToolsPackage;
+        private readonly IVsSolution vsSolution;
+        private readonly object solutionLock = new();
+        private ProjectModel solutionModel;
 
         #endregion Data
 
@@ -31,16 +38,17 @@ namespace MvvmTools.Services
         public SolutionService(IMvvmToolsPackage mvvmToolsPackage,
             IVsSolution vsSolution)
         {
-            _mvvmToolsPackage = mvvmToolsPackage;
-            _vsSolution = vsSolution;
+            this.mvvmToolsPackage = mvvmToolsPackage;
+            this.vsSolution = vsSolution;
         }
 
-        public async Task Init()
+        public Task Init()
         {
-            ErrorHandler.ThrowOnFailure(_vsSolution.GetProperty((int)__VSPROPID.VSPROPID_IsSolutionOpen, out object value));
-            _solutionLoadState = value is bool isOpen && isOpen ? SolutionLoadState.Loaded : SolutionLoadState.NoSolution;
-            if (_solutionLoadState == SolutionLoadState.Loaded)
-                this.ReloadSolution();
+            ErrorHandler.ThrowOnFailure(vsSolution.GetProperty((int)__VSPROPID.VSPROPID_IsSolutionOpen, out object value));
+            solutionLoadState = value is bool isOpen && isOpen ? SolutionLoadState.Loaded : SolutionLoadState.NoSolution;
+            if (solutionLoadState == SolutionLoadState.Loaded)
+                ReloadSolution();
+            return Task.CompletedTask;
         }
 
         #endregion Ctor and Init
@@ -54,19 +62,19 @@ namespace MvvmTools.Services
         #region Properties
 
         #region SolutionLoadState
-        private SolutionLoadState _solutionLoadState;
+        private SolutionLoadState solutionLoadState;
         private SolutionLoadState SolutionLoadState
         {
             get
             {
-                lock (_solutionLock)
-                    return _solutionLoadState;
+                lock (solutionLock)
+                    return solutionLoadState;
             }
             set
             {
-                lock (_solutionLock)
-                    _solutionLoadState = value;
-                this.SolutionLoadStateChanged?.Invoke(this, null);
+                lock (solutionLock)
+                    solutionLoadState = value;
+                SolutionLoadStateChanged?.Invoke(this, null);
             }
         }
         #endregion SolutionLoadState
@@ -79,18 +87,18 @@ namespace MvvmTools.Services
         {
             while (true)
             {
-                switch (this.SolutionLoadState)
+                switch (SolutionLoadState)
                 {
                     case SolutionLoadState.NoSolution:
                     case SolutionLoadState.Unloading:
                         return null;
                     case SolutionLoadState.Loaded:
-                        return _solutionModel;
+                        return solutionModel;
                     case SolutionLoadState.Loading:
                         // We are receiving load events and updating our internal state in the 
                         // background.  So we wait a bit longer for SolutionLoadState to
                         // change.
-                        await Task.Delay(500);
+                        await Task.Delay(500).ConfigureAwait(true);
                         break;
                 }
             }
@@ -102,9 +110,9 @@ namespace MvvmTools.Services
 
             try
             {
-                var solution = await this.GetSolution();
+                var solution = await GetSolution().ConfigureAwait(false);
 
-                this.AddProjectsFlattenedRecursive(rval, solution.Children);
+                AddProjectsFlattenedRecursive(rval, solution.Children);
             }
             catch (Exception ex)
             {
@@ -134,7 +142,7 @@ namespace MvvmTools.Services
                         return;
                 }
 
-                this.AddProjectsFlattenedRecursive(
+                AddProjectsFlattenedRecursive(
                     projects,
                     p.Children,
                     string.Concat(prefix, p.Name, "/"));
@@ -143,7 +151,7 @@ namespace MvvmTools.Services
 
         public Project GetProject(string uniqueId)
         {
-            var solution = _mvvmToolsPackage.Ide.Solution;
+            var solution = mvvmToolsPackage.Ide.Solution;
             // Loop through solution's top level projects.
             foreach (var p in solution.Projects.Cast<Project>().Where(p => p.Name != "Solution Items"))
             {
@@ -160,7 +168,7 @@ namespace MvvmTools.Services
             var rval = ConvertProjectToProjectModel(project);
             foreach (ProjectItem pi in project.ProjectItems)
             {
-                var child = this.GetProjectItemsModelsRecursive(pi);
+                var child = GetProjectItemsModelsRecursive(pi);
                 rval.Children.Add(child);
             }
 
@@ -185,7 +193,7 @@ namespace MvvmTools.Services
             foreach (ProjectItem pi in projectItem.ProjectItems)
             {
                 // Recursive call
-                var child = this.GetProjectItemsModelsRecursive(pi);
+                var child = GetProjectItemsModelsRecursive(pi);
                 rval.Children.Add(child);
 
                 if (pi.SubProject != null)
@@ -241,7 +249,7 @@ namespace MvvmTools.Services
             return rval;
         }
 
-        public List<NamespaceClass> GetClassesInProjectItem([CanBeNull] ProjectItem pi)
+        public List<NamespaceClass> GetClassesInProjectItemUsingCodeDom([CanBeNull] ProjectItem pi)
         {
             var rval = new List<NamespaceClass>();
 
@@ -268,7 +276,7 @@ namespace MvvmTools.Services
 
             // If no namespace in file, then the project's default namespace is used.  This is
             // common in VB projects but rare in C#.
-            var rootNamespace = this.GetProjectRootNamespace(pi.ContainingProject);
+            var rootNamespace = GetProjectRootNamespace(pi.ContainingProject);
 
             var fileCm = (FileCodeModel2)pi.FileCodeModel;
 
@@ -276,7 +284,7 @@ namespace MvvmTools.Services
 
             foreach (CodeElement2 ce in fileCm.CodeElements)
             {
-                this.FindClassesRecursive(rval, ce, isXaml, rootNamespace);
+                FindClassesRecursiveUsingCodeDom(rval, ce, isXaml, rootNamespace);
 
                 // If a xaml.cs or xaml.vb code behind file, the first class must be the view type, so we can stop early.
                 if (isXaml && rval.Count > 0)
@@ -286,7 +294,139 @@ namespace MvvmTools.Services
             return rval;
         }
 
-        public List<ProjectItemAndType> GetRelatedDocuments(
+        public async Task<IEnumerable<ProjectItemAndType>> GetRelatedDocumentsUsingRoslyn(
+            ProjectItem pi,
+            IEnumerable<string> typeNamesInFile,
+            string[] viewPrefixes,
+            string[] viewSuffixes,
+            string viewModelSuffix)
+        {
+            GetTypeCandidates(typeNamesInFile, viewPrefixes, viewSuffixes, viewModelSuffix,
+                out var viewCandidateTypeNames,
+                out var viewModelCandidateTypeNames);
+
+            var allCandidateTypes = viewModelCandidateTypeNames.Union(viewCandidateTypeNames).Distinct().ToList();
+
+            // Search whole solution.
+            
+            
+            var cm = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
+            var tm = (IVsTextManager)Package.GetGlobalService(typeof(SVsTextManager));
+            var ws = (Workspace)cm.GetService<VisualStudioWorkspace>();
+            //var did = ws.CurrentSolution.GetDocumentId(n.SyntaxTree);
+
+            var solution = ws.CurrentSolution;
+            //DocumentId did = ws.CurrentSolution.GetDocumentId(n.SyntaxTree);
+            //ws.OpenDocument(did);
+
+            // Look for the candidate types in current project first, excluding the selected project item.
+            List<RoslynProjectItemAndType> rval = new();
+
+            // Then add candidates from the rest of the solution.
+            foreach (var project in solution.Projects)
+            {
+                var compilation = await project.GetCompilationAsync();
+                if (compilation == null)
+                    continue;
+
+                //IEnumerable<INamespaceOrTypeSymbol> members = compilation.GlobalNamespace.GetNamespaceMembers().SelectMany(x => x.GetMembers());
+                //foreach (var cls in members)
+                //{
+                //    if (allCandidateTypes.Contains(cls.Name))
+                //    {
+                //        DocumentId did = ws.CurrentSolution.GetDocumentId(n.SyntaxTree);
+                //        Console.WriteLine(cls.Name);
+                //        Console.WriteLine(cls.ContainingNamespace.Name);
+                //    }
+                //}
+            
+                var classVisitor = new ClassVirtualizationVisitor(ws, project.Name, solution,
+                    allCandidateTypes);
+
+                foreach (var syntaxTree in compilation.SyntaxTrees)
+                {
+                    var root = await syntaxTree.GetRootAsync().ConfigureAwait(false);
+                    classVisitor.Visit(root);
+                }
+
+                rval.AddRange(classVisitor.Items);
+            }
+            return rval;
+        }
+        
+
+        //private void FindDocumentsContainingTypesRecursiveForRoslyn(
+        //    ProjectItem excludeProjectItem,
+        //    Project excludeProject,
+        //    IEnumerable<ProjectItem> projectItems,
+        //    List<string> typesToFind,
+        //    ProjectItem parentProjectItem, 
+        //    List<RoslynProjectItemAndType> results)
+        //{
+        //    if (typesToFind.Count == 0 || projectItems == null)
+        //        return;
+
+        //    var tmpResults = new List<ProjectItemAndType>();
+
+        //    foreach (ProjectItem pi in projectItems)
+        //    {
+        //        // Exclude the document we're on.
+        //        if (pi == excludeProjectItem)
+        //            continue;
+
+        //        // Exclude the project already searched.
+        //        if (excludeProject != null && pi.ContainingProject != null &&
+        //            pi.ContainingProject == excludeProject)
+        //            return;
+
+        //        // Recursive call
+        //        if (pi.Name.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            if (pi.ProjectItems != null)
+        //                this.FindDocumentsContainingTypesRecursiveForCodeDom(excludeProjectItem, excludeProject,
+        //                    pi.ProjectItems.Cast<ProjectItem>(), typesToFind,
+        //                    pi, tmpResults);
+        //        }
+        //        else
+        //        {
+        //            var items = pi.ProjectItems ?? pi.SubProject?.ProjectItems;
+        //            if (items != null)
+        //                this.FindDocumentsContainingTypesRecursiveForCodeDom(excludeProjectItem, excludeProject,
+        //                    items.Cast<ProjectItem>(), typesToFind,
+        //                    null, tmpResults);
+        //        }
+
+        //        // Only search source files.
+        //        if (!pi.Name.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) &&
+        //            !pi.Name.EndsWith(".vb", StringComparison.OrdinalIgnoreCase))
+        //            continue;
+
+        //        // Search the classes in the project item.
+        //        var classesInProjectItem = this.GetClassesInProjectItemUsingCodeDom(pi);
+
+        //        var xamlSaved = false;
+        //        foreach (var c in classesInProjectItem)
+        //        {
+        //            if (typesToFind.Contains(c.Class, StringComparer.OrdinalIgnoreCase))
+        //            {
+        //                if (!xamlSaved && parentProjectItem != null)
+        //                {
+        //                    // Parent is the xaml file corresponding to this xaml.cs or xaml.vb.  We save it once.
+        //                    tmpResults.Add(new RoslynProjectItemAndType(parentProjectItem, c));
+        //                    xamlSaved = true;
+        //                }
+
+        //                tmpResults.Add(new RoslynProjectItemAndType(pi, c));
+        //            }
+        //        }
+        //    }
+
+        //    results.AddRange(tmpResults);
+        //}
+
+
+
+        public IEnumerable<ProjectItemAndType> GetRelatedDocumentsUsingCodeDom(
             LocationDescriptor viewModelsLocation,
             LocationDescriptor viewsLocation,
             ProjectItem pi,
@@ -295,42 +435,19 @@ namespace MvvmTools.Services
             string[] viewSuffixes,
             string viewModelSuffix)
         {
-            this.GetTypeCandidates(typeNamesInFile, viewPrefixes, viewSuffixes, viewModelSuffix,
+            GetTypeCandidates(typeNamesInFile, viewPrefixes, viewSuffixes, viewModelSuffix,
                 out var viewCandidateTypeNames,
                 out var viewModelCandidateTypeNames);
 
-            List<ProjectItemAndType> rval;
-
-            if (viewModelsLocation == null)
-            {
-                // Search whole solution.
-                var allCandidateTypes = viewModelCandidateTypeNames.Union(viewCandidateTypeNames).Distinct().ToList();
-
-                // Look for the candidate types in current project first, excluding the selected project item.
-                rval = this.FindDocumentsContainingTypes(null, pi.ContainingProject, null, pi, allCandidateTypes);
-
-                // Then add candidates from the rest of the solution.
-                var solution = pi.DTE?.Solution;
-                if (solution == null) return rval;
-                foreach (Project project in solution.Projects)
-                {
-                    if (project == pi.ContainingProject)
-                        continue;
-
-                    var docs = this.FindDocumentsContainingTypes(null, project, pi.ContainingProject, pi, allCandidateTypes);
-                    rval.AddRange(docs);
-                }
-                return rval;
-            }
-
-            var viewModelsProject = this.GetProject(viewModelsLocation.ProjectIdentifier);
-            var viewsProject = this.GetProject(viewsLocation.ProjectIdentifier);
+            var viewModelsProject = GetProject(viewModelsLocation.ProjectIdentifier);
+            var viewsProject = GetProject(viewsLocation.ProjectIdentifier);
 
             // Search views project first.
-            rval = this.FindDocumentsContainingTypes(viewsLocation, viewsProject, null, pi, viewCandidateTypeNames);
+            var rval = new List<ProjectItemAndType>();
+            rval.AddRange(FindDocumentsContainingTypesUsingCodeDom(viewsLocation, viewsProject, null, pi, viewCandidateTypeNames));
             // Then, search view models project, excluding any xaml files.
-            var vmDocs = this.FindDocumentsContainingTypes(viewModelsLocation, viewModelsProject, null, pi, viewModelCandidateTypeNames);
-            rval.AddRange(vmDocs.Where(d => d.ProjectItem.Name.IndexOf(".xaml.", StringComparison.OrdinalIgnoreCase) == -1));
+            var vmDocs = FindDocumentsContainingTypesUsingCodeDom(viewModelsLocation, viewModelsProject, null, pi, viewModelCandidateTypeNames);
+            rval.AddRange(vmDocs.Where(d => d.Filename.IndexOf(".xaml.", StringComparison.OrdinalIgnoreCase) == -1));
 
             return rval;
         }
@@ -401,7 +518,7 @@ namespace MvvmTools.Services
                             var candidate = baseName + viewModelSuffix;
                             viewsTypeCandidates.Add(candidate);
                         }
-                        
+
                         if (viewModelSuffix != string.Empty)
                         {
                             var candidate = baseName + viewModelSuffix;
@@ -413,25 +530,21 @@ namespace MvvmTools.Services
             }
         }
 
-        private List<ProjectItemAndType> FindDocumentsContainingTypes(
+        private IEnumerable<ProjectItemAndType> FindDocumentsContainingTypesUsingCodeDom(
             LocationDescriptor options,
             Project project,
             Project excludeProject,
             ProjectItem excludeProjectItem,
             List<string> typesToFind)
         {
-            var results = new List<ProjectItemAndType>();
+            var results = new List<DteProjectItemAndType>();
 
             if (typesToFind.Count == 0)
                 return results;
 
             IEnumerable<ProjectItem> itemsToSearch;
-            if (options != null)
-                itemsToSearch = this.LocateProjectItemsWithinFolders(project, options.PathOffProject);
-            else
-                itemsToSearch = project.ProjectItems.Cast<ProjectItem>();
-
-            this.FindDocumentsContainingTypesRecursive(excludeProjectItem, excludeProject, itemsToSearch, typesToFind, null, results);
+            itemsToSearch = LocateProjectItemsWithinFolders(project, options.PathOffProject);
+            FindDocumentsContainingTypesRecursiveForCodeDom(excludeProjectItem, excludeProject, itemsToSearch, typesToFind, null, results);
 
             return results;
         }
@@ -445,7 +558,7 @@ namespace MvvmTools.Services
             // Get the ProjectItems for the folder specified (usually 
             // ViewModels, but could be several levels deep).
             var folders = pathOffProject.Split('/').ToList();
-            var rval = this.LocateProjectItemsWithinFoldersRecursive(folders, project.ProjectItems.Cast<ProjectItem>());
+            var rval = LocateProjectItemsWithinFoldersRecursive(folders, project.ProjectItems.Cast<ProjectItem>());
 
             return rval;
         }
@@ -467,7 +580,7 @@ namespace MvvmTools.Services
                     string.Equals(pi.Name, folder1, StringComparison.OrdinalIgnoreCase))
                 {
                     // Recursive call with one fewer folders.
-                    var subItems = this.LocateProjectItemsWithinFoldersRecursive(folders, pi.ProjectItems.Cast<ProjectItem>());
+                    var subItems = LocateProjectItemsWithinFoldersRecursive(folders, pi.ProjectItems.Cast<ProjectItem>());
                     return subItems;
                 }
             }
@@ -556,7 +669,7 @@ namespace MvvmTools.Services
         }
 
         // Recursively examine code elements.
-        private void FindClassesRecursive(List<NamespaceClass> classes, CodeElement2 codeElement, bool isXaml, string rootNamespace)
+        private void FindClassesRecursiveUsingCodeDom(List<NamespaceClass> classes, CodeElement2 codeElement, bool isXaml, string rootNamespace)
         {
             try
             {
@@ -569,7 +682,7 @@ namespace MvvmTools.Services
                 {
                     foreach (CodeElement2 childElement in codeElement.Children)
                     {
-                        this.FindClassesRecursive(classes, childElement, isXaml, rootNamespace);
+                        FindClassesRecursiveUsingCodeDom(classes, childElement, isXaml, rootNamespace);
 
                         // If a xaml.cs or xaml.vb code behind file, the first class must be the view type, so we can stop early.
                         if (isXaml && classes.Count > 0)
@@ -583,17 +696,18 @@ namespace MvvmTools.Services
             }
         }
 
-        private void FindDocumentsContainingTypesRecursive(
+        private void FindDocumentsContainingTypesRecursiveForCodeDom(
             ProjectItem excludeProjectItem,
             Project excludeProject,
             IEnumerable<ProjectItem> projectItems,
             List<string> typesToFind,
-            ProjectItem parentProjectItem, List<ProjectItemAndType> results)
+            ProjectItem parentProjectItem, 
+            List<DteProjectItemAndType> results)
         {
             if (typesToFind.Count == 0 || projectItems == null)
                 return;
 
-            var tmpResults = new List<ProjectItemAndType>();
+            var tmpResults = new List<DteProjectItemAndType>();
 
             foreach (ProjectItem pi in projectItems)
             {
@@ -610,7 +724,7 @@ namespace MvvmTools.Services
                 if (pi.Name.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
                 {
                     if (pi.ProjectItems != null)
-                        this.FindDocumentsContainingTypesRecursive(excludeProjectItem, excludeProject,
+                        FindDocumentsContainingTypesRecursiveForCodeDom(excludeProjectItem, excludeProject,
                             pi.ProjectItems.Cast<ProjectItem>(), typesToFind,
                             pi, tmpResults);
                 }
@@ -618,7 +732,7 @@ namespace MvvmTools.Services
                 {
                     var items = pi.ProjectItems ?? pi.SubProject?.ProjectItems;
                     if (items != null)
-                        this.FindDocumentsContainingTypesRecursive(excludeProjectItem, excludeProject,
+                        FindDocumentsContainingTypesRecursiveForCodeDom(excludeProjectItem, excludeProject,
                             items.Cast<ProjectItem>(), typesToFind,
                             null, tmpResults);
                 }
@@ -629,7 +743,7 @@ namespace MvvmTools.Services
                     continue;
 
                 // Search the classes in the project item.
-                var classesInProjectItem = this.GetClassesInProjectItem(pi);
+                var classesInProjectItem = GetClassesInProjectItemUsingCodeDom(pi);
 
                 var xamlSaved = false;
                 foreach (var c in classesInProjectItem)
@@ -639,11 +753,11 @@ namespace MvvmTools.Services
                         if (!xamlSaved && parentProjectItem != null)
                         {
                             // Parent is the xaml file corresponding to this xaml.cs or xaml.vb.  We save it once.
-                            tmpResults.Add(new ProjectItemAndType(parentProjectItem, c));
+                            tmpResults.Add(new DteProjectItemAndType(parentProjectItem, c));
                             xamlSaved = true;
                         }
 
-                        tmpResults.Add(new ProjectItemAndType(pi, c));
+                        tmpResults.Add(new DteProjectItemAndType(pi, c));
                     }
                 }
             }
@@ -668,12 +782,12 @@ namespace MvvmTools.Services
 
         private void ReloadSolution()
         {
-            this.SolutionLoadState = SolutionLoadState.Loading;
+            SolutionLoadState = SolutionLoadState.Loading;
 
             // Load solution into _solution.
-            lock (_solutionLock)
+            lock (solutionLock)
             {
-                var solution = _mvvmToolsPackage.Ide.Solution;
+                var solution = mvvmToolsPackage.Ide.Solution;
 
                 var solutionModel = new ProjectModel(
                     Path.GetFileNameWithoutExtension(solution.FullName),
@@ -693,12 +807,12 @@ namespace MvvmTools.Services
                 }
 
                 // Set the backing field as to not create a deadlock on _solutionLock.
-                _solutionModel = solutionModel;
+                this.solutionModel = solutionModel;
             }
 
-            this.SolutionLoadState = SolutionLoadState.Loaded;
+            SolutionLoadState = SolutionLoadState.Loaded;
         }
-        
+
         #endregion Private Methods
 
         #region IVsSolutionXXXXX
@@ -707,7 +821,7 @@ namespace MvvmTools.Services
 
         public int OnBeforeOpenSolution(string pszSolutionFilename)
         {
-            this.SolutionLoadState = SolutionLoadState.Loading;
+            SolutionLoadState = SolutionLoadState.Loading;
             return VsConstants.S_OK;
         }
 
@@ -736,7 +850,7 @@ namespace MvvmTools.Services
 
         public int OnAfterBackgroundSolutionLoadComplete()
         {
-            this.ReloadSolution();
+            ReloadSolution();
 
             return VsConstants.S_OK;
         }
@@ -783,13 +897,13 @@ namespace MvvmTools.Services
 
         int IVsSolutionEvents3.OnBeforeCloseSolution(object pUnkReserved)
         {
-            this.SolutionLoadState = SolutionLoadState.Unloading;
+            SolutionLoadState = SolutionLoadState.Unloading;
             return VsConstants.S_OK;
         }
 
         int IVsSolutionEvents3.OnAfterCloseSolution(object pUnkReserved)
         {
-            this.SolutionLoadState = SolutionLoadState.NoSolution;
+            SolutionLoadState = SolutionLoadState.NoSolution;
             return VsConstants.S_OK;
         }
 
@@ -865,7 +979,7 @@ namespace MvvmTools.Services
 
         int IVsSolutionEvents2.OnAfterCloseSolution(object pUnkReserved)
         {
-            this.SolutionLoadState = SolutionLoadState.NoSolution;
+            SolutionLoadState = SolutionLoadState.NoSolution;
             return VsConstants.S_OK;
         }
 
@@ -916,13 +1030,13 @@ namespace MvvmTools.Services
 
         int IVsSolutionEvents.OnBeforeCloseSolution(object pUnkReserved)
         {
-            this.SolutionLoadState = SolutionLoadState.Unloading;
+            SolutionLoadState = SolutionLoadState.Unloading;
             return VsConstants.S_OK;
         }
 
         int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved)
         {
-            this.SolutionLoadState = SolutionLoadState.NoSolution;
+            SolutionLoadState = SolutionLoadState.NoSolution;
             return VsConstants.S_OK;
         }
 
@@ -953,3 +1067,4 @@ namespace MvvmTools.Services
         #endregion IVsSolutionXXXXX
     }
 }
+

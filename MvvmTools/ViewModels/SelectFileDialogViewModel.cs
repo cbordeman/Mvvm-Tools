@@ -8,9 +8,9 @@ namespace MvvmTools.ViewModels
     {
         public List<ProjectItemAndType> Documents { get; set; }
 
-        public SelectFileDialogViewModel(List<ProjectItemAndType> documents, IUnityContainer container) : base(container)
+        public SelectFileDialogViewModel(IEnumerable<ProjectItemAndType> documents, IUnityContainer container) : base(container)
         {
-            Documents = documents;
+            Documents = new List<ProjectItemAndType>(documents);
         }
 
         #region SelectedDocument

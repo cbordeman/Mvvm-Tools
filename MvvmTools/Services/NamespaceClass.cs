@@ -2,9 +2,9 @@
 {
     public class NamespaceClass
     {
-        public NamespaceClass(string @namespace, string @class)
+        public NamespaceClass(string ns, string @class)
         {
-            this.Namespace = @namespace;
+            this.Namespace = ns;
             this.Class = @class;
         }
 

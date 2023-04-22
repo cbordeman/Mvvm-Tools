@@ -4,6 +4,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.TextManager.Interop;
+using MvvmTools.Commands.GoToVM;
 using MvvmTools.Models;
 using MvvmTools.Services;
 using MvvmTools.ViewModels;
@@ -41,7 +46,7 @@ namespace MvvmTools.Commands
 
                 if (pi != null)
                 {
-                    var classesInFile = SolutionService.GetClassesInProjectItem(pi);
+                    var classesInFile = SolutionService.GetClassesInProjectItemUsingCodeDom(pi);
 
                     if (classesInFile.Count == 0)
                     {
@@ -49,7 +54,7 @@ namespace MvvmTools.Commands
                         return;
                     }
 
-                    var settings = await SettingsService.LoadSettings();
+                    var settings = await SettingsService.LoadSettings().ConfigureAwait(true);
 
                     // Solution not fully loaded so settings not loaded either.
                     if (settings?.SolutionOptions == null)
@@ -83,28 +88,27 @@ namespace MvvmTools.Commands
                             ProjectIdentifier = settingsPm.ViewLocation.ProjectIdentifier ?? pi.ContainingProject.UniqueName
                         };
 
-                        docs = SolutionService.GetRelatedDocuments(
+                        docs = SolutionService.GetRelatedDocumentsUsingCodeDom(
                             viewModelLocationOptions,
                             viewLocationOptions,
                             pi,
                             classesInFile.Select(c => c.Class),
                             new[] { "uc" },
                             settings.ViewSuffixes,
-                            settingsPm.ViewModelSuffix);
+                            settingsPm.ViewModelSuffix).ToList();
                     }
                     else
-                        // Passing the first two parameters as null tells GetRelatedDocuments() to
-                        // search the entire solution.
-                        docs = SolutionService.GetRelatedDocuments(
-                            null,
-                            null,
+                    {
+                        // Searches the entire solution.
+                        docs = (await SolutionService.GetRelatedDocumentsUsingRoslyn(
                             pi,
                             classesInFile.Select(c => c.Class),
                             new[] { "uc" },
                             settings.ViewSuffixes,
-                            settings.SolutionOptions.ViewModelSuffix);
+                            settings.SolutionOptions.ViewModelSuffix).ConfigureAwait(true)).ToList();
+                    }
 
-                    if (docs.Count == 0)
+                    if (!docs.Any())
                     {
                         string classes = "\n        ";
                         foreach (var c in classesInFile)
@@ -118,10 +122,7 @@ namespace MvvmTools.Commands
 
                     if (docs.Count == 1 || settings.GoToViewOrViewModelOption == GoToViewOrViewModelOption.ChooseFirst)
                     {
-                        var win = docs[0].ProjectItem.Open();
-                        win.Visible = true;
-                        win.Activate();
-
+                        docs.First().Open();
                         return;
                     }
 
@@ -134,14 +135,14 @@ namespace MvvmTools.Commands
 
                     // If there are more than one .xaml files or there are more than one code
                     // behind files, then we must show the UI.
-                    var countXaml = docs.Count(d => d.ProjectItem.Name.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase));
+                    var countXaml = docs.Count(d => d.Filename.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase));
                     if (countXaml > 1)
                     {
                         PresentViewViewModelOptions(docs);
                         return;
                     }
-                    var countCodeBehind = docs.Count(d => d.ProjectItem.Name.EndsWith(".xaml.cs", StringComparison.OrdinalIgnoreCase) ||
-                                                          d.ProjectItem.Name.EndsWith(".xaml.vb", StringComparison.OrdinalIgnoreCase));
+                    var countCodeBehind = docs.Count(d => d.Filename.EndsWith(".xaml.cs", StringComparison.OrdinalIgnoreCase) ||
+                                                          d.Filename.EndsWith(".xaml.vb", StringComparison.OrdinalIgnoreCase));
                     if (countCodeBehind > 1)
                     {
                         PresentViewViewModelOptions(docs);
@@ -158,40 +159,24 @@ namespace MvvmTools.Commands
 
                     // If the remaining two files are xaml and code behind, we can apply the 
                     // 'prefer xaml' or 'prefer code behind' setting.
-                    if (string.Compare(docs[0].ProjectItem.Name, docs[1].ProjectItem.Name + ".cs", StringComparison.OrdinalIgnoreCase) == 0 ||
-                        string.Compare(docs[0].ProjectItem.Name, docs[1].ProjectItem.Name + ".vb", StringComparison.OrdinalIgnoreCase) == 0)
+                    if (string.Compare(docs[0].Filename, docs[1].Filename + ".cs", StringComparison.OrdinalIgnoreCase) == 0 ||
+                        string.Compare(docs[0].Filename, docs[1].Filename + ".vb", StringComparison.OrdinalIgnoreCase) == 0)
                     {
                         // First file is code behind, second is XAML.
                         if (settings.GoToViewOrViewModelOption == GoToViewOrViewModelOption.ChooseCodeBehind)
-                        {
                             //await (new JoinableTaskFactory(null)).SwitchToMainThreadAsync();
-                            var win = docs[0].ProjectItem.Open();
-                            win.Visible = true;
-                            win.Activate();
-                        }
+                            docs[0].Open();
                         else
-                        {
-                            var win = docs[1].ProjectItem.Open();
-                            win.Visible = true;
-                            win.Activate();
-                        }
+                            docs[1].Open();
                     }
-                    else if (string.Compare(docs[1].ProjectItem.Name, docs[0].ProjectItem.Name + ".cs", StringComparison.OrdinalIgnoreCase) == 0 ||
-                        string.Compare(docs[1].ProjectItem.Name, docs[0].ProjectItem.Name + ".vb", StringComparison.OrdinalIgnoreCase) == 0)
+                    else if (string.Compare(docs[1].Filename, docs[0].Filename + ".cs", StringComparison.OrdinalIgnoreCase) == 0 ||
+                        string.Compare(docs[1].Filename, docs[0].Filename + ".vb", StringComparison.OrdinalIgnoreCase) == 0)
                     {
                         // First file is XAML, second is code behind.
                         if (settings.GoToViewOrViewModelOption == GoToViewOrViewModelOption.ChooseXaml)
-                        {
-                            var win = docs[0].ProjectItem.Open();
-                            win.Visible = true;
-                            win.Activate();
-                        }
+                            docs[0].Open();
                         else
-                        {
-                            var win = docs[1].ProjectItem.Open();
-                            win.Visible = true;
-                            win.Activate();
-                        }
+                            docs[1].Open();
                     }
                     else
                     {
@@ -207,7 +192,7 @@ namespace MvvmTools.Commands
             }
         }
 
-        private void PresentViewViewModelOptions(List<ProjectItemAndType> docs)
+        private void PresentViewViewModelOptions(IEnumerable<ProjectItemAndType> docs)
         {
             var window = new SelectFileDialog();
             var vm = new SelectFileDialogViewModel(docs, Container);
@@ -216,12 +201,8 @@ namespace MvvmTools.Commands
             var result = window.ShowDialog();
 
             if (result.GetValueOrDefault())
-            {
                 // Go to the selected project item.
-                var win = vm.SelectedDocument.ProjectItem.Open();
-                win.Visible = true;
-                win.Activate();
-            }
+                vm.SelectedDocument.Open();
         }
     }
 }

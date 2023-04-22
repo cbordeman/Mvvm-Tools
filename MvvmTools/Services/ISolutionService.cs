@@ -46,7 +46,7 @@ namespace MvvmTools.Services
         /// </summary>
         /// <param name="pi">A ProjectItem containing the source or markup to be scanned.  If markup, the code behind will scanned instead.</param>
         /// <returns>A list of public, non-abstract classes and their namespaces.</returns>
-        List<NamespaceClass> GetClassesInProjectItem(ProjectItem pi);
+        List<NamespaceClass> GetClassesInProjectItemUsingCodeDom(ProjectItem pi);
 
         /// <summary>
         /// Locates types within the solution corresponding to a set of types, be they views or view models.
@@ -63,7 +63,7 @@ namespace MvvmTools.Services
         /// <param name="viewModelSuffix">The view model suffix such as 'ViewModel' or 'PresentationModel' to append to the 
         /// types in the 'typeNamesInFile' parameters to aid in locating potential corresponding view model types.</param>
         /// <returns>A list of potential types with their ProjectItem containers.</returns>
-        List<ProjectItemAndType> GetRelatedDocuments(
+        IEnumerable<ProjectItemAndType> GetRelatedDocumentsUsingCodeDom(
             LocationDescriptor viewModelsLocation,
             LocationDescriptor viewsLocation,
             ProjectItem pi,
@@ -72,6 +72,13 @@ namespace MvvmTools.Services
             string[] viewSuffixes,
             string viewModelSuffix);
 
+        Task<IEnumerable<ProjectItemAndType>> GetRelatedDocumentsUsingRoslyn(
+            ProjectItem pi,
+            IEnumerable<string> typeNamesInFile,
+            string[] viewPrefixes,
+            string[] viewSuffixes,
+            string viewModelSuffix);
+        
         /// <summary>
         /// Gets the solution as a project model, and all the projects and solution folders.  Project contents are <b>not</b> included.
         /// </summary>

@@ -1,28 +1,69 @@
 ﻿using EnvDTE;
+using Microsoft.CodeAnalysis;
+using Document = Microsoft.CodeAnalysis.Document;
 
 namespace MvvmTools.Services
 {
-    public class ProjectItemAndType
+    public abstract class ProjectItemAndType
     {
-        public ProjectItemAndType(ProjectItem projectItem, NamespaceClass type)
-        {
-            this.ProjectItem = projectItem;
-            this.Type = type;
-        }
-
-        public ProjectItem ProjectItem { get; set; }
-        public NamespaceClass Type { get; set; }
+        public virtual string Filename { get; }
+        public NamespaceClass Type { get; protected set; }
+        public abstract string ProjectName { get; }
 
         public string RelativeNamespace
         {
             get
             {
-                if (this.Type.Namespace == this.ProjectItem?.ContainingProject?.Name)
+                if (Type.Namespace == ProjectName)
                     return "(same)";
-                if (this.Type.Namespace.StartsWith(this.ProjectItem.ContainingProject.Name))
-                    return this.Type.Namespace.Substring(this.ProjectItem.ContainingProject.Name.Length);
-                return this.Type.Namespace;
+                if (Type.Namespace.StartsWith(ProjectName))
+                    return Type.Namespace.Substring(ProjectName.Length);
+                return Type.Namespace;
             }
+        }
+
+        public abstract void Open();
+    }
+
+    public class DteProjectItemAndType : ProjectItemAndType
+    {
+        private readonly ProjectItem projectItem;
+
+        public DteProjectItemAndType(ProjectItem projectItem, NamespaceClass type)
+        {
+            this.projectItem = projectItem;
+            Type = type;
+        }
+
+        public override string Filename => projectItem?.Name;
+        public override string ProjectName => projectItem?.ContainingProject?.Name;
+        public override void Open()
+        {
+            var w = projectItem.Open();
+            w.Visible = true;
+            w.Activate();
+        }
+    }
+
+    public class RoslynProjectItemAndType : ProjectItemAndType
+    {
+        private readonly Workspace workspace;
+        private readonly Document document;
+
+        public RoslynProjectItemAndType(Workspace workspace, Microsoft.CodeAnalysis.Document document, NamespaceClass type, string projectName)
+        {
+            this.workspace = workspace;
+            this.document = document;
+            ProjectName = projectName;
+            Type = type;
+        }
+
+        public override string Filename => document.Name;
+        public override string ProjectName { get; }
+        
+        public override void Open()
+        {
+            workspace.OpenDocument(document.Id);
         }
     }
 }
