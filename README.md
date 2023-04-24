@@ -4,7 +4,7 @@ A Visual Studio extension to quickly move between view/viewmodel and other for X
 
 MVVM Tools is NOT an MVVM library.  It works with any MVVM implementation.
 
-Copyright 2023 Chris Bordeman cbordeman@outlook.com
+Copyright 2021 Chris Bordeman
 
 LICENSE
 

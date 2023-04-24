@@ -60,7 +60,7 @@ namespace MvvmTools.ViewModels
         protected async Task<bool> ConfirmDiscard()
         {
             return await DialogService.Ask("Discard Changes?", "Cancel dialog?  You will lose any changes.",
-                        AskButton.OkCancel) == AskResult.Ok;
+                        AskButton.OKCancel) == AskResult.OK;
         }
 
         #endregion Protected Methods

@@ -1,5 +1,5 @@
-﻿using MvvmTools.Services;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using MvvmTools.Services;
 using Unity;
 
 namespace MvvmTools.ViewModels
@@ -8,9 +8,9 @@ namespace MvvmTools.ViewModels
     {
         public List<ProjectItemAndType> Documents { get; set; }
 
-        public SelectFileDialogViewModel(IEnumerable<ProjectItemAndType> documents, IUnityContainer container) : base(container)
+        public SelectFileDialogViewModel(List<ProjectItemAndType> documents, IUnityContainer container) : base(container)
         {
-            Documents = new List<ProjectItemAndType>(documents);
+            Documents = documents;
         }
 
         #region SelectedDocument
@@ -21,5 +21,6 @@ namespace MvvmTools.ViewModels
             set { SetProperty(ref _selectedDocument, value); }
         }
         #endregion SelectedDocument
+
     }
 }

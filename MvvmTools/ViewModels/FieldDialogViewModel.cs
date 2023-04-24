@@ -253,8 +253,8 @@ namespace MvvmTools.ViewModels
         public async void ExecuteDeleteChoiceCommand()
         {
             var vs = (StringViewModel) Choices?.CurrentItem;
-            if ((await DialogService.Ask("Delete Choice?", $"Delete choice \"{vs?.Value}?\"", AskButton.OkCancel)) ==
-                AskResult.Ok)
+            if ((await DialogService.Ask("Delete Choice?", $"Delete choice \"{vs?.Value}?\"", AskButton.OKCancel)) ==
+                AskResult.OK)
             {
                 Choices?.Remove(Choices.CurrentItem);
                 _choicesChanged = true;

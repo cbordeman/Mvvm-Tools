@@ -1,11 +1,11 @@
-﻿using MvvmTools.Models;
-using MvvmTools.Services;
-using MvvmTools.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Data;
+using MvvmTools.Models;
+using MvvmTools.Services;
+using MvvmTools.Utilities;
 using Unity;
 
 namespace MvvmTools.ViewModels
@@ -243,10 +243,10 @@ namespace MvvmTools.ViewModels
             try
             {
                 var t = (TemplateDialogViewModel)Templates.CurrentItem;
-                if ((await DialogService.Ask("Delete Template?", $"Delete template \"{t.Name}?\"", AskButton.OkCancel)) ==
-                    AskResult.Ok)
+                if ((await DialogService.Ask("Delete Template?", $"Delete template \"{t.Name}?\"", AskButton.OKCancel)) ==
+                    AskResult.OK)
                     if ((await DialogService.Ask("Are you sure?", $"Are you sure you want to DELETE template \"{t.Name}?\"",
-                                AskButton.OkCancel)) == AskResult.Ok)
+                                AskButton.OKCancel)) == AskResult.OK)
                     {
                         Templates.Remove(Templates.CurrentItem);
 
@@ -271,8 +271,8 @@ namespace MvvmTools.ViewModels
             try
             {
                 var t = (TemplateDialogViewModel)Templates.CurrentItem;
-                if ((await DialogService.Ask("Copy Template?", $"Copy template \"{t.Name}?\"", AskButton.OkCancel)) ==
-                    AskResult.Ok)
+                if ((await DialogService.Ask("Copy Template?", $"Copy template \"{t.Name}?\"", AskButton.OKCancel)) ==
+                    AskResult.OK)
                 {
                     var vm = Container.Resolve<TemplateDialogViewModel>();
                     vm.CopyFrom(t);

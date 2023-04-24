@@ -1,8 +1,4 @@
-﻿using Microsoft.VisualStudio.Threading;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace MvvmTools.Utilities
+﻿namespace MvvmTools.Utilities
 {
     public static class VsUtilities
     {

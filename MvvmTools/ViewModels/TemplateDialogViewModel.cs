@@ -255,9 +255,9 @@ namespace MvvmTools.ViewModels
         public async void ExecuteDeleteFieldCommand()
         {
             var vm = (FieldDialogViewModel) Fields.CurrentItem;
-            if ((await DialogService.Ask("Delete Field?", $"Delete field \"{vm.Name}?\"", AskButton.OkCancel)) == AskResult.Ok)
+            if ((await DialogService.Ask("Delete Field?", $"Delete field \"{vm.Name}?\"", AskButton.OKCancel)) == AskResult.OK)
             {
-                if ((await DialogService.Ask("Are you sure?", $"Are you sure you want to DELETE field \"{vm.Name}?\"", AskButton.OkCancel)) == AskResult.Ok)
+                if ((await DialogService.Ask("Are you sure?", $"Are you sure you want to DELETE field \"{vm.Name}?\"", AskButton.OKCancel)) == AskResult.OK)
                 {
                     var source = (ObservableCollection<FieldDialogViewModel>)Fields.SourceCollection;
                     source.Remove(vm);

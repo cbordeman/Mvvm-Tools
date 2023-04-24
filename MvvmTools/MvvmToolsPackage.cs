@@ -17,7 +17,6 @@ using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
@@ -48,12 +47,15 @@ namespace MvvmTools
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideOptionPage(typeof(OptionsPageGeneral), "MVVM Tools", "General", 101, 107, true)]
     [ProvideOptionPage(typeof(OptionsPageSolutionAndProjects), "MVVM Tools", "Solution and Projects", 101, 113, true)]
-    // This is the magic attribute required so VS can find 3rd party dlls.
-    [ProvideBindingPath]
+    ////[ProvideOptionPage(typeof(OptionsPageTemplateOptions), "MVVM Tools", "Template Options", 101, 114, true)]
+    ////[ProvideOptionPage(typeof(OptionsPageTemplateMaintenance), "MVVM Tools", "Template Maintenance", 101, 115, true)]
+    ////[InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
+    [ProvideBindingPath] // This is the magic attribute required so VS can find any 3rd party dlls.
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(Constants.GuidPackage)]
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     ////[ProvideAutoLoad(UIContextGuids.SolutionExists)]
-    [InstalledProductRegistration("MVVM Tools", "Provides access to your corresponding View/ViewModel via Ctrl+E,Q.", "0.5.0.0")]
+    //[InstalledProductRegistration("MVVM Tools", "Provides access to your corresponding View/ViewModel via Ctrl+E,Q.", "0.5.0.0")]
     [ProvideAutoLoad(VSConstants.UICONTEXT.ShellInitialized_string, PackageAutoLoadFlags.BackgroundLoad)]
     public sealed class MvvmToolsPackage : AsyncPackage, IMvvmToolsPackage
         //, IAsyncLoadablePackageInitialize
@@ -62,8 +64,8 @@ namespace MvvmTools
 
         #region Fields
 
-        private IVsSolution vsSolution;
-        private uint solutionEventsCookie;
+        private IVsSolution _vsSolution;
+        private uint _solutionEventsCookie;
 
         #endregion Fields
         
@@ -72,10 +74,10 @@ namespace MvvmTools
         /// <summary>
         /// An internal collection of the commands registered by this package.
         /// </summary>
-        private readonly ICollection<BaseCommand> commands = new List<BaseCommand>();
+        private readonly ICollection<BaseCommand> _commands = new List<BaseCommand>();
 
-        private DTE2 ide;
-        public DTE2 Ide => ide ?? (ide = (DTE2)GetService(typeof(DTE)));
+        private DTE2 _ide;
+        public DTE2 Ide => _ide ?? (_ide = (DTE2)GetService(typeof(DTE)));
 
         /// <summary>
         /// Gets the currently active document, otherwise null.
@@ -96,9 +98,9 @@ namespace MvvmTools
             }
         }
 
-        private double ideVersion;
+        private double _ideVersion;
 
-        public double IdeVersion => ideVersion != 0 ? ideVersion : (ideVersion = Convert.ToDouble(Ide.Version, CultureInfo.InvariantCulture));
+        public double IdeVersion => _ideVersion != 0 ? _ideVersion : (_ideVersion = Convert.ToDouble(Ide.Version, CultureInfo.InvariantCulture));
 
         #endregion Properties
 
@@ -123,35 +125,6 @@ namespace MvvmTools
         }
 
         #endregion Ctor and Init
-
-        //protected override object GetAutomationObject(string name)
-        //{
-        //    try
-        //    {
-        //        Trace.WriteLine($"Getting Automation object: {name}");
-        //        return base.GetAutomationObject(name);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        Trace.WriteLine(e);
-        //        throw;
-        //    }
-        //}
-
-        //protected override object GetService(Type serviceType)
-        //{
-        //    try
-        //    {
-        //        Trace.WriteLine($"Getting service type: {serviceType.Name}");
-        //        return base.GetService(serviceType);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        Trace.WriteLine(e);
-        //        throw;
-        //    }
-            
-        //}
 
         #region Private Helpers
 
@@ -188,13 +161,13 @@ namespace MvvmTools
         {
             try
             {
-                // Add package and package specific services.
+                                // Add package and package specific services.
                 Container.RegisterInstance<IMvvmToolsPackage>(this, new ContainerControlledLifetimeManager());
                 Container.RegisterInstance(GetGlobalService(typeof(SComponentModel)) as IComponentModel, new ContainerControlledLifetimeManager());
-                Container.RegisterInstance(await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(false) as IMenuCommandService, new ContainerControlledLifetimeManager());
+                Container.RegisterInstance(await GetServiceAsync(typeof(IMenuCommandService)) as IMenuCommandService, new ContainerControlledLifetimeManager());
 
                 // Templating services.
-                var tt = await GetServiceAsync(typeof(STextTemplating)).ConfigureAwait(false) as STextTemplating;
+                var tt = await GetServiceAsync(typeof(STextTemplating)) as STextTemplating;
                 Container.RegisterInstance((ITextTemplating)tt, new ContainerControlledLifetimeManager());
                 Container.RegisterInstance((ITextTemplatingEngineHost)tt, new ContainerControlledLifetimeManager());
                 Container.RegisterInstance((ITextTemplatingSessionHost)tt, new ContainerControlledLifetimeManager());
@@ -212,30 +185,36 @@ namespace MvvmTools
 
                 await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                // Register commands.
+                // Commands, which are singletons.
                 Container.RegisterType<GoToViewOrViewModelCommand>(new ContainerControlledLifetimeManager());
+                //Container.RegisterType<ScaffoldViewAndViewModelCommand>(new ContainerControlledLifetimeManager());
+                //Container.RegisterType<ExtractViewModelFromViewCommand>(new ContainerControlledLifetimeManager());
 
+                //ServiceLocator.SetLocatorProvider(() => new NinjectServiceLocator(Container));
+                
                 // Add solution services.
                 Container.RegisterInstance(Ide, new ContainerControlledLifetimeManager());
                 Container.RegisterType<ISolutionService, SolutionService>(new ContainerControlledLifetimeManager());
-                vsSolution = await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(false) as IVsSolution;
-                Assumes.Present(vsSolution);
-                Container.RegisterInstance(vsSolution, new ContainerControlledLifetimeManager());
-
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                _vsSolution = await GetServiceAsync(typeof(SVsSolution))
+                    as IVsSolution;
+                Assumes.Present(_vsSolution);
+                Container.RegisterInstance(_vsSolution, new ContainerControlledLifetimeManager());
                 var ss = Container.Resolve<ISolutionService>();
-                ss.Init();
-                
-                int? result = vsSolution?.AdviseSolutionEvents(ss, out solutionEventsCookie);
+                await ss.Init();
+                var result = _vsSolution?.AdviseSolutionEvents(ss, out _solutionEventsCookie);
+
+                await base.InitializeAsync(cancellationToken, progress);
 
                 RegisterCommands();
-
-                Trace.WriteLine($"Solution loaded.  Result: {(result.HasValue ? result.Value.ToString() : "null")}");
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"MVVM Tools service startup failed: {ex}.");
+                Debug.WriteLine($"MVVM Tools service startup failed: {ex}.");
             }
+
+            // When initialized asynchronously, the current thread may be a background thread at this point.
+            // Do any initialization that requires the UI thread after switching to the UI thread.
+            await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);            
         }
         
         /// <summary>
@@ -248,12 +227,12 @@ namespace MvvmTools
             {
                 // Create the individual commands, which internally register for command events.
                 var gc = Container.Resolve<GoToViewOrViewModelCommand>();
-                commands.Add(gc);
+                _commands.Add(gc);
                 //_commands.Add(Container.Resolve<ScaffoldViewAndViewModelCommand>());
                // _commands.Add(Container.Resolve<ExtractViewModelFromViewCommand>());
 
                 // Add all commands to the menu command service.
-                foreach (var command in commands)
+                foreach (var command in _commands)
                     menuCommandService.AddCommand(command);
                 
                 //menuCommandService.FindCommand(_commands)
@@ -265,10 +244,10 @@ namespace MvvmTools
             try
             {
                 await JoinableTaskFactory.SwitchToMainThreadAsync();
-                if (solutionEventsCookie != 0)
+                if (_solutionEventsCookie != 0)
                 {
-                    vsSolution.UnadviseSolutionEvents(solutionEventsCookie);
-                    solutionEventsCookie = 0;
+                    _vsSolution.UnadviseSolutionEvents(_solutionEventsCookie);
+                    _solutionEventsCookie = 0;
                 }
 
                 base.Dispose(disposing);
