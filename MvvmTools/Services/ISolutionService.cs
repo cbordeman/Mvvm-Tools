@@ -30,8 +30,8 @@ namespace MvvmTools.Services
         /// Called when solution is loaded.
         /// </summary>
         /// <returns></returns>
-        void Init();
-        
+        Task Init();
+
         /// <summary>
         /// Gets the root namespace (&apos;default&apos; namespace set in project properties.  Important
         /// when a class is not in a namespace or when doing VB where namespaces are relative to the project
@@ -46,7 +46,7 @@ namespace MvvmTools.Services
         /// </summary>
         /// <param name="pi">A ProjectItem containing the source or markup to be scanned.  If markup, the code behind will scanned instead.</param>
         /// <returns>A list of public, non-abstract classes and their namespaces.</returns>
-        List<NamespaceClass> GetClassesInProjectItemUsingCodeDom(ProjectItem pi);
+        List<NamespaceClass> GetClassesInProjectItem(ProjectItem pi);
 
         /// <summary>
         /// Locates types within the solution corresponding to a set of types, be they views or view models.
@@ -63,16 +63,9 @@ namespace MvvmTools.Services
         /// <param name="viewModelSuffix">The view model suffix such as 'ViewModel' or 'PresentationModel' to append to the 
         /// types in the 'typeNamesInFile' parameters to aid in locating potential corresponding view model types.</param>
         /// <returns>A list of potential types with their ProjectItem containers.</returns>
-        List<ProjectItemAndType> GetRelatedDocumentsUsingCodeDom(
+        List<ProjectItemAndType> GetRelatedDocuments(
             LocationDescriptor viewModelsLocation,
             LocationDescriptor viewsLocation,
-            ProjectItem pi,
-            IEnumerable<string> typeNamesInFile,
-            string[] viewPrefixes,
-            string[] viewSuffixes,
-            string viewModelSuffix);
-
-        Task<List<ProjectItemAndType>> GetRelatedDocumentsUsingRoslyn(
             ProjectItem pi,
             IEnumerable<string> typeNamesInFile,
             string[] viewPrefixes,
