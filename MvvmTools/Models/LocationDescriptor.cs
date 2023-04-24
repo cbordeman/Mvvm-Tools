@@ -2,6 +2,11 @@
 {
     public class LocationDescriptor
     {
+        public LocationDescriptor()
+        {
+            
+        }
+
         // The current project is assumed if null.
         public string ProjectIdentifier { get; set; }
         

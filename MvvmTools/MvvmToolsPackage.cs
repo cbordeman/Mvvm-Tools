@@ -188,7 +188,7 @@ namespace MvvmTools
         {
             try
             {
-                                // Add package and package specific services.
+                // Add package and package specific services.
                 Container.RegisterInstance<IMvvmToolsPackage>(this, new ContainerControlledLifetimeManager());
                 Container.RegisterInstance(GetGlobalService(typeof(SComponentModel)) as IComponentModel, new ContainerControlledLifetimeManager());
                 Container.RegisterInstance(await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(false) as IMenuCommandService, new ContainerControlledLifetimeManager());
@@ -212,38 +212,30 @@ namespace MvvmTools
 
                 await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                // Commands, which are singletons.
+                // Register commands.
                 Container.RegisterType<GoToViewOrViewModelCommand>(new ContainerControlledLifetimeManager());
-                //Container.RegisterType<ScaffoldViewAndViewModelCommand>(new ContainerControlledLifetimeManager());
-                //Container.RegisterType<ExtractViewModelFromViewCommand>(new ContainerControlledLifetimeManager());
 
-                //ServiceLocator.SetLocatorProvider(() => new NinjectServiceLocator(Container));
-                
                 // Add solution services.
                 Container.RegisterInstance(Ide, new ContainerControlledLifetimeManager());
                 Container.RegisterType<ISolutionService, SolutionService>(new ContainerControlledLifetimeManager());
-                vsSolution = await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(false)
-                    as IVsSolution;
+                vsSolution = await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(false) as IVsSolution;
                 Assumes.Present(vsSolution);
                 Container.RegisterInstance(vsSolution, new ContainerControlledLifetimeManager());
-                var ss = Container.Resolve<ISolutionService>();
-                await ss.Init().ConfigureAwait(false);
-                int? result = vsSolution?.AdviseSolutionEvents(ss, out solutionEventsCookie);
-                
-                Trace.WriteLine($"Solution loaded.  Result: {(result.HasValue ? result.Value.ToString() : "null")}");
 
-                await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(false);
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                var ss = Container.Resolve<ISolutionService>();
+                ss.Init();
+                
+                int? result = vsSolution?.AdviseSolutionEvents(ss, out solutionEventsCookie);
 
                 RegisterCommands();
+
+                Trace.WriteLine($"Solution loaded.  Result: {(result.HasValue ? result.Value.ToString() : "null")}");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"MVVM Tools service startup failed: {ex}.");
+                Trace.WriteLine($"MVVM Tools service startup failed: {ex}.");
             }
-
-            // When initialized asynchronously, the current thread may be a background thread at this point.
-            // Do any initialization that requires the UI thread after switching to the UI thread.
-            await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);            
         }
         
         /// <summary>

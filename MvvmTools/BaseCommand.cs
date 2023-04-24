@@ -64,7 +64,7 @@ namespace MvvmTools
         private static void BaseCommand_Execute(object sender, EventArgs e)
         {
             var command = sender as BaseCommand;
-            command.OnExecuteAsync().Wait();
+            command?.OnExecuteAsync().ConfigureAwait(true);
         }
 
         #endregion Event Handlers

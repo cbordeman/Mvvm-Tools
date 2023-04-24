@@ -1,21 +1,18 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Threading;
+using MvvmTools.Models;
+using MvvmTools.Services;
+using MvvmTools.ViewModels;
+using MvvmTools.Views;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices;
-using Microsoft.VisualStudio.TextManager.Interop;
-using MvvmTools.Commands.GoToVM;
-using MvvmTools.Models;
-using MvvmTools.Services;
-using MvvmTools.ViewModels;
-using MvvmTools.Views;
 using Unity;
 
-// ReSharper disable HeapView.BoxingAllocation
+#pragma warning disable VSTHRD010
+#pragma warning disable VSTHRD200
 
 namespace MvvmTools.Commands
 {
@@ -48,6 +45,7 @@ namespace MvvmTools.Commands
                 {
                     var classesInFile = SolutionService.GetClassesInProjectItemUsingCodeDom(pi);
 
+                    await TaskScheduler.Default;
                     if (classesInFile.Count == 0)
                     {
                         MessageBox.Show("No classes found in file.", "MVVM Tools");
@@ -65,27 +63,29 @@ namespace MvvmTools.Commands
                     if (!settings.GoToViewOrViewModelSearchSolution)
                     {
                         // ProjectModel from which to derive initial settings.
+                        //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                         var settingsPm =
                             settings.ProjectOptions.FirstOrDefault(
-                                p => p.ProjectModel.ProjectIdentifier == pi.ContainingProject.UniqueName);
+                                p => p.ProjectModel.ProjectIdentifier == pi.ContainingProject?.UniqueName);
 
                         // This shouldn't be null unless the user adds a new project and then
                         // quickly invokes this command, but better to check it.
                         if (settingsPm == null)
                             settingsPm = settings.SolutionOptions;
 
+                        //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                         var viewModelLocationOptions = new LocationDescriptor
                         {
                             Namespace = settingsPm.ViewModelLocation.Namespace,
                             PathOffProject = settingsPm.ViewModelLocation.PathOffProject,
-                            ProjectIdentifier = settingsPm.ViewModelLocation.ProjectIdentifier ?? pi.ContainingProject.UniqueName
+                                ProjectIdentifier = settingsPm.ViewModelLocation.ProjectIdentifier ?? pi.ContainingProject?.UniqueName
                         };
 
                         var viewLocationOptions = new LocationDescriptor()
                         {
                             Namespace = settingsPm.ViewLocation.Namespace,
                             PathOffProject = settingsPm.ViewLocation.PathOffProject,
-                            ProjectIdentifier = settingsPm.ViewLocation.ProjectIdentifier ?? pi.ContainingProject.UniqueName
+                            ProjectIdentifier = settingsPm.ViewLocation.ProjectIdentifier ?? pi.ContainingProject?.UniqueName
                         };
 
                         docs = SolutionService.GetRelatedDocumentsUsingCodeDom(
@@ -108,7 +108,7 @@ namespace MvvmTools.Commands
                             settings.SolutionOptions.ViewModelSuffix).ConfigureAwait(true)).ToList();
                     }
 
-                    if (!docs.Any())
+                    if (docs.Count == 0)
                     {
                         string classes = "\n        ";
                         foreach (var c in classesInFile)
@@ -122,14 +122,16 @@ namespace MvvmTools.Commands
 
                     if (docs.Count == 1 || settings.GoToViewOrViewModelOption == GoToViewOrViewModelOption.ChooseFirst)
                     {
-                        docs.First().Open();
+                        //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        await docs.First().Open();
                         return;
                     }
 
                     // Multiple results.
                     if (settings.GoToViewOrViewModelOption == GoToViewOrViewModelOption.ShowUi)
                     {
-                        PresentViewViewModelOptions(docs);
+                        //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        await PresentViewViewModelOptions(docs);
                         return;
                     }
 
@@ -138,14 +140,14 @@ namespace MvvmTools.Commands
                     var countXaml = docs.Count(d => d.Filename.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase));
                     if (countXaml > 1)
                     {
-                        PresentViewViewModelOptions(docs);
+                        await PresentViewViewModelOptions(docs);
                         return;
                     }
                     var countCodeBehind = docs.Count(d => d.Filename.EndsWith(".xaml.cs", StringComparison.OrdinalIgnoreCase) ||
                                                           d.Filename.EndsWith(".xaml.vb", StringComparison.OrdinalIgnoreCase));
                     if (countCodeBehind > 1)
                     {
-                        PresentViewViewModelOptions(docs);
+                        await PresentViewViewModelOptions(docs);
                         return;
                     }
 
@@ -153,7 +155,7 @@ namespace MvvmTools.Commands
                     var count = docs.Count;
                     if (count > 2)
                     {
-                        PresentViewViewModelOptions(docs);
+                        await PresentViewViewModelOptions(docs);
                         return;
                     }
 
@@ -165,34 +167,33 @@ namespace MvvmTools.Commands
                         // First file is code behind, second is XAML.
                         if (settings.GoToViewOrViewModelOption == GoToViewOrViewModelOption.ChooseCodeBehind)
                             //await (new JoinableTaskFactory(null)).SwitchToMainThreadAsync();
-                            docs[0].Open();
+                            await docs[0].Open();
                         else
-                            docs[1].Open();
+                            await docs[1].Open();
                     }
                     else if (string.Compare(docs[1].Filename, docs[0].Filename + ".cs", StringComparison.OrdinalIgnoreCase) == 0 ||
                         string.Compare(docs[1].Filename, docs[0].Filename + ".vb", StringComparison.OrdinalIgnoreCase) == 0)
                     {
                         // First file is XAML, second is code behind.
                         if (settings.GoToViewOrViewModelOption == GoToViewOrViewModelOption.ChooseXaml)
-                            docs[0].Open();
+                            await docs[0].Open();
                         else
-                            docs[1].Open();
+                            await docs[1].Open();
                     }
                     else
                     {
                         // The two files are unrelated, must show UI.
-                        PresentViewViewModelOptions(docs);
+                        await PresentViewViewModelOptions(docs);
                     }
                 }
             }
             catch (Exception e)
             {
-                Debug.WriteLine(e);
-                //throw;
+                Trace.WriteLine(e);
             }
         }
 
-        private void PresentViewViewModelOptions(IEnumerable<ProjectItemAndType> docs)
+        private async Task PresentViewViewModelOptions(IEnumerable<ProjectItemAndType> docs)
         {
             var window = new SelectFileDialog();
             var vm = new SelectFileDialogViewModel(docs, Container);
@@ -202,7 +203,7 @@ namespace MvvmTools.Commands
 
             if (result.GetValueOrDefault())
                 // Go to the selected project item.
-                vm.SelectedDocument.Open();
+                await vm.SelectedDocument.Open();
         }
     }
 }

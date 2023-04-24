@@ -1,5 +1,9 @@
-﻿using EnvDTE;
+﻿using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using EnvDTE;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.Shell;
 using Document = Microsoft.CodeAnalysis.Document;
 
 namespace MvvmTools.Services
@@ -22,7 +26,7 @@ namespace MvvmTools.Services
             }
         }
 
-        public abstract void Open();
+        public abstract Task Open();
     }
 
     public class DteProjectItemAndType : ProjectItemAndType
@@ -37,11 +41,19 @@ namespace MvvmTools.Services
 
         public override string Filename => projectItem?.Name;
         public override string ProjectName => projectItem?.ContainingProject?.Name;
-        public override void Open()
+        public override async Task Open()
         {
-            var w = projectItem.Open();
-            w.Visible = true;
-            w.Activate();
+            try
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                var w = projectItem.Open();
+                w.Visible = true;
+                w.Activate();
+            }
+            catch (Exception e)
+            {
+                Trace.WriteLine(e);
+            }
         }
     }
 
@@ -50,7 +62,7 @@ namespace MvvmTools.Services
         private readonly Workspace workspace;
         private readonly Document document;
 
-        public RoslynProjectItemAndType(Workspace workspace, Microsoft.CodeAnalysis.Document document, NamespaceClass type, string projectName)
+        public RoslynProjectItemAndType(Workspace workspace, Document document, NamespaceClass type, string projectName)
         {
             this.workspace = workspace;
             this.document = document;
@@ -59,11 +71,20 @@ namespace MvvmTools.Services
         }
 
         public override string Filename => document.Name;
+        public string FilePath => document.FilePath;
         public override string ProjectName { get; }
         
-        public override void Open()
+        public override async Task Open()
         {
-            workspace.OpenDocument(document.Id);
+            try
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                workspace.OpenDocument(this.document.Id);
+            }
+            catch (Exception e)
+            {
+                Trace.WriteLine(e);
+            }
         }
     }
 }

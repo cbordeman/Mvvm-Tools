@@ -74,6 +74,7 @@
     <Compile Include="Behaviors\FolderDialogBehavior.cs" />
     <Compile Include="Commands\GoToViewOrViewModelCommand.cs" />
     <Compile Include="Commands\GoToVM\ClassVirtualizationVisitor.cs" />
+    <Compile Include="Commands\GoToVM\TypeDeclarationSyntaxExtensions.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Controls\BindingEvaluator.cs" />
     <Compile Include="Controls\ComboBoxEx.cs" />
@@ -280,6 +281,11 @@
     </PackageReference>
     <PackageReference Include="Microsoft.VSSDK.BuildTools">
       <Version>17.5.4072</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="MoreLinq.Source.MoreEnumerable.DistinctBy">
+      <Version>1.0.2</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
