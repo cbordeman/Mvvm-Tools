@@ -42,7 +42,7 @@ namespace MvvmTools.Services
         string GetProjectRootNamespace(Project p);
 
         /// <summary>
-        /// Given a source or XAML file, extracts all the public, non-abstract classes.
+        /// Given a source or XAML/AXAML file, extracts all the public, non-abstract classes.
         /// </summary>
         /// <param name="pi">A ProjectItem containing the source or markup to be scanned.  If markup, the code behind will scanned instead.</param>
         /// <returns>A list of public, non-abstract classes and their namespaces.</returns>

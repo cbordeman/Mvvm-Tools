@@ -132,7 +132,7 @@ namespace MvvmTools.Commands
                         return;
                     }
 
-                    // If there are more than one .xaml files or there are more than one code
+                    // If there are more than one .xaml/.axaml files or there are more than one code
                     // behind files, then we must show the UI.
                     var countXaml = docs.Count(d => d.ProjectItem.Name.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase));
                     if (countXaml > 1)
@@ -140,8 +140,11 @@ namespace MvvmTools.Commands
                         PresentViewViewModelOptions(docs);
                         return;
                     }
-                    var countCodeBehind = docs.Count(d => d.ProjectItem.Name.EndsWith(".xaml.cs", StringComparison.OrdinalIgnoreCase) ||
-                                                          d.ProjectItem.Name.EndsWith(".xaml.vb", StringComparison.OrdinalIgnoreCase));
+                    var countCodeBehind = docs.Count(d => 
+                        d.ProjectItem.Name.EndsWith(".xaml.cs", StringComparison.OrdinalIgnoreCase) ||
+                        d.ProjectItem.Name.EndsWith(".xaml.vb", StringComparison.OrdinalIgnoreCase) ||
+                        d.ProjectItem.Name.EndsWith(".axaml.cs", StringComparison.OrdinalIgnoreCase) ||
+                        d.ProjectItem.Name.EndsWith(".axaml.vb", StringComparison.OrdinalIgnoreCase));
                     if (countCodeBehind > 1)
                     {
                         PresentViewViewModelOptions(docs);
@@ -179,7 +182,7 @@ namespace MvvmTools.Commands
                     else if (string.Compare(docs[1].ProjectItem.Name, docs[0].ProjectItem.Name + ".cs", StringComparison.OrdinalIgnoreCase) == 0 ||
                         string.Compare(docs[1].ProjectItem.Name, docs[0].ProjectItem.Name + ".vb", StringComparison.OrdinalIgnoreCase) == 0)
                     {
-                        // First file is XAML, second is code behind.
+                        // First file is XAML/AXAML, second is code behind.
                         if (settings.GoToViewOrViewModelOption == GoToViewOrViewModelOption.ChooseXaml)
                         {
                             var win = docs[0].ProjectItem.Open();

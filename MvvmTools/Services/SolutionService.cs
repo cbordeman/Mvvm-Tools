@@ -250,7 +250,8 @@ namespace MvvmTools.Services
 
             if (!pi.Name.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) &&
                 !pi.Name.EndsWith(".vb", StringComparison.OrdinalIgnoreCase) &&
-                !pi.Name.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
+                !pi.Name.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase) &&
+                !pi.Name.EndsWith(".axaml", StringComparison.OrdinalIgnoreCase))
                 return rval;
 
             // If has children, that is the source file, check that instead.
@@ -264,7 +265,9 @@ namespace MvvmTools.Services
                 return rval;
 
             var isXaml = pi.Name.EndsWith(".xaml.cs", StringComparison.OrdinalIgnoreCase) ||
-                         pi.Name.EndsWith(".xaml.vb", StringComparison.OrdinalIgnoreCase);
+                         pi.Name.EndsWith(".xaml.vb", StringComparison.OrdinalIgnoreCase) ||
+                         pi.Name.EndsWith(".axaml.cs", StringComparison.OrdinalIgnoreCase) ||
+                         pi.Name.EndsWith(".axaml.vb", StringComparison.OrdinalIgnoreCase);
 
             // If no namespace in file, then the project's default namespace is used.  This is
             // common in VB projects but rare in C#.
@@ -278,7 +281,7 @@ namespace MvvmTools.Services
             {
                 this.FindClassesRecursive(rval, ce, isXaml, rootNamespace);
 
-                // If a xaml.cs or xaml.vb code behind file, the first class must be the view type, so we can stop early.
+                // If a xaml/axaml code behind file, the first class must be the view type, so we can stop early.
                 if (isXaml && rval.Count > 0)
                     break;
             }
@@ -353,7 +356,7 @@ namespace MvvmTools.Services
                     pi,
                     true,
                     viewCandidateTypeNames);
-                // Then, search view models project, excluding any xaml files.
+                // Then, search view models project, excluding any xaml/axaml files.
                 var vmDocs = FindDocumentsContainingTypes(
                     viewModelsLocation,
                     viewModelsProject,
@@ -362,7 +365,8 @@ namespace MvvmTools.Services
                     true,
                     viewModelCandidateTypeNames);
                 rval.AddRange(vmDocs.Where(d =>
-                    d.ProjectItem.Name.IndexOf(".xaml.", StringComparison.OrdinalIgnoreCase) == -1));
+                    d.ProjectItem.Name.IndexOf(".xaml.", StringComparison.OrdinalIgnoreCase) == -1 ||
+                    d.ProjectItem.Name.IndexOf(".axaml.", StringComparison.OrdinalIgnoreCase) == -1));
 
                 return rval;
             }
@@ -612,7 +616,7 @@ namespace MvvmTools.Services
                     {
                         this.FindClassesRecursive(classes, childElement, isXaml, rootNamespace);
 
-                        // If a xaml.cs or xaml.vb code behind file, the first class must be the view type, so we can stop early.
+                        // If a xaml/axaml code behind file, the first class must be the view type, so we can stop early.
                         if (isXaml && classes.Count > 0)
                             return;
                     }
@@ -649,7 +653,8 @@ namespace MvvmTools.Services
                     return;
 
                 // Recursive call
-                if (pi.Name.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
+                if (pi.Name.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase) ||
+                    pi.Name.EndsWith(".axaml", StringComparison.OrdinalIgnoreCase))
                 {
                     if (pi.ProjectItems != null)
                         FindDocumentsContainingTypesRecursive(excludeProjectItem, excludeProject,
@@ -688,7 +693,7 @@ namespace MvvmTools.Services
                         {
                             if (!xamlSaved && parentProjectItem != null)
                             {
-                                // Parent is the xaml file corresponding to this xaml.cs or xaml.vb.  We save it once.
+                                // Parent is the xaml/axaml file corresponding to this ?xaml.cs or ?xaml.vb.  We save it once.
                                 tmpResults.Add(new ProjectItemAndType(parentProjectItem, c));
                                 xamlSaved = true;
                             }
